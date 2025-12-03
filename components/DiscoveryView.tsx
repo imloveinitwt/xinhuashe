@@ -1,84 +1,85 @@
 
-import React, { useState } from 'react';
-import { Heart, Eye, Filter, Sparkles, Search, BadgeCheck, X, Briefcase, Trophy, Flame, ChevronDown, SlidersHorizontal, ArrowDownWideNarrow, ArrowUpNarrowWide } from 'lucide-react';
-import { MOCK_ARTWORKS, MOCK_CREATORS, MOCK_EVENTS } from '../constants';
+import React, { useState, useEffect } from 'react';
+import { 
+  Heart, Eye, Filter, Sparkles, Search, BadgeCheck, X, Briefcase, 
+  Trophy, Flame, SlidersHorizontal, ArrowUpRight, TrendingUp, Zap, Newspaper, ArrowRight
+} from 'lucide-react';
+import { MOCK_ARTWORKS, MOCK_CREATORS, MOCK_EVENTS, MOCK_ARTICLES } from '../constants';
+import { User } from '../types';
 
 interface DiscoveryViewProps {
   onNavigateToProfile?: (profileId: string) => void;
+  onTriggerLogin?: () => void;
+  user?: User | null;
 }
 
 type SortOption = 'recommended' | 'likes' | 'views';
 type AiFilterOption = 'all' | 'ai_only' | 'human_only';
 
-const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile }) => {
-  // State for Filters
+const TRENDING_TOPICS = [
+  { id: 1, title: '赛博朋克 2077', count: '1.2w 关注', image: 'https://image.pollinations.ai/prompt/cyberpunk%20city%20neon%20night?width=400&height=200&nologo=true', query: '赛博朋克' },
+  { id: 2, title: '国风水墨', count: '8.5k 关注', image: 'https://image.pollinations.ai/prompt/chinese%20ink%20painting%20mountains?width=400&height=200&nologo=true', query: '水墨' },
+  { id: 3, title: '极简 3D', count: '2.4w 关注', image: 'https://image.pollinations.ai/prompt/minimalist%203d%20shapes%20pastel?width=400&height=200&nologo=true', query: '3D' },
+  { id: 4, title: '吉卜力画风', count: '5.6k 关注', image: 'https://image.pollinations.ai/prompt/ghibli%20anime%20style%20grass%20field?width=400&height=200&nologo=true', query: '二次元' },
+];
+
+const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTriggerLogin, user }) => {
   const [activeFilter, setActiveFilter] = useState('全部');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAdvancedFilterOpen, setIsAdvancedFilterOpen] = useState(false);
-  
-  // Advanced Filter States
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>('recommended');
   const [aiFilter, setAiFilter] = useState<AiFilterOption>('all');
-  const [verifiedOnly, setVerifiedOnly] = useState(false);
-
   const [likedArtworks, setLikedArtworks] = useState<Set<string>>(new Set());
+  const [isScrolled, setIsScrolled] = useState(false);
 
-  // Combine original and reversed mock data to simulate a larger grid, ensuring unique keys
-  const allArtworks = [
-    ...MOCK_ARTWORKS.map(art => ({ ...art, renderKey: art.id })),
-    ...[...MOCK_ARTWORKS].reverse().map(art => ({ ...art, renderKey: `dup-${art.id}` }))
-  ];
+  const categories = ['全部', 'UI/UX', '插画', '3D模型', '概念设计', '二次元', '场景', '科幻', '像素画'];
+  const trendingTags = ['赛博朋克', '国风', 'Blender', '机甲', '极简主义'];
 
-  // Logic to process artworks based on all active filters
-  const visibleArtworks = allArtworks
-    .filter(art => {
-      // 1. Category Filter
-      if (activeFilter !== '全部' && !art.tags.includes(activeFilter)) return false;
+  // Handle scroll for sticky effects
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 300);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-      // 2. Search Query (Title or Artist)
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        const matchesTitle = art.title.toLowerCase().includes(query);
-        const matchesArtist = art.artist.toLowerCase().includes(query);
-        if (!matchesTitle && !matchesArtist) return false;
-      }
-
-      // 3. AI Filter
-      if (aiFilter === 'ai_only' && !art.isAiGenerated) return false;
-      if (aiFilter === 'human_only' && art.isAiGenerated) return false;
-
-      // 4. Verified Filter
-      if (verifiedOnly && !art.isVerified) return false;
-
-      return true;
-    })
-    .sort((a, b) => {
-      // 5. Sorting
-      if (sortOption === 'likes') return b.likes - a.likes;
-      if (sortOption === 'views') return b.views - a.views;
-      return 0; // Default order (Recommended)
-    });
-
-  const categories = ['全部', '插画', '游戏原画', 'UI/UX', '3D模型', '动画'];
-
-  const toggleLike = (id: string) => {
-    setLikedArtworks(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
+  const toggleLike = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // If not logged in, trigger login
+    if (!user && onTriggerLogin) {
+      onTriggerLogin();
+      return;
+    }
+    const newLiked = new Set(likedArtworks);
+    if (newLiked.has(id)) {
+      newLiked.delete(id);
+    } else {
+      newLiked.add(id);
+    }
+    setLikedArtworks(newLiked);
   };
 
-  const handleArtistClick = (artistName: string) => {
+  const handleArtistClick = (e: React.MouseEvent, artistName: string) => {
+    e.stopPropagation();
     if (onNavigateToProfile) {
-      // Demo logic: map specific names to specific mock profile IDs
       if (artistName === 'NeonDreamer') onNavigateToProfile('p_neon');
+      else if (artistName === 'ArtMaster') onNavigateToProfile('p_artmaster');
       else if (artistName === 'InkFlow') onNavigateToProfile('p_ink');
-      else onNavigateToProfile('p_artmaster'); // Fallback
+      else {
+        // Fallback or Generic Profile
+        console.log('Navigate to generic profile');
+      }
+    }
+  };
+
+  const handleHireClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user && onTriggerLogin) {
+      onTriggerLogin();
+    } else {
+      // Navigate to project creation or message
+      console.log("Hire clicked");
     }
   };
 
@@ -86,354 +87,371 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile }) =>
     e.currentTarget.src = 'https://placehold.co/600x400/f1f5f9/94a3b8?text=Image+Load+Error';
   };
 
-  const handleAvatarError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = 'https://ui-avatars.com/api/?name=User&background=cbd5e1&color=fff';
-  };
+  // Filter Logic
+  const filteredArtworks = MOCK_ARTWORKS.filter(art => {
+    const matchCategory = activeFilter === '全部' || art.tags.includes(activeFilter);
+    const matchSearch = 
+      art.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      art.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      art.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchAi = 
+      aiFilter === 'all' ? true :
+      aiFilter === 'ai_only' ? art.isAiGenerated :
+      !art.isAiGenerated;
+
+    return matchCategory && matchSearch && matchAi;
+  }).sort((a, b) => {
+    if (sortOption === 'likes') return b.likes - a.likes;
+    if (sortOption === 'views') return b.views - a.views;
+    return 0;
+  });
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-20 pb-10 px-4 md:px-8 max-w-[1440px] mx-auto">
+    <div className="min-h-screen bg-slate-50/50 pb-20 font-sans">
       
-      {/* Top Section: Events Banner (Integration of Gracg/Huashi6 Features) */}
-      <div className="mb-10">
-        <div className="flex items-center gap-2 mb-4">
-          <Trophy className="w-5 h-5 text-amber-500" />
-          <h2 className="text-xl font-bold text-slate-900">热门赛事与活动</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {MOCK_EVENTS.map(event => (
-            <div key={event.id} className="relative rounded-xl overflow-hidden group cursor-pointer shadow-sm hover:shadow-md transition-all h-40">
-              <img 
-                src={event.coverUrl} 
-                alt={event.title} 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                onError={handleImageError}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-6">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <span className="inline-block bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full mb-2">进行中</span>
-                    <h3 className="text-white font-bold text-lg">{event.title}</h3>
-                    <p className="text-slate-300 text-xs mt-1">截止: {event.deadline}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-amber-400 font-bold text-lg">{event.prize}</p>
-                    <p className="text-slate-400 text-xs">总奖池</p>
-                  </div>
-                </div>
+      {/* 1. Hero Section: Integrated with Value Prop */}
+      <div className="relative pt-32 pb-16 px-6 overflow-hidden bg-white border-b border-slate-100">
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.4] pointer-events-none"></div>
+        {/* Background Blobs */}
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-indigo-50 rounded-full blur-3xl opacity-60 animate-float"></div>
+        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-pink-50 rounded-full blur-3xl opacity-60 animate-float" style={{ animationDelay: '2s' }}></div>
+
+        <div className="max-w-4xl mx-auto text-center relative z-10 animate-fade-in-up">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-semibold mb-6">
+            <Sparkles className="w-3 h-3" />
+            连接无限创意 · 驱动商业价值
+          </div>
+          <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 mb-6 tracking-tight leading-tight">
+            全链路创意生态，<br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-pink-500">
+              让灵感快速落地
+            </span>
+          </h1>
+          <p className="text-lg text-slate-500 max-w-2xl mx-auto mb-10 leading-relaxed">
+            整合米画师交易模式与特赞企业级DAM服务。
+            <br className="hidden md:block"/>
+            无论是寻找顶级画师，还是管理企业创意资产，这里都是您的最佳起点。
+          </p>
+          
+          {/* Main Search Bar */}
+          <div className="relative max-w-2xl mx-auto group z-20 mb-8">
+            <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500"></div>
+            <div className="relative bg-white rounded-2xl shadow-xl flex items-center p-2 border border-slate-100">
+              <div className="pl-4 text-slate-400">
+                <Search className="w-6 h-6" />
               </div>
+              <input 
+                type="text" 
+                placeholder="搜索 '赛博朋克' 或 'UI设计'..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 px-4 py-3 outline-none text-lg text-slate-700 placeholder-slate-400 bg-transparent"
+              />
+              <button className="hidden md:flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-xl font-medium transition-colors">
+                搜索
+              </button>
             </div>
-          ))}
+          </div>
+
+          {/* Guest CTA Buttons */}
+          {!user && (
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in">
+               <button 
+                 onClick={onTriggerLogin}
+                 className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-bold shadow-lg shadow-indigo-200 transition-all transform hover:-translate-y-1 flex items-center gap-2"
+               >
+                 <Briefcase className="w-4 h-4" /> 我是企业主，发布需求
+               </button>
+               <button 
+                 onClick={onTriggerLogin}
+                 className="px-8 py-3 bg-white text-slate-700 border border-slate-200 hover:border-pink-300 hover:text-pink-600 rounded-full font-bold shadow-sm transition-all transform hover:-translate-y-1 flex items-center gap-2"
+               >
+                 <Sparkles className="w-4 h-4" /> 我是创作者，入驻接单
+               </button>
+            </div>
+          )}
+
+          {/* Trending Tags */}
+          <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm text-slate-500">
+            <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3" /> 热门搜索:</span>
+            {trendingTags.map(tag => (
+              <button 
+                key={tag} 
+                onClick={() => { setSearchQuery(tag); }}
+                className="hover:text-indigo-600 hover:underline decoration-indigo-600/30 underline-offset-4 transition-all"
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Left: Main Artwork Stream (Integration of Huajia/Huashilm) */}
-        <div className="flex-1">
+      {/* 1.5 Trending Topics Section */}
+      <div className="bg-white border-b border-slate-100 py-8">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center gap-2 mb-4">
+             <div className="bg-orange-100 p-1.5 rounded-lg">
+               <Flame className="w-4 h-4 text-orange-600" />
+             </div>
+             <h3 className="font-bold text-slate-800 text-base">正在热议</h3>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {TRENDING_TOPICS.map(topic => (
+              <div 
+                key={topic.id}
+                onClick={() => setSearchQuery(topic.query)}
+                className="group relative h-28 rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+              >
+                <img src={topic.image} alt={topic.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" onError={handleImageError} />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex flex-col justify-center px-5">
+                  <h4 className="text-white font-bold text-base mb-1 group-hover:text-indigo-300 transition-colors">{topic.title}</h4>
+                  <span className="text-white/70 text-xs font-medium flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3" />
+                    {topic.count}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Sticky Filter Bar */}
+      <div className={`sticky top-16 z-20 bg-white/80 backdrop-blur-md border-b border-slate-200 transition-all duration-300 ${isScrolled ? 'shadow-md py-2' : 'py-4'}`}>
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between gap-4">
           
-          {/* Filters & Search & Advanced Controls */}
-          <div className="sticky top-16 z-20 bg-slate-50/95 backdrop-blur-sm pt-4 pb-2 mb-4 border-b border-slate-200 transition-all">
-             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              {/* Category Tags */}
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full md:w-auto pb-2 md:pb-0">
-                {categories.map((cat) => (
-                  <button 
-                    key={cat}
-                    onClick={() => setActiveFilter(cat)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
-                      activeFilter === cat 
-                        ? 'bg-slate-900 text-white' 
-                        : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-400'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-              
-              {/* Search & Advanced Toggle */}
-              <div className="flex items-center gap-2 w-full md:w-auto">
-                 <div className="relative flex-1 md:w-64">
-                    <input 
-                      type="text" 
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="搜索作品、画师..." 
-                      className="w-full pl-9 pr-4 py-2 rounded-full border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
-                    />
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                    {searchQuery && (
-                      <button 
-                        onClick={() => setSearchQuery('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    )}
-                 </div>
-                 <button 
-                    onClick={() => setIsAdvancedFilterOpen(!isAdvancedFilterOpen)}
-                    className={`p-2 border rounded-full transition-colors flex items-center justify-center gap-2 px-3 shadow-sm ${
-                      isAdvancedFilterOpen || verifiedOnly || aiFilter !== 'all' || sortOption !== 'recommended'
-                        ? 'bg-indigo-50 border-indigo-200 text-indigo-600' 
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                    }`}
-                 >
-                    <SlidersHorizontal className="w-4 h-4" />
-                    <span className="hidden sm:inline text-sm font-medium">筛选</span>
-                    {isAdvancedFilterOpen ? <ArrowUpNarrowWide className="w-3 h-3" /> : <ArrowDownWideNarrow className="w-3 h-3" />}
-                 </button>
-              </div>
-            </div>
-
-            {/* Advanced Filters Panel */}
-            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isAdvancedFilterOpen ? 'max-h-64 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
-              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-6">
-                
-                {/* Sort Option */}
-                <div>
-                  <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">排序方式</h4>
-                  <div className="flex flex-col gap-2">
-                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                      <input type="radio" name="sort" checked={sortOption === 'recommended'} onChange={() => setSortOption('recommended')} className="text-indigo-600 focus:ring-indigo-500" />
-                      综合推荐
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                      <input type="radio" name="sort" checked={sortOption === 'likes'} onChange={() => setSortOption('likes')} className="text-indigo-600 focus:ring-indigo-500" />
-                      最多喜爱 (Likes)
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                      <input type="radio" name="sort" checked={sortOption === 'views'} onChange={() => setSortOption('views')} className="text-indigo-600 focus:ring-indigo-500" />
-                      最多浏览 (Views)
-                    </label>
-                  </div>
-                </div>
-
-                {/* Content Type (AI) */}
-                <div>
-                  <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">内容类型</h4>
-                  <div className="flex flex-col gap-2">
-                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                      <input type="radio" name="aifilter" checked={aiFilter === 'all'} onChange={() => setAiFilter('all')} className="text-indigo-600 focus:ring-indigo-500" />
-                      全部内容
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                      <input type="radio" name="aifilter" checked={aiFilter === 'human_only'} onChange={() => setAiFilter('human_only')} className="text-indigo-600 focus:ring-indigo-500" />
-                      仅人工创作
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                      <input type="radio" name="aifilter" checked={aiFilter === 'ai_only'} onChange={() => setAiFilter('ai_only')} className="text-indigo-600 focus:ring-indigo-500" />
-                      仅 AI 生成
-                    </label>
-                  </div>
-                </div>
-
-                {/* Creator Type */}
-                <div>
-                  <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">创作者</h4>
-                  <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer mt-1">
-                    <div className={`w-10 h-6 rounded-full p-1 transition-colors ${verifiedOnly ? 'bg-indigo-600' : 'bg-slate-200'}`} onClick={(e) => { e.preventDefault(); setVerifiedOnly(!verifiedOnly); }}>
-                      <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${verifiedOnly ? 'translate-x-4' : ''}`}></div>
-                    </div>
-                    <span className="flex items-center gap-1">仅看认证画师 <BadgeCheck className="w-3 h-3 text-blue-500" /></span>
-                  </label>
-                </div>
-
-              </div>
-              
-              {/* Reset Filters */}
-              <div className="mt-3 flex justify-end">
-                <button 
-                  onClick={() => {
-                    setSortOption('recommended');
-                    setAiFilter('all');
-                    setVerifiedOnly(false);
-                    setSearchQuery('');
-                    setActiveFilter('全部');
-                  }}
-                  className="text-xs text-slate-400 hover:text-red-500 flex items-center gap-1"
-                >
-                  <X className="w-3 h-3" /> 重置所有筛选
-                </button>
-              </div>
-            </div>
+          {/* Categories */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar mask-gradient-right flex-1">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveFilter(cat)}
+                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 border ${
+                  activeFilter === cat 
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-900/20' 
+                    : 'bg-transparent border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
 
-          {/* Result Count */}
-          <div className="mb-4 text-xs text-slate-500 font-medium">
-            共找到 {visibleArtworks.length} 个结果
-            {searchQuery && <span> · 搜索关键词: "{searchQuery}"</span>}
-          </div>
+          {/* Advanced Filter Trigger */}
+          <div className="relative flex-shrink-0">
+             <button 
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                  isFilterOpen 
+                    ? 'bg-indigo-50 text-indigo-600 border-indigo-200' 
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                <span className="hidden sm:inline">筛选 & 排序</span>
+                <span className="bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-xs ml-1">
+                  {filteredArtworks.length}
+                </span>
+             </button>
 
-          {/* Masonry Layout */}
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
-            {visibleArtworks.length > 0 ? visibleArtworks.map((art) => {
-              const isLiked = likedArtworks.has(art.id);
-              return (
-                <div key={art.renderKey} className="break-inside-avoid group relative rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-300">
-                  {/* Image */}
-                  <div className="relative">
-                    <img 
-                      src={art.imageUrl} 
-                      alt={art.title} 
-                      className="w-full h-auto object-cover min-h-[200px] bg-slate-100"
-                      onError={handleImageError}
-                      loading="lazy"
-                    />
-                    {/* Overlay on Hover */}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-[1px]">
-                       <button className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-full font-bold shadow-lg flex items-center gap-2 hover:scale-105 active:scale-95">
-                          <Briefcase className="w-5 h-5" />
-                          雇佣画师
-                       </button>
-                    </div>
-                    
-                    {art.isAiGenerated && (
-                      <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
-                        AI 生成
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Meta */}
-                  <div className="p-4">
-                    <h3 className="font-semibold text-slate-800 text-lg truncate" title={art.title}>{art.title}</h3>
-                    <div className="flex items-center justify-between mt-3 mb-3">
-                      <div 
-                        className="flex items-center gap-2 max-w-[65%] cursor-pointer hover:bg-slate-100 p-1 -ml-1 rounded transition-colors"
-                        onClick={() => handleArtistClick(art.artist)}
-                      >
-                        <img 
-                          src={art.artistAvatar} 
-                          alt={art.artist} 
-                          className="w-6 h-6 rounded-full flex-shrink-0 bg-slate-200" 
-                          onError={handleAvatarError}
-                        />
-                        <span className="text-sm text-slate-600 font-medium truncate" title={art.artist}>{art.artist}</span>
-                        {art.isVerified && (
-                          <span title="认证创作者" className="flex items-center">
-                            <BadgeCheck className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 text-slate-400 text-xs flex-shrink-0">
-                        <span className="flex items-center gap-1">
-                          <Eye className="w-3 h-3" />
-                          {(art.views / 1000).toFixed(1)}k
-                        </span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleLike(art.id);
-                          }}
-                          className={`flex items-center gap-1 cursor-pointer transition-colors ${
-                            isLiked ? 'text-pink-500' : 'text-slate-400 hover:text-pink-500'
-                          }`}
-                        >
-                          <Heart className={`w-3 h-3 ${isLiked ? 'fill-current' : ''}`} />
-                          {art.likes + (isLiked ? 1 : 0)}
-                        </button>
+             {/* Dropdown Panel */}
+             {isFilterOpen && (
+                <div className="absolute top-full right-0 mt-3 w-72 bg-white rounded-2xl shadow-2xl border border-slate-100 p-5 animate-scale-in origin-top-right">
+                  <div className="space-y-5">
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">排序方式</h4>
+                      <div className="space-y-2">
+                        {[
+                          { id: 'recommended', label: '综合推荐', icon: Zap },
+                          { id: 'likes', label: '最多喜爱', icon: Heart },
+                          { id: 'views', label: '最多浏览', icon: Eye }
+                        ].map(opt => (
+                          <button 
+                            key={opt.id}
+                            onClick={() => setSortOption(opt.id as any)}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
+                              sortOption === opt.id ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-slate-50 text-slate-600'
+                            }`}
+                          >
+                             <div className="flex items-center gap-2">
+                               <opt.icon className="w-4 h-4" />
+                               {opt.label}
+                             </div>
+                             {sortOption === opt.id && <div className="w-2 h-2 rounded-full bg-indigo-600"></div>}
+                          </button>
+                        ))}
                       </div>
                     </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {art.tags.map(tag => (
-                        <button
-                          key={tag}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActiveFilter(tag);
-                          }}
-                          className={`text-xs px-2 py-1 rounded-md transition-colors ${
-                            activeFilter === tag
-                              ? 'bg-indigo-100 text-indigo-700 font-medium'
-                              : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'
-                          }`}
-                        >
-                          #{tag}
-                        </button>
-                      ))}
+                    <div className="pt-4 border-t border-slate-100">
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">内容来源</h4>
+                      <div className="grid grid-cols-3 gap-2">
+                         <button onClick={() => setAiFilter('all')} className={`py-2 text-xs rounded-lg border ${aiFilter === 'all' ? 'bg-slate-800 text-white border-slate-800' : 'border-slate-200 text-slate-600'}`}>全部</button>
+                         <button onClick={() => setAiFilter('human_only')} className={`py-2 text-xs rounded-lg border ${aiFilter === 'human_only' ? 'bg-slate-800 text-white border-slate-800' : 'border-slate-200 text-slate-600'}`}>纯手绘</button>
+                         <button onClick={() => setAiFilter('ai_only')} className={`py-2 text-xs rounded-lg border ${aiFilter === 'ai_only' ? 'bg-slate-800 text-white border-slate-800' : 'border-slate-200 text-slate-600'}`}>AI</button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              );
-            }) : (
-              <div className="col-span-full py-20 text-center">
-                 <div className="inline-block p-4 bg-slate-100 rounded-full mb-4">
-                   <Search className="w-8 h-8 text-slate-400" />
-                 </div>
-                 <h3 className="text-lg font-medium text-slate-700">没有找到相关作品</h3>
-                 <p className="text-slate-500 text-sm mt-2">尝试切换关键词或调整筛选条件</p>
-                 <button 
-                   onClick={() => {
-                     setSearchQuery('');
-                     setAiFilter('all');
-                     setVerifiedOnly(false);
-                     setActiveFilter('全部');
-                   }}
-                   className="mt-4 text-indigo-600 hover:text-indigo-800 font-medium text-sm"
-                 >
+              )}
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Main Content Area */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          
+          {/* Artwork Grid (Masonry-like) */}
+          <div className="flex-1 min-w-0">
+             
+             {/* Section Title */}
+             <div className="flex items-center justify-between mb-6">
+               <h2 className="text-xl font-bold text-slate-900">推荐作品</h2>
+               {activeFilter !== '全部' && (
+                 <button onClick={() => setActiveFilter('全部')} className="text-sm text-indigo-600 font-medium hover:underline">
                    清除筛选
                  </button>
-              </div>
-            )}
-          </div>
-        </div>
+               )}
+             </div>
 
-        {/* Right: Sidebar - Top Creators (Integration of Huashi6 Rankings) */}
-        <div className="w-full lg:w-80 flex-shrink-0 space-y-8">
-           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 sticky top-24">
-              <div className="flex items-center gap-2 mb-6">
-                 <Flame className="w-5 h-5 text-red-500" />
-                 <h3 className="font-bold text-lg text-slate-800">推荐创作者</h3>
-              </div>
-              <div className="space-y-6">
-                 {MOCK_CREATORS.map((creator, index) => (
-                   <div 
-                     key={creator.id} 
-                     className="flex items-center gap-3 group cursor-pointer"
-                     onClick={() => handleArtistClick(creator.name === 'WLOP' ? 'p_neon' : 'p_artmaster')}
-                   >
-                      <div className="relative">
-                        <img 
-                          src={creator.avatar} 
-                          className="w-12 h-12 rounded-full border border-slate-100 group-hover:border-indigo-300 transition-colors bg-slate-200" 
-                          onError={handleAvatarError}
-                        />
-                        <div className="absolute -top-1 -left-1 w-5 h-5 bg-slate-900 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">
-                          {index + 1}
+             <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+                {filteredArtworks.map((artwork, idx) => (
+                  <div 
+                    key={artwork.id} 
+                    className="group relative bg-white rounded-2xl overflow-hidden shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:shadow-[0_8px_30px_-4px_rgba(6,81,237,0.2)] transition-all duration-300 break-inside-avoid transform hover:-translate-y-1"
+                    style={{ animationDelay: `${idx * 50}ms` }}
+                  >
+                    
+                    {/* Image Container */}
+                    <div className="relative overflow-hidden bg-slate-100">
+                      <img 
+                        src={artwork.imageUrl} 
+                        alt={artwork.title} 
+                        className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                        onError={handleImageError}
+                      />
+                      
+                      {/* Gradient Overlay (Hover) */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
+                         
+                         {/* Action Button */}
+                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full px-6 translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-75">
+                            <button 
+                              onClick={handleHireClick}
+                              className="w-full bg-white text-slate-900 hover:bg-indigo-50 font-bold py-3 rounded-xl shadow-lg transform active:scale-95 transition-all flex items-center justify-center gap-2"
+                            >
+                              <Briefcase className="w-4 h-4 text-indigo-600" />
+                              雇佣画师
+                            </button>
+                         </div>
+
+                         {/* Quick Actions */}
+                         <div className="flex justify-between items-end transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                           <div className="text-white flex-1 pr-4">
+                             <div className="flex flex-wrap gap-2 mb-2">
+                               {artwork.tags.slice(0, 2).map(tag => (
+                                 <span key={tag} className="text-[10px] font-bold bg-white/20 backdrop-blur-md px-2 py-1 rounded text-white">
+                                   #{tag}
+                                 </span>
+                               ))}
+                             </div>
+                           </div>
+                           <button 
+                             onClick={(e) => toggleLike(artwork.id, e)}
+                             className={`p-2.5 rounded-full backdrop-blur-md border transition-all ${likedArtworks.has(artwork.id) ? 'bg-rose-500 border-rose-500 text-white' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}`}
+                           >
+                             <Heart className={`w-5 h-5 ${likedArtworks.has(artwork.id) ? 'fill-current' : ''}`} />
+                           </button>
+                         </div>
+                      </div>
+                      
+                      {/* Badges */}
+                      <div className="absolute top-3 left-3 flex gap-2">
+                         {artwork.likes > 2000 && (
+                            <span className="bg-amber-400 text-white text-[10px] px-2 py-1 rounded-md font-bold shadow-sm flex items-center gap-1">
+                              <Flame className="w-3 h-3 fill-current" /> 热门
+                            </span>
+                         )}
+                      </div>
+                      {artwork.isAiGenerated && (
+                        <div className="absolute top-3 right-3">
+                           <span className="bg-purple-600/90 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-md font-bold shadow-sm flex items-center gap-1">
+                             <Sparkles className="w-3 h-3" /> AI
+                           </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Meta Info (Always Visible) */}
+                    <div className="p-4">
+                      <h3 className="font-bold text-slate-800 text-base mb-2 line-clamp-1 group-hover:text-indigo-600 transition-colors">
+                        {artwork.title}
+                      </h3>
+                      <div className="flex items-center justify-between">
+                        <div 
+                          className="flex items-center gap-2 cursor-pointer hover:opacity-75 transition-opacity"
+                          onClick={(e) => handleArtistClick(e, artwork.artist)}
+                        >
+                          <img 
+                            src={artwork.artistAvatar} 
+                            alt={artwork.artist} 
+                            className="w-8 h-8 rounded-full border border-slate-100 object-cover" 
+                            onError={handleImageError}
+                          />
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold text-slate-700 flex items-center gap-1">
+                              {artwork.artist}
+                              {artwork.isVerified && <BadgeCheck className="w-3 h-3 text-blue-500" />}
+                            </span>
+                            <span className="text-[10px] text-slate-400">2小时前发布</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-slate-400 font-medium">
+                           <span className="flex items-center gap-1 hover:text-slate-600">
+                             <Eye className="w-3.5 h-3.5" /> 
+                             {artwork.views > 1000 ? (artwork.views/1000).toFixed(1) + 'k' : artwork.views}
+                           </span>
+                           <span className={`flex items-center gap-1 ${likedArtworks.has(artwork.id) ? 'text-rose-500' : 'hover:text-slate-600'}`}>
+                             <Heart className={`w-3.5 h-3.5 ${likedArtworks.has(artwork.id) ? 'fill-current' : ''}`} /> 
+                             {likedArtworks.has(artwork.id) ? artwork.likes + 1 : artwork.likes}
+                           </span>
                         </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                         <div className="flex items-center gap-1">
-                           <h4 className="font-semibold text-slate-800 text-sm truncate">{creator.name}</h4>
-                           {creator.isVerified && <BadgeCheck className="w-3 h-3 text-blue-500" />}
-                         </div>
-                         <p className="text-xs text-slate-500 truncate">{creator.tags.join(' / ')}</p>
-                      </div>
-                      <button className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full hover:bg-indigo-100 transition-colors">
-                        关注
-                      </button>
-                   </div>
-                 ))}
-              </div>
-              <button className="w-full mt-6 py-2 text-sm text-slate-500 hover:text-slate-800 font-medium border-t border-slate-100">
-                查看完整榜单
-              </button>
-           </div>
-           
-           {/* Ad / Promo */}
-           <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white text-center">
-              <h3 className="font-bold text-lg mb-2">开通 Pro 会员</h3>
-              <p className="text-indigo-100 text-sm mb-4">解锁 4K 原图下载与专属课程</p>
-              <button className="bg-white text-indigo-700 px-6 py-2 rounded-full text-sm font-bold shadow-lg hover:scale-105 transition-transform">
-                 立即升级
-              </button>
-           </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+                    </div>
+                  </div>
+                ))}
+             </div>
+          </div>
 
-export default DiscoveryView;
+          {/* Right Sidebar (Sticky) */}
+          <div className="hidden lg:block w-80 flex-shrink-0 space-y-8">
+            <div className="sticky top-32 space-y-8">
+              
+              {/* Featured Artist of the Week */}
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="h-24 bg-gradient-to-r from-indigo-500 to-purple-500 relative">
+                   <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md px-2 py-1 rounded text-[10px] text-white font-bold">
+                     本周推荐
+                   </div>
+                </div>
+                <div className="px-6 pb-6 text-center -mt-10">
+                   <img 
+                     src={MOCK_CREATORS[0].avatar} 
+                     alt="Featured" 
+                     className="w-20 h-20 rounded-full border-4 border-white shadow-md mx-auto mb-3"
+                     onError={handleImageError}
+                   />
+                   <h3 className="font-bold text-slate-800 text-lg flex items-center justify-center gap-1">
+                     {MOCK_CREATORS[0].name}
+                     <BadgeCheck className="w-4 h-4 text-blue-500" />
+                   </h3>
+                   <p className="text-xs text-slate-500 mb-4">{MOCK_CREATORS[0].tags.join(' • ')}</p>
+                   <button className="w-full bg-slate-900 text-white py-2 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors">
+                     查看作品集
+                   </button>
+                </div>
+              </div>
+
+              {/* Latest News / Articles */}
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-2

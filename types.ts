@@ -1,4 +1,5 @@
 
+
 export type ViewMode = 'discovery' | 'workspace' | 'profile';
 export type WorkspaceTab = 'dashboard' | 'projects' | 'dam' | 'finance' | 'admin_users' | 'admin_roles';
 
@@ -168,4 +169,11 @@ export interface Invoice {
   title: string;
   status: 'paid' | 'unpaid' | 'processing';
   companyName: string;
+}
+
+export interface Article {
+  id: string;
+  title: string;
+  coverImage: string;
+  date: string;
 }

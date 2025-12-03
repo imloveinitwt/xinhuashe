@@ -1,5 +1,7 @@
 
-import { Artwork, Asset, Project, Task, Transaction, Invoice, Creator, Event, RoleDefinition, User, UserProfile } from './types';
+
+
+import { Artwork, Asset, Project, Task, Transaction, Invoice, Creator, Event, RoleDefinition, User, UserProfile, Article } from './types';
 
 // === RBAC CONFIGURATION ===
 // 模拟数据库中的 Roles 和 Permissions 表配置
@@ -178,7 +180,6 @@ export const MOCK_ARTWORKS: Artwork[] = [
     tags: ['动画', '二次元', '故事板'],
     isVerified: true
   },
-  // New Added Artworks
   {
     id: '11',
     title: '智能家居控制台 UI',
@@ -210,6 +211,40 @@ export const MOCK_ARTWORKS: Artwork[] = [
     likes: 980,
     views: 2100,
     tags: ['3D模型', 'Blender', '游戏资产'],
+    isVerified: true
+  },
+  // New Added Artworks
+  {
+    id: '14',
+    title: '浮空岛：天空之城',
+    artist: 'VoxelBuilder',
+    artistAvatar: 'https://ui-avatars.com/api/?name=Voxel+Builder&background=10b981&color=fff',
+    imageUrl: 'https://image.pollinations.ai/prompt/voxel%20art%20floating%20island%20sky%20castle%20clouds?width=600&height=600&nologo=true',
+    likes: 1350,
+    views: 2900,
+    tags: ['体素艺术', 'MagicaVoxel', '场景'],
+    isVerified: false
+  },
+  {
+    id: '15',
+    title: '印象派：雨中街景',
+    artist: 'OilPainter',
+    artistAvatar: 'https://ui-avatars.com/api/?name=Oil+Painter&background=f59e0b&color=fff',
+    imageUrl: 'https://image.pollinations.ai/prompt/impressionist%20oil%20painting%20rainy%20city%20street%20night%20reflections?width=600&height=400&nologo=true',
+    likes: 2800,
+    views: 6100,
+    tags: ['油画', '传统艺术', '印象派'],
+    isVerified: true
+  },
+  {
+    id: '16',
+    title: '异星战场概念图',
+    artist: 'MattePainter',
+    artistAvatar: 'https://ui-avatars.com/api/?name=Matte+Painter&background=6366f1&color=fff',
+    imageUrl: 'https://image.pollinations.ai/prompt/sci-fi%20alien%20battlefield%20matte%20painting%20epic%20scale?width=600&height=300&nologo=true',
+    likes: 4100,
+    views: 11000,
+    tags: ['MattePainting', '电影概念', '科幻'],
     isVerified: true
   }
 ];
@@ -357,7 +392,6 @@ export const MOCK_PROJECTS: Project[] = [
     description: '一套 20 张关于海洋生物的科普插画，风格需活泼生动。',
     coverImage: 'https://image.pollinations.ai/prompt/children%20book%20illustration%20ocean%20animals%20colorful?width=800&height=400&nologo=true'
   },
-  // New Added Project
   {
     id: 'p7',
     title: '金融科技 App 界面重构',
@@ -369,6 +403,19 @@ export const MOCK_PROJECTS: Project[] = [
     phase: 'UI设计',
     description: '为移动端银行应用提供全新的用户体验设计，包含暗色模式适配。',
     coverImage: 'https://image.pollinations.ai/prompt/fintech%20mobile%20app%20ui%20design%20dark%20mode%20modern?width=800&height=400&nologo=true'
+  },
+  // New Added Project
+  {
+    id: 'p8',
+    title: '可持续能源品牌宣传战役',
+    client: 'GreenEnergy',
+    status: '进行中',
+    budget: 75000,
+    deadline: '2024-03-15',
+    progress: 60,
+    phase: '物料延展',
+    description: '包含品牌视频、社交媒体海报及线下活动物料的全案设计。',
+    coverImage: 'https://image.pollinations.ai/prompt/sustainable%20energy%20brand%20campaign%20poster%20wind%20solar%20clean?width=800&height=400&nologo=true'
   }
 ];
 
@@ -458,13 +505,15 @@ export const MOCK_ASSETS: Asset[] = [
   { id: 'f2', name: '游戏资产 v2', type: 'folder', modified: '1周前', version: '-', tags: [] },
   { id: 'f3', name: '机甲项目_P4', type: 'folder', modified: '刚刚', version: '-', tags: [] },
   { id: 'f4', name: '少儿百科插画_P6', type: 'folder', modified: '3小时前', version: '-', tags: [] },
+  { id: 'f5', name: '绿色能源_P8', type: 'folder', modified: '1天前', version: '-', tags: [] },
   { id: 'a1', name: '首页_Banner_终版.psd', type: 'psd', size: '145 MB', modified: '3小时前', version: 'v2.1', tags: ['活动', 'Banner'] },
   { id: 'a2', name: 'Logo_演绎动画.mp4', type: 'video', size: '24 MB', modified: '昨天', version: 'v1.0', tags: ['品牌'] },
   { id: 'a3', name: '角色_三视图.jpg', type: 'image', size: '2.4 MB', modified: '昨天', version: 'v1.5', tags: ['设定'] },
   { id: 'a4', name: '合同_已签署.pdf', type: 'doc', size: '1.2 MB', modified: '10月20日', version: 'v1.0', tags: ['法务'] },
   { id: 'a5', name: '鯨鱼_分层源文件.psd', type: 'psd', size: '320 MB', modified: '5小时前', version: 'v1.0', tags: ['插画', '海洋'] },
   { id: 'a6', name: '展厅_概念图_01.jpg', type: 'image', size: '5.6 MB', modified: '1天前', version: 'v0.5', tags: ['VR', '概念'] },
-  { id: 'a7', name: '交互规范文档.pdf', type: 'doc', size: '3.4 MB', modified: '2天前', version: 'v1.2', tags: ['文档'] }
+  { id: 'a7', name: '交互规范文档.pdf', type: 'doc', size: '3.4 MB', modified: '2天前', version: 'v1.2', tags: ['文档'] },
+  { id: 'a8', name: '环保主视觉_海报.ai', type: 'image', size: '12 MB', modified: '1天前', version: 'v1.0', tags: ['平面', '环保'] }
 ];
 
 export const CHART_DATA_ARTIST = [
@@ -505,4 +554,25 @@ export const MOCK_INVOICES: Invoice[] = [
   { id: 'INV-2023-1002', amount: 12000, createdDate: '2023-10-26', title: '美术设计费 - 网易游戏', status: 'paid', companyName: '网易游戏' },
   { id: 'INV-2023-1003', amount: 5000, createdDate: '2023-10-28', title: '创意咨询费 - 独立工作室', status: 'processing', companyName: '独立工作室' },
   { id: 'INV-2023-1004', amount: 35000, createdDate: '2023-10-29', title: '插画制作费 - EduPress', status: 'unpaid', companyName: 'EduPress' }
+];
+
+export const MOCK_ARTICLES: Article[] = [
+  {
+    id: 'a1',
+    title: '2024年数字艺术趋势报告：AI如何重塑创意工作流',
+    coverImage: 'https://image.pollinations.ai/prompt/digital%20art%20trends%20report%20ai%20workflow?width=200&height=200&nologo=true',
+    date: '2小时前'
+  },
+  {
+    id: 'a2',
+    title: '专访概念设计大师 RuanJia：光影与色彩的极致运用',
+    coverImage: 'https://image.pollinations.ai/prompt/interview%20concept%20artist%20studio?width=200&height=200&nologo=true',
+    date: '昨天'
+  },
+  {
+    id: 'a3',
+    title: 'Blender 4.0 重大更新解析：几何节点新功能实测',
+    coverImage: 'https://image.pollinations.ai/prompt/blender%203d%20software%20interface%20abstract?width=200&height=200&nologo=true',
+    date: '3天前'
+  }
 ];
