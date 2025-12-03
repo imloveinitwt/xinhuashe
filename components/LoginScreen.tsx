@@ -1,13 +1,14 @@
 
 import React from 'react';
-import { Hexagon, Palette, Briefcase, ArrowRight, ShieldCheck, Sparkles, Globe, Lock } from 'lucide-react';
+import { Hexagon, Palette, Briefcase, ArrowRight, ShieldCheck, Sparkles, Globe, Lock, Compass } from 'lucide-react';
 import { UserRole } from '../types';
 
 interface LoginScreenProps {
   onLogin: (role: UserRole) => void;
+  onGuestEnter: () => void;
 }
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
+const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onGuestEnter }) => {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Navbar */}
@@ -63,6 +64,16 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                   <p className="text-sm text-slate-500">智能打标与辅助创作</p>
                 </div>
               </div>
+            </div>
+
+            <div className="pt-4">
+              <button 
+                onClick={onGuestEnter}
+                className="inline-flex items-center gap-2 text-slate-500 font-medium hover:text-indigo-600 transition-colors group"
+              >
+                <Compass className="w-5 h-5 group-hover:rotate-45 transition-transform" />
+                我是游客，先逛逛社区
+              </button>
             </div>
           </div>
 

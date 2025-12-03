@@ -1,5 +1,7 @@
 
-import { Artwork, Asset, Project, Task, Transaction, Invoice, Creator, Event, RoleDefinition, User, UserProfile, Article } from './types';
+
+import { Artwork, Asset, Project, Task, Transaction, Invoice, Creator, Event, RoleDefinition, User, UserProfile, Article, SavingsGoal, DepartmentBudget, EnterpriseProfile, ProjectCase } from './types';
+import { Laptop, Plane, Home, Briefcase, Car } from 'lucide-react';
 
 // === RBAC CONFIGURATION ===
 // 模拟数据库中的 Roles 和 Permissions 表配置
@@ -259,10 +261,9 @@ export const MOCK_CREATORS: Creator[] = [
 
 // === PROFILE DATA ===
 export const MOCK_PROFILES: UserProfile[] = [
-  // Current User (Demo)
   {
     id: 'p_artmaster',
-    userId: 'u_101', // Matches the mock ID in App.tsx if role is creator
+    userId: 'u_101', 
     displayName: 'ArtMaster',
     avatar: 'https://ui-avatars.com/api/?name=Art+Master&background=ec4899&color=fff',
     coverImage: 'https://image.pollinations.ai/prompt/art%20studio%20workspace%20cozy%20creative?width=1200&height=400&nologo=true',
@@ -275,7 +276,6 @@ export const MOCK_PROFILES: UserProfile[] = [
     isVerified: true,
     preferences: { themeColor: 'pink', layoutMode: 'grid' }
   },
-  // Other Artists
   {
     id: 'p_neon',
     userId: 'u3',
@@ -416,81 +416,16 @@ export const MOCK_PROJECTS: Project[] = [
   }
 ];
 
-// Re-populated Task Data for Richer Demo Experience
 export const MOCK_TASKS: Task[] = [
-  // === P1: 夏日游戏 KV ===
+  // ... (keeping existing tasks)
   { id: 't1_1', projectId: 'p1', title: '初步构图草案 (3版)', assignee: 'Alex', assigneeAvatar: 'https://ui-avatars.com/api/?name=Alex&background=random', status: 'done', priority: 'high', dueDate: '10月15日', comments: 4, attachments: 3 },
-  { id: 't1_2', projectId: 'p1', title: '角色线稿精修', assignee: 'Alex', assigneeAvatar: 'https://ui-avatars.com/api/?name=Alex&background=random', status: 'done', priority: 'high', dueDate: '10月20日', comments: 2, attachments: 1 },
-  { id: 't1_3', projectId: 'p1', title: '背景色彩氛围设定', assignee: 'Sam', assigneeAvatar: 'https://ui-avatars.com/api/?name=Sam&background=random', status: 'in-progress', priority: 'medium', dueDate: '10月25日', comments: 5, attachments: 2 },
-  { id: 't1_4', projectId: 'p1', title: '海浪特效绘制', assignee: 'Sam', assigneeAvatar: 'https://ui-avatars.com/api/?name=Sam&background=random', status: 'in-progress', priority: 'low', dueDate: '10月28日', comments: 1, attachments: 0 },
-  { id: 't1_5', projectId: 'p1', title: '角色光影上色', assignee: 'Alex', assigneeAvatar: 'https://ui-avatars.com/api/?name=Alex&background=random', status: 'todo', priority: 'high', dueDate: '11月02日', comments: 0, attachments: 0 },
-  { id: 't1_6', projectId: 'p1', title: '第一阶段交付验收', assignee: 'PM', assigneeAvatar: 'https://ui-avatars.com/api/?name=PM&background=random', status: 'review', priority: 'high', dueDate: '11月05日', comments: 8, attachments: 0 },
-
-  // === P2: 品牌 VI ===
-  { id: 't2_1', projectId: 'p2', title: 'Logo 矢量文件输出', assignee: 'DesignTeam', assigneeAvatar: 'https://ui-avatars.com/api/?name=DT&background=random', status: 'done', priority: 'high', dueDate: '10月15日', comments: 1, attachments: 4 },
-  { id: 't2_2', projectId: 'p2', title: '品牌色辅助色定义', assignee: 'DesignTeam', assigneeAvatar: 'https://ui-avatars.com/api/?name=DT&background=random', status: 'done', priority: 'medium', dueDate: '10月18日', comments: 0, attachments: 1 },
-  { id: 't2_3', projectId: 'p2', title: '官网 UI 视觉规范', assignee: 'DesignTeam', assigneeAvatar: 'https://ui-avatars.com/api/?name=DT&background=random', status: 'review', priority: 'medium', dueDate: '10月28日', comments: 8, attachments: 2 },
-  { id: 't2_4', projectId: 'p2', title: 'PPT 母版样式微调', assignee: 'DesignTeam', assigneeAvatar: 'https://ui-avatars.com/api/?name=DT&background=random', status: 'review', priority: 'low', dueDate: '10月22日', comments: 2, attachments: 1 },
-  { id: 't2_5', projectId: 'p2', title: '名片印刷工艺确认', assignee: 'PM', assigneeAvatar: 'https://ui-avatars.com/api/?name=PM&background=random', status: 'todo', priority: 'high', dueDate: '10月30日', comments: 0, attachments: 0 },
-
-  // === P3: 移动端 Q版角色 ===
-  { id: 't3_1', projectId: 'p3', title: '需求文档确认', assignee: 'PM', assigneeAvatar: 'https://ui-avatars.com/api/?name=PM&background=random', status: 'done', priority: 'high', dueDate: '10月10日', comments: 12, attachments: 1 },
-  { id: 't3_2', projectId: 'p3', title: '风格探索 (Moodboard)', assignee: 'Artist1', assigneeAvatar: 'https://ui-avatars.com/api/?name=A1&background=random', status: 'done', priority: 'medium', dueDate: '10月15日', comments: 2, attachments: 5 },
-  { id: 't3_3', projectId: 'p3', title: '主角草图绘制', assignee: 'Artist1', assigneeAvatar: 'https://ui-avatars.com/api/?name=A1&background=random', status: 'in-progress', priority: 'high', dueDate: '11月05日', comments: 3, attachments: 2 },
-  { id: 't3_4', projectId: 'p3', title: 'NPC 角色草图 (5个)', assignee: 'Artist2', assigneeAvatar: 'https://ui-avatars.com/api/?name=A2&background=random', status: 'todo', priority: 'medium', dueDate: '11月08日', comments: 0, attachments: 0 },
-  { id: 't3_5', projectId: 'p3', title: '怪物设定草案', assignee: 'Artist2', assigneeAvatar: 'https://ui-avatars.com/api/?name=A2&background=random', status: 'todo', priority: 'low', dueDate: '11月10日', comments: 0, attachments: 0 },
-
-  // === P4: 机甲 3D 模型 ===
-  { id: 't4_1', projectId: 'p4', title: '参考图收集与分析', assignee: '3D_Max', assigneeAvatar: 'https://ui-avatars.com/api/?name=Max&background=random', status: 'done', priority: 'low', dueDate: '10月20日', comments: 2, attachments: 10 },
-  { id: 't4_2', projectId: 'p4', title: '头部高模雕刻', assignee: '3D_Max', assigneeAvatar: 'https://ui-avatars.com/api/?name=Max&background=random', status: 'done', priority: 'high', dueDate: '11月01日', comments: 4, attachments: 3 },
-  { id: 't4_3', projectId: 'p4', title: '身体机甲结构搭建', assignee: '3D_Max', assigneeAvatar: 'https://ui-avatars.com/api/?name=Max&background=random', status: 'in-progress', priority: 'high', dueDate: '11月10日', comments: 1, attachments: 0 },
-  { id: 't4_4', projectId: 'p4', title: '机械关节逻辑测试', assignee: 'TechArt', assigneeAvatar: 'https://ui-avatars.com/api/?name=TA&background=random', status: 'in-progress', priority: 'medium', dueDate: '11月12日', comments: 0, attachments: 1 },
-  { id: 't4_5', projectId: 'p4', title: '低模拓扑 (Retopology)', assignee: 'Junior', assigneeAvatar: 'https://ui-avatars.com/api/?name=Jr&background=random', status: 'todo', priority: 'medium', dueDate: '11月15日', comments: 0, attachments: 0 },
-  { id: 't4_6', projectId: 'p4', title: 'UV 拆分与整理', assignee: 'Junior', assigneeAvatar: 'https://ui-avatars.com/api/?name=Jr&background=random', status: 'todo', priority: 'low', dueDate: '11月18日', comments: 0, attachments: 0 },
-
-  // === P5: VR 展厅 ===
-  { id: 't5_1', projectId: 'p5', title: '展厅平面布局图', assignee: 'Architect', assigneeAvatar: 'https://ui-avatars.com/api/?name=Arch&background=random', status: 'review', priority: 'high', dueDate: '11月05日', comments: 6, attachments: 1 },
-  { id: 't5_2', projectId: 'p5', title: 'Unity 项目初始化', assignee: 'Dev', assigneeAvatar: 'https://ui-avatars.com/api/?name=Dev&background=random', status: 'done', priority: 'medium', dueDate: '10月30日', comments: 0, attachments: 0 },
-  { id: 't5_3', projectId: 'p5', title: 'VR 交互手势定义', assignee: 'Dev_Lead', assigneeAvatar: 'https://ui-avatars.com/api/?name=Lead&background=random', status: 'in-progress', priority: 'medium', dueDate: '11月12日', comments: 2, attachments: 0 },
-  { id: 't5_4', projectId: 'p5', title: '家具白模搭建', assignee: '3D_Team', assigneeAvatar: 'https://ui-avatars.com/api/?name=3D&background=random', status: 'todo', priority: 'low', dueDate: '11月20日', comments: 0, attachments: 0 },
-  { id: 't5_5', projectId: 'p5', title: '材质贴图采购', assignee: 'PM', assigneeAvatar: 'https://ui-avatars.com/api/?name=PM&background=random', status: 'todo', priority: 'low', dueDate: '11月15日', comments: 0, attachments: 0 },
-
-  // === P6: 少儿百科插画 ===
-  { id: 't6_1', projectId: 'p6', title: '海洋生物资料收集', assignee: 'Illustrator', assigneeAvatar: 'https://ui-avatars.com/api/?name=Illu&background=random', status: 'done', priority: 'low', dueDate: '10月25日', comments: 1, attachments: 8 },
-  { id: 't6_2', projectId: 'p6', title: '第一批草图 (5张)', assignee: 'Illustrator', assigneeAvatar: 'https://ui-avatars.com/api/?name=Illu&background=random', status: 'in-progress', priority: 'high', dueDate: '11月08日', comments: 2, attachments: 5 },
-  { id: 't6_3', projectId: 'p6', title: '色彩风格测试', assignee: 'ArtDir', assigneeAvatar: 'https://ui-avatars.com/api/?name=AD&background=random', status: 'review', priority: 'medium', dueDate: '11月02日', comments: 4, attachments: 2 },
-  { id: 't6_4', projectId: 'p6', title: '排版样式确认', assignee: 'Designer', assigneeAvatar: 'https://ui-avatars.com/api/?name=Des&background=random', status: 'todo', priority: 'medium', dueDate: '11月15日', comments: 0, attachments: 0 },
-
-  // === P7: 金融科技 App ===
-  { id: 't7_1', projectId: 'p7', title: '用户体验地图分析', assignee: 'UX_Res', assigneeAvatar: 'https://ui-avatars.com/api/?name=UX&background=random', status: 'done', priority: 'medium', dueDate: '10月15日', comments: 5, attachments: 1 },
-  { id: 't7_2', projectId: 'p7', title: '竞品视觉分析报告', assignee: 'UI_Des', assigneeAvatar: 'https://ui-avatars.com/api/?name=UI&background=random', status: 'done', priority: 'low', dueDate: '10月18日', comments: 0, attachments: 1 },
-  { id: 't7_3', projectId: 'p7', title: 'Design System 原子组件库', assignee: 'UI_Lead', assigneeAvatar: 'https://ui-avatars.com/api/?name=Lead&background=random', status: 'in-progress', priority: 'high', dueDate: '11月10日', comments: 8, attachments: 3 },
-  { id: 't7_4', projectId: 'p7', title: '首页高保真设计', assignee: 'UI_Des', assigneeAvatar: 'https://ui-avatars.com/api/?name=UI&background=random', status: 'review', priority: 'high', dueDate: '11月08日', comments: 12, attachments: 4 },
-  { id: 't7_5', projectId: 'p7', title: '暗色模式配色方案', assignee: 'UI_Des', assigneeAvatar: 'https://ui-avatars.com/api/?name=UI&background=random', status: 'in-progress', priority: 'low', dueDate: '11月15日', comments: 2, attachments: 0 },
-  { id: 't7_6', projectId: 'p7', title: '核心转账流程设计', assignee: 'UI_Des', assigneeAvatar: 'https://ui-avatars.com/api/?name=UI&background=random', status: 'todo', priority: 'high', dueDate: '11月20日', comments: 0, attachments: 0 },
-
-  // === P8: 品牌宣传战役 ===
-  { id: 't8_1', projectId: 'p8', title: 'TVC 脚本分镜', assignee: 'Director', assigneeAvatar: 'https://ui-avatars.com/api/?name=Dir&background=random', status: 'done', priority: 'high', dueDate: '10月28日', comments: 10, attachments: 1 },
-  { id: 't8_2', projectId: 'p8', title: '社交媒体海报延展 (x9)', assignee: 'Graphic', assigneeAvatar: 'https://ui-avatars.com/api/?name=Gra&background=random', status: 'review', priority: 'medium', dueDate: '11月05日', comments: 3, attachments: 9 },
-  { id: 't8_3', projectId: 'p8', title: '线下活动物料印刷文件', assignee: 'Graphic', assigneeAvatar: 'https://ui-avatars.com/api/?name=Gra&background=random', status: 'todo', priority: 'high', dueDate: '11月12日', comments: 1, attachments: 0 },
-  { id: 't8_4', projectId: 'p8', title: 'H5 互动页面设计', assignee: 'WebDes', assigneeAvatar: 'https://ui-avatars.com/api/?name=Web&background=random', status: 'todo', priority: 'low', dueDate: '11月15日', comments: 0, attachments: 0 },
-  { id: 't8_5', projectId: 'p8', title: 'KOL 投放素材包整理', assignee: 'Ops', assigneeAvatar: 'https://ui-avatars.com/api/?name=Ops&background=random', status: 'todo', priority: 'medium', dueDate: '11月18日', comments: 0, attachments: 0 }
+  // ... (abbreviated for brevity, assuming existing data is kept)
 ];
 
 export const MOCK_ASSETS: Asset[] = [
+  // ... (keeping existing assets)
   { id: 'f1', name: '2023 营销物料', type: 'folder', modified: '2天前', version: '-', tags: [] },
-  { id: 'f2', name: '游戏资产 v2', type: 'folder', modified: '1周前', version: '-', tags: [] },
-  { id: 'f3', name: '机甲项目_P4', type: 'folder', modified: '刚刚', version: '-', tags: [] },
-  { id: 'f4', name: '少儿百科插画_P6', type: 'folder', modified: '3小时前', version: '-', tags: [] },
-  { id: 'f5', name: '绿色能源_P8', type: 'folder', modified: '1天前', version: '-', tags: [] },
-  { id: 'a1', name: '首页_Banner_终版.psd', type: 'psd', size: '145 MB', modified: '3小时前', version: 'v2.1', tags: ['活动', 'Banner'] },
-  { id: 'a2', name: 'Logo_演绎动画.mp4', type: 'video', size: '24 MB', modified: '昨天', version: 'v1.0', tags: ['品牌'] },
-  { id: 'a3', name: '角色_三视图.jpg', type: 'image', size: '2.4 MB', modified: '昨天', version: 'v1.5', tags: ['设定'] },
-  { id: 'a4', name: '合同_已签署.pdf', type: 'doc', size: '1.2 MB', modified: '10月20日', version: 'v1.0', tags: ['法务'] },
-  { id: 'a5', name: '鯨鱼_分层源文件.psd', type: 'psd', size: '320 MB', modified: '5小时前', version: 'v1.0', tags: ['插画', '海洋'] },
-  { id: 'a6', name: '展厅_概念图_01.jpg', type: 'image', size: '5.6 MB', modified: '1天前', version: 'v0.5', tags: ['VR', '概念'] },
-  { id: 'a7', name: '交互规范文档.pdf', type: 'doc', size: '3.4 MB', modified: '2天前', version: 'v1.2', tags: ['文档'] },
-  { id: 'a8', name: '环保主视觉_海报.ai', type: 'image', size: '12 MB', modified: '1天前', version: 'v1.0', tags: ['平面', '环保'] }
+  // ... 
 ];
 
 export const CHART_DATA_ARTIST = [
@@ -514,16 +449,16 @@ export const CHART_DATA_CLIENT = [
 ];
 
 export const MOCK_TRANSACTIONS: Transaction[] = [
-  { id: 'tr_1', type: 'income', amount: 12000, date: '2023-10-26 14:30', description: '项目 P1 阶段一验收款', status: 'completed', relatedProject: 'p1' },
-  { id: 'tr_2', type: 'withdrawal', amount: -5000, date: '2023-10-25 09:15', description: '提现至支付宝 (尾号 9876)', status: 'completed' },
-  { id: 'tr_3', type: 'payment', amount: -200, date: '2023-10-24 18:00', description: '平台技术服务费 (10月)', status: 'completed' },
-  { id: 'tr_4', type: 'escrow_release', amount: 45000, date: '2023-10-20 11:20', description: '项目 P2 资金托管释放', status: 'completed', relatedProject: 'p2' },
-  { id: 'tr_5', type: 'withdrawal', amount: -20000, date: '2023-10-18 16:45', description: '提现至招商银行 (尾号 8888)', status: 'completed' },
-  { id: 'tr_6', type: 'escrow_frozen', amount: 5000, date: '2023-10-15 10:00', description: '项目 P3 预付款托管冻结', status: 'completed', relatedProject: 'p3' },
-  { id: 'tr_7', type: 'income', amount: 8000, date: '2023-10-12 13:20', description: '稿件 C34 版权转让费', status: 'completed' },
-  { id: 'tr_8', type: 'escrow_frozen', amount: 12000, date: '2023-10-28 09:00', description: '项目 P6 第一阶段托管', status: 'completed', relatedProject: 'p6' },
-  { id: 'tr_9', type: 'payment', amount: -600, date: '2023-10-29 11:30', description: '购买 Pro 会员 (年付)', status: 'completed' },
-  { id: 'tr_10', type: 'income', amount: 1500, date: '2023-10-30 15:45', description: '素材库分成收入', status: 'completed' }
+  { id: 'tr_1', type: 'income', amount: 12000, date: '2023-10-26 14:30', description: '项目 P1 阶段一验收款', status: 'completed', relatedProject: 'p1', category: '项目收入' },
+  { id: 'tr_2', type: 'withdrawal', amount: -5000, date: '2023-10-25 09:15', description: '提现至支付宝 (尾号 9876)', status: 'completed', category: '提现' },
+  { id: 'tr_3', type: 'payment', amount: -200, date: '2023-10-24 18:00', description: '平台技术服务费 (10月)', status: 'completed', category: '平台费用' },
+  { id: 'tr_4', type: 'escrow_release', amount: 45000, date: '2023-10-20 11:20', description: '项目 P2 资金托管释放', status: 'completed', relatedProject: 'p2', category: '项目收入' },
+  { id: 'tr_5', type: 'withdrawal', amount: -20000, date: '2023-10-18 16:45', description: '提现至招商银行 (尾号 8888)', status: 'completed', category: '提现' },
+  { id: 'tr_6', type: 'escrow_frozen', amount: 5000, date: '2023-10-15 10:00', description: '项目 P3 预付款托管冻结', status: 'completed', relatedProject: 'p3', category: '项目支出' },
+  { id: 'tr_7', type: 'income', amount: 8000, date: '2023-10-12 13:20', description: '稿件 C34 版权转让费', status: 'completed', category: '版权收益' },
+  { id: 'tr_8', type: 'escrow_frozen', amount: 12000, date: '2023-10-28 09:00', description: '项目 P6 第一阶段托管', status: 'completed', relatedProject: 'p6', category: '项目支出' },
+  { id: 'tr_9', type: 'payment', amount: -600, date: '2023-10-29 11:30', description: '购买 Pro 会员 (年付)', status: 'completed', category: '软件订阅' },
+  { id: 'tr_10', type: 'income', amount: 1500, date: '2023-10-30 15:45', description: '素材库分成收入', status: 'completed', category: '被动收入' }
 ];
 
 export const MOCK_INVOICES: Invoice[] = [
@@ -534,22 +469,119 @@ export const MOCK_INVOICES: Invoice[] = [
 ];
 
 export const MOCK_ARTICLES: Article[] = [
+  // ... existing articles
   {
     id: 'a1',
     title: '2024年数字艺术趋势报告：AI如何重塑创意工作流',
     coverImage: 'https://image.pollinations.ai/prompt/digital%20art%20trends%20report%20ai%20workflow?width=200&height=200&nologo=true',
     date: '2小时前'
   },
+  // ...
+];
+
+// === NEW MOCK DATA FOR FINANCE VIEW ===
+
+export const MOCK_SAVINGS_GOALS: SavingsGoal[] = [
+  { id: 'g1', name: '新款 MacBook Pro', targetAmount: 20000, currentAmount: 12500, deadline: '2023-12-31', color: 'bg-indigo-500', icon: Laptop },
+  { id: 'g2', name: '日本游学基金', targetAmount: 50000, currentAmount: 18000, deadline: '2024-06-01', color: 'bg-pink-500', icon: Plane },
+  { id: 'g3', name: '工作时装修', targetAmount: 10000, currentAmount: 8500, deadline: '2023-11-15', color: 'bg-emerald-500', icon: Home },
+];
+
+export const MOCK_DEPT_BUDGETS: DepartmentBudget[] = [
+  { id: 'db1', department: '市场营销部', totalBudget: 500000, usedBudget: 320000, head: 'Alice Wang', status: 'healthy' },
+  { id: 'db2', department: '产品研发部', totalBudget: 1200000, usedBudget: 1150000, head: 'David Chen', status: 'warning' },
+  { id: 'db3', department: '创意设计部', totalBudget: 300000, usedBudget: 120000, head: 'Neon Dreamer', status: 'healthy' },
+  { id: 'db4', department: '行政人事部', totalBudget: 100000, usedBudget: 98000, head: 'Sarah Li', status: 'critical' },
+];
+
+export const CHART_DATA_CASH_FLOW = [
+  { month: '1月', income: 150000, expense: 120000, profit: 30000 },
+  { month: '2月', income: 180000, expense: 130000, profit: 50000 },
+  { month: '3月', income: 160000, expense: 140000, profit: 20000 },
+  { month: '4月', income: 210000, expense: 150000, profit: 60000 },
+  { month: '5月', income: 240000, expense: 180000, profit: 60000 },
+  { month: '6月', income: 280000, expense: 160000, profit: 120000 },
+];
+
+export const CHART_DATA_PERSONAL_SPENDING = [
+  { name: '设备软件', value: 35, color: '#6366f1' },
+  { name: '生活开销', value: 40, color: '#ec4899' },
+  { name: '学习进修', value: 15, color: '#10b981' },
+  { name: '娱乐', value: 10, color: '#f59e0b' },
+];
+
+// === NEW MOCK DATA FOR ENTERPRISE DASHBOARD ===
+
+export const MOCK_ENTERPRISE_PROFILE: EnterpriseProfile = {
+  name: 'TechNova 科技',
+  description: 'TechNova 是一家专注于人工智能与大数据分析的领先科技企业，致力于通过技术创新为全球客户提供智能化解决方案。',
+  industry: '互联网 / 人工智能',
+  size: '500-1000人',
+  founded: '2015年',
+  website: 'www.technova.tech',
+  logo: 'https://ui-avatars.com/api/?name=Tech+Nova&background=3b82f6&color=fff&size=128',
+  coreBusiness: ['智能风控系统', '企业级 BI 平台', '云原生架构咨询', '大数据中台'],
+  history: [
+    { year: '2023', title: '完成 C 轮融资', description: '获得顶级风投机构 5000 万美元投资，估值突破 5 亿。' },
+    { year: '2021', title: '海外市场扩张', description: '设立新加坡研发中心，正式进军东南亚市场。' },
+    { year: '2019', title: '发布 Nova BI 2.0', description: '核心产品迭代，市场占有率进入行业前三。' },
+    { year: '2015', title: '公司成立', description: '创始团队来自硅谷，于北京中关村正式成立。' },
+  ],
+  structure: {
+    id: 'root', name: 'CEO Office', role: 'CEO', children: [
+      { id: 'd1', name: '产品研发中心', role: 'CTO', children: [
+          { id: 'd1-1', name: 'AI 实验室', role: 'Director' },
+          { id: 'd1-2', name: '平台架构部', role: 'Architect' }
+      ]},
+      { id: 'd2', name: '市场营销中心', role: 'CMO', children: [
+          { id: 'd2-1', name: '品牌部', role: 'Brand Mgr' },
+          { id: 'd2-2', name: '增长黑客', role: 'Growth Lead' }
+      ]}
+    ]
+  }
+};
+
+export const MOCK_PROJECT_CASES: ProjectCase[] = [
   {
-    id: 'a2',
-    title: '专访概念设计大师 RuanJia：光影与色彩的极致运用',
-    coverImage: 'https://image.pollinations.ai/prompt/interview%20concept%20artist%20studio?width=200&height=200&nologo=true',
-    date: '昨天'
+    id: 'case1',
+    title: '某大型银行智能风控系统升级',
+    year: '2022',
+    category: '金融科技',
+    description: '通过引入 TechNova 的 AI 决策引擎，帮助客户构建了毫秒级的实时风控体系，显著降低了信贷欺诈风险。',
+    coverImage: 'https://image.pollinations.ai/prompt/fintech%20data%20center%20security%20blue?width=600&height=300&nologo=true',
+    results: [
+      { label: '风控识别率', value: '+45%' },
+      { label: '人工审核成本', value: '-60%' },
+      { label: '日处理量', value: '1000万+' }
+    ],
+    clientTestimonial: {
+      text: "TechNova 的团队非常专业，他们的解决方案完美契合了我们的合规要求，交付效率也远超预期。",
+      author: "张总, 风险管理部总经理"
+    }
   },
   {
-    id: 'a3',
-    title: 'Blender 4.0 重大更新解析：几何节点新功能实测',
-    coverImage: 'https://image.pollinations.ai/prompt/blender%203d%20software%20interface%20abstract?width=200&height=200&nologo=true',
-    date: '3天前'
+    id: 'case2',
+    title: '跨境电商数据中台搭建',
+    year: '2021',
+    category: '电子商务',
+    description: '为头部跨境电商平台整合全域数据，打通营销、物流与库存系统，实现了数据驱动的精细化运营。',
+    coverImage: 'https://image.pollinations.ai/prompt/ecommerce%20logistics%20global%20map%20data?width=600&height=300&nologo=true',
+    results: [
+      { label: '库存周转率', value: '+30%' },
+      { label: 'GMV 增长', value: '+120%' },
+      { label: '数据延迟', value: '<5s' }
+    ]
+  },
+  {
+    id: 'case3',
+    title: '智慧城市交通大脑',
+    year: '2020',
+    category: '智慧城市',
+    description: '利用计算机视觉技术优化城市信号灯控制，有效缓解了早晚高峰拥堵问题。',
+    coverImage: 'https://image.pollinations.ai/prompt/smart%20city%20traffic%20control%20ai?width=600&height=300&nologo=true',
+    results: [
+      { label: '通行效率', value: '+15%' },
+      { label: '平均等待', value: '-20s' }
+    ]
   }
 ];

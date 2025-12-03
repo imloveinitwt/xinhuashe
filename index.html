@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,9 +12,10 @@
         background-color: #f8fafc;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        overflow-x: hidden; /* Prevent horizontal scroll from animations */
       }
       
-      /* Custom Scrollbar */
+      /* Custom Scrollbar - Modern & Minimal */
       .custom-scrollbar::-webkit-scrollbar {
         width: 6px;
         height: 6px;
@@ -25,6 +26,10 @@
       .custom-scrollbar::-webkit-scrollbar-thumb {
         background-color: #cbd5e1;
         border-radius: 20px;
+        transition: background-color 0.3s;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background-color: #94a3b8;
       }
       
       /* Hide scrollbar for horizontal scrolling areas */
@@ -36,11 +41,13 @@
         scrollbar-width: none;
       }
 
-      /* Animations */
+      /* === Advanced Animations === */
+      
+      /* Smooth Fade Up */
       @keyframes fadeInUp {
         from {
           opacity: 0;
-          transform: translate3d(0, 20px, 0);
+          transform: translate3d(0, 30px, 0);
         }
         to {
           opacity: 1;
@@ -48,22 +55,51 @@
         }
       }
       
+      /* Simple Fade */
       @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
       }
 
+      /* Scale In (Pop) */
       @keyframes scaleIn {
-        from { transform: scale(0.95); opacity: 0; }
+        from { transform: scale(0.92); opacity: 0; }
         to { transform: scale(1); opacity: 1; }
       }
 
+      /* Gentle Float */
       @keyframes float {
         0% { transform: translateY(0px); }
         50% { transform: translateY(-10px); }
         100% { transform: translateY(0px); }
       }
 
+      /* Heart Pop Animation */
+      @keyframes heartPop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.4); }
+        100% { transform: scale(1); }
+      }
+
+      /* Shimmer for Skeletons */
+      @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+
+      /* Gradient Flow Animation for Buttons */
+      @keyframes gradient-flow {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      .btn-gradient-animate {
+        background-size: 200% 200%;
+        animation: gradient-flow 3s ease infinite;
+      }
+
+      /* Utility Classes for Animations */
       .animate-fade-in-up {
         animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
@@ -73,22 +109,59 @@
       }
 
       .animate-scale-in {
-        animation: scaleIn 0.3s ease-out forwards;
+        animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
       }
 
       .animate-float {
         animation: float 6s ease-in-out infinite;
       }
 
-      /* Staggered animation delays for grid items */
-      .stagger-1 { animation-delay: 100ms; }
-      .stagger-2 { animation-delay: 200ms; }
-      .stagger-3 { animation-delay: 300ms; }
+      .animate-heart-pop {
+        animation: heartPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      .animate-shimmer {
+        background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite linear;
+      }
+
+      /* Staggered animation delays */
+      .stagger-1 { animation-delay: 50ms; }
+      .stagger-2 { animation-delay: 100ms; }
+      .stagger-3 { animation-delay: 150ms; }
+      .stagger-4 { animation-delay: 200ms; }
+      .stagger-5 { animation-delay: 250ms; }
 
       /* Background Pattern */
       .bg-grid-pattern {
-        background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
-        background-size: 24px 24px;
+        background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+        background-size: 32px 32px;
+      }
+      
+      /* Glassmorphism Utility */
+      .glass {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+      }
+
+      /* Button Press Effect */
+      .btn-press {
+        transition: transform 0.1s;
+      }
+      .btn-press:active {
+        transform: scale(0.96);
+      }
+      
+      /* Card Hover Lift */
+      .card-hover {
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      .card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
       }
     </style>
   <script type="importmap">

@@ -1,21 +1,24 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, MessageSquare, Hexagon, Briefcase, Palette, Plus, Upload, User as UserIcon, ChevronDown, LogOut, Settings } from 'lucide-react';
+import { 
+  Bell, MessageSquare, Hexagon, Plus, Upload, 
+  User as UserIcon, ChevronDown, LogOut, Settings
+} from 'lucide-react';
 import { ViewMode, UserRole, User } from '../types';
 
 interface HeaderProps {
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
   userRole: UserRole;
-  setUserRole: (role: UserRole) => void;
   onUploadClick: () => void;
   currentUser: User | null;
   onNavigateToProfile?: (profileId: string) => void;
   onLoginClick?: () => void;
+  onLogout?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
-  viewMode, setViewMode, userRole, setUserRole, onUploadClick, currentUser, onNavigateToProfile, onLoginClick 
+  viewMode, setViewMode, userRole, onUploadClick, currentUser, onNavigateToProfile, onLoginClick, onLogout 
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -40,18 +43,8 @@ const Header: React.FC<HeaderProps> = ({
     setIsMenuOpen(false);
   };
 
-  const handleSwitchRole = () => {
-    // Toggle between creator and enterprise for demo purposes
-    // If user is admin, this will switch them to one of the main roles
-    const targetRole = userRole === 'creator' ? 'enterprise' : 'creator';
-    setUserRole(targetRole);
-    setIsMenuOpen(false);
-  };
-
   const handleLogout = () => {
-    // For this demo, we can just trigger the login modal again to "switch user" or reload
-    // Ideally this would clear the user state in App.tsx
-    if (onLoginClick) onLoginClick();
+    if (onLogout) onLogout();
     setIsMenuOpen(false);
   };
 
@@ -65,6 +58,7 @@ const Header: React.FC<HeaderProps> = ({
       ? 'pl-64 bg-white border-b border-slate-200' 
       : 'bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm'
     }`}>
+      
       <div className="px-6 h-16 flex items-center justify-between">
         
         {/* Left: Branding */}
@@ -81,9 +75,11 @@ const Header: React.FC<HeaderProps> = ({
              <span className={`text-xs font-medium px-2 py-1 rounded border ${
                userRole === 'enterprise' 
                  ? 'bg-indigo-50 text-indigo-700 border-indigo-200' 
+                 : userRole === 'root_admin'
+                 ? 'bg-red-50 text-red-700 border-red-200'
                  : 'bg-pink-50 text-pink-700 border-pink-200'
              }`}>
-               {userRole === 'enterprise' ? '企业版 (Tezign集成)' : '创作者版 (Mihuashi集成)'}
+               {userRole === 'enterprise' ? '企业版 (Tezign集成)' : userRole === 'root_admin' ? '系统管理后台' : '创作者版 (Mihuashi集成)'}
              </span>
           </div> 
         )}
@@ -116,13 +112,13 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         )}
 
-        {/* Right: User Actions & Role Switcher */}
+        {/* Right: User Actions */}
         <div className="flex items-center gap-3 md:gap-4">
           
-          {/* Create/Upload Button (Always visible but triggers login if guest) */}
+          {/* Create/Upload Button (Primary CTA) */}
           <button 
             onClick={onUploadClick}
-            className="hidden md:flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-full text-sm font-medium transition-colors shadow-sm"
+            className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 btn-gradient-animate text-white rounded-full text-sm font-bold transition-all shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 border border-white/10 hover:scale-105 active:scale-95"
           >
             {userRole === 'creator' ? <Upload className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
             {userRole === 'creator' ? '发布作品' : '发布需求'}
@@ -130,22 +126,6 @@ const Header: React.FC<HeaderProps> = ({
 
           {currentUser ? (
             <>
-              {/* Dedicated Role Switcher Button */}
-              <button 
-                onClick={handleSwitchRole}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                  userRole === 'creator' 
-                    ? 'bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100' 
-                    : 'bg-pink-50 text-pink-600 border-pink-200 hover:bg-pink-100'
-                }`}
-                title={userRole === 'creator' ? "切换为企业主视角" : "切换为创作者视角"}
-              >
-                 {userRole === 'creator' ? <Briefcase className="w-3 h-3" /> : <Palette className="w-3 h-3" />}
-                 <span className="hidden sm:inline">{userRole === 'creator' ? '切换为企业' : '切换为画师'}</span>
-              </button>
-
-              <div className="h-6 w-px bg-slate-200 hidden md:block"></div>
-
               <div className="flex items-center gap-1">
                 <button className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
                   <MessageSquare className="w-5 h-5" />
@@ -172,11 +152,15 @@ const Header: React.FC<HeaderProps> = ({
                 </button>
 
                 {isMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-60 bg-white rounded-xl shadow-xl border border-slate-100 py-2 animate-scale-in origin-top-right z-50">
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 py-2 animate-scale-in origin-top-right z-50">
                     <div className="px-4 py-3 border-b border-slate-50 mb-2">
                       <p className="text-sm font-bold text-slate-800 truncate">{currentUser.name}</p>
                       <div className="flex items-center gap-1.5 mt-1">
-                        <span className={`w-2 h-2 rounded-full ${userRole === 'enterprise' ? 'bg-indigo-500' : 'bg-pink-500'}`}></span>
+                        <span className={`w-2 h-2 rounded-full ${
+                          userRole === 'enterprise' ? 'bg-indigo-500' : 
+                          userRole === 'root_admin' ? 'bg-red-500' : 
+                          'bg-pink-500'
+                        }`}></span>
                         <p className="text-xs text-slate-500 truncate">{currentUser.roleName}</p>
                       </div>
                     </div>
@@ -189,21 +173,13 @@ const Header: React.FC<HeaderProps> = ({
                     </button>
                     
                     <button 
-                      onClick={handleSwitchRole}
-                      className="w-full text-left px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 flex items-center gap-3 transition-colors"
-                    >
-                      {userRole === 'creator' ? <Briefcase className="w-4 h-4" /> : <Palette className="w-4 h-4" />}
-                      {userRole === 'creator' ? '切换为企业视角' : '切换为创作者视角'}
-                    </button>
-                    
-                    <button 
-                      onClick={() => { setIsMenuOpen(false); /* Add Settings logic here */ }}
+                      onClick={() => { setIsMenuOpen(false); /* Settings logic */ }}
                       className="w-full text-left px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 flex items-center gap-3 transition-colors"
                     >
                       <Settings className="w-4 h-4" /> 账号设置
                     </button>
-
-                    <div className="border-t border-slate-50 my-2"></div>
+                    
+                    <div className="border-t border-slate-50 my-2 pt-1"></div>
                     
                     <button 
                       onClick={handleLogout}

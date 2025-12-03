@@ -160,6 +160,7 @@ export interface Transaction {
   description: string;
   status: TransactionStatus;
   relatedProject?: string;
+  category?: string; // For personal finance analysis
 }
 
 export interface Invoice {
@@ -176,4 +177,67 @@ export interface Article {
   title: string;
   coverImage: string;
   date: string;
+}
+
+// New Types for Differentiated Finance View
+export interface SavingsGoal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  deadline: string;
+  color: string;
+  icon: any;
+}
+
+export interface DepartmentBudget {
+  id: string;
+  department: string;
+  totalBudget: number;
+  usedBudget: number;
+  head: string;
+  status: 'healthy' | 'warning' | 'critical';
+}
+
+// === NEW TYPES FOR ENTERPRISE DASHBOARD ===
+
+export interface HistoryMilestone {
+  year: string;
+  title: string;
+  description: string;
+}
+
+export interface OrgNode {
+  id: string;
+  name: string;
+  role: string;
+  avatar?: string;
+  children?: OrgNode[];
+}
+
+export interface EnterpriseProfile {
+  name: string;
+  description: string;
+  industry: string;
+  size: string;
+  founded: string;
+  website: string;
+  logo: string;
+  coreBusiness: string[];
+  history: HistoryMilestone[];
+  structure: OrgNode;
+}
+
+export interface ProjectCase {
+  id: string;
+  title: string;
+  year: string;
+  category: string;
+  description: string;
+  coverImage: string;
+  results: { label: string; value: string }[];
+  clientTestimonial?: {
+    text: string;
+    author: string;
+  };
 }
