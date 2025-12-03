@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Heart, Eye, Filter, Sparkles, Search, BadgeCheck, X, Briefcase, 
-  Trophy, Flame, SlidersHorizontal, ArrowUpRight, TrendingUp, Zap, Newspaper, ArrowRight
+  Trophy, Flame, SlidersHorizontal, ArrowUpRight, TrendingUp, Zap, Newspaper, ArrowRight,
+  Calendar, DollarSign, UserPlus, MessageCircle, Clock
 } from 'lucide-react';
-import { MOCK_ARTWORKS, MOCK_CREATORS, MOCK_EVENTS, MOCK_ARTICLES } from '../constants';
+import { MOCK_ARTWORKS, MOCK_CREATORS, MOCK_EVENTS, MOCK_ARTICLES, MOCK_PROJECTS } from '../constants';
 import { User } from '../types';
 
 interface DiscoveryViewProps {
@@ -46,7 +47,6 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
 
   const toggleLike = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    // If not logged in, trigger login
     if (!user && onTriggerLogin) {
       onTriggerLogin();
       return;
@@ -67,7 +67,6 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
       else if (artistName === 'ArtMaster') onNavigateToProfile('p_artmaster');
       else if (artistName === 'InkFlow') onNavigateToProfile('p_ink');
       else {
-        // Fallback or Generic Profile
         console.log('Navigate to generic profile');
       }
     }
@@ -78,7 +77,6 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
     if (!user && onTriggerLogin) {
       onTriggerLogin();
     } else {
-      // Navigate to project creation or message
       console.log("Hire clicked");
     }
   };
@@ -106,10 +104,13 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
     return 0;
   });
 
+  // Projects Filter for "Hot Opportunities"
+  const activeProjects = MOCK_PROJECTS.filter(p => p.status === '进行中' || p.status === '草稿').slice(0, 4);
+
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20 font-sans">
       
-      {/* 1. Hero Section: Integrated with Value Prop */}
+      {/* 1. Hero Section */}
       <div className="relative pt-32 pb-16 px-6 overflow-hidden bg-white border-b border-slate-100">
         <div className="absolute inset-0 bg-grid-pattern opacity-[0.4] pointer-events-none"></div>
         {/* Background Blobs */}
@@ -221,7 +222,6 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
       <div className={`sticky top-16 z-20 bg-white/80 backdrop-blur-md border-b border-slate-200 transition-all duration-300 ${isScrolled ? 'shadow-md py-2' : 'py-4'}`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between gap-4">
           
-          {/* Categories */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar mask-gradient-right flex-1">
             {categories.map((cat) => (
               <button
@@ -238,7 +238,6 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
             ))}
           </div>
 
-          {/* Advanced Filter Trigger */}
           <div className="relative flex-shrink-0">
              <button 
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -255,7 +254,6 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
                 </span>
              </button>
 
-             {/* Dropdown Panel */}
              {isFilterOpen && (
                 <div className="absolute top-full right-0 mt-3 w-72 bg-white rounded-2xl shadow-2xl border border-slate-100 p-5 animate-scale-in origin-top-right">
                   <div className="space-y-5">
@@ -302,126 +300,225 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           
-          {/* Artwork Grid (Masonry-like) */}
-          <div className="flex-1 min-w-0">
+          {/* Main Feed Column */}
+          <div className="flex-1 min-w-0 space-y-10">
              
-             {/* Section Title */}
-             <div className="flex items-center justify-between mb-6">
-               <h2 className="text-xl font-bold text-slate-900">推荐作品</h2>
-               {activeFilter !== '全部' && (
-                 <button onClick={() => setActiveFilter('全部')} className="text-sm text-indigo-600 font-medium hover:underline">
-                   清除筛选
+             {/* MODULE: Hot Opportunities (Projects) */}
+             <section className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+               <div className="flex items-center justify-between mb-4">
+                 <div>
+                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                      <Briefcase className="w-5 h-5 text-indigo-600" /> 
+                      急需人才的企划
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-1">优质甲方 · 预算托管 · 极速结算</p>
+                 </div>
+                 <button className="text-sm text-indigo-600 font-medium hover:underline flex items-center gap-1 bg-white px-3 py-1.5 rounded-full shadow-sm">
+                   查看全部 <ArrowRight className="w-4 h-4" />
                  </button>
-               )}
-             </div>
-
-             <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-                {filteredArtworks.map((artwork, idx) => (
-                  <div 
-                    key={artwork.id} 
-                    className="group relative bg-white rounded-2xl overflow-hidden shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:shadow-[0_8px_30px_-4px_rgba(6,81,237,0.2)] transition-all duration-300 break-inside-avoid transform hover:-translate-y-1"
-                    style={{ animationDelay: `${idx * 50}ms` }}
-                  >
-                    
-                    {/* Image Container */}
-                    <div className="relative overflow-hidden bg-slate-100">
-                      <img 
-                        src={artwork.imageUrl} 
-                        alt={artwork.title} 
-                        className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                        onError={handleImageError}
-                      />
-                      
-                      {/* Gradient Overlay (Hover) */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
-                         
-                         {/* Action Button */}
-                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full px-6 translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-75">
-                            <button 
-                              onClick={handleHireClick}
-                              className="w-full bg-white text-slate-900 hover:bg-indigo-50 font-bold py-3 rounded-xl shadow-lg transform active:scale-95 transition-all flex items-center justify-center gap-2"
-                            >
-                              <Briefcase className="w-4 h-4 text-indigo-600" />
-                              雇佣画师
-                            </button>
-                         </div>
-
-                         {/* Quick Actions */}
-                         <div className="flex justify-between items-end transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                           <div className="text-white flex-1 pr-4">
-                             <div className="flex flex-wrap gap-2 mb-2">
-                               {artwork.tags.slice(0, 2).map(tag => (
-                                 <span key={tag} className="text-[10px] font-bold bg-white/20 backdrop-blur-md px-2 py-1 rounded text-white">
-                                   #{tag}
-                                 </span>
-                               ))}
-                             </div>
+               </div>
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 {activeProjects.map(project => (
+                   <div key={project.id} className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer group">
+                      <div className="flex gap-4">
+                         <img 
+                           src={project.coverImage || "https://placehold.co/100x100?text=Project"} 
+                           className="w-20 h-20 rounded-lg object-cover bg-slate-100 group-hover:scale-105 transition-transform" 
+                           onError={handleImageError}
+                           alt={project.title}
+                         />
+                         <div className="flex-1 min-w-0">
+                           <h3 className="font-bold text-slate-800 text-sm mb-1 truncate group-hover:text-indigo-600">{project.title}</h3>
+                           <p className="text-xs text-slate-500 mb-2 truncate">{project.client} • {project.phase}</p>
+                           <div className="flex items-center gap-3 text-xs font-medium">
+                              <span className="text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded">
+                                <DollarSign className="w-3 h-3" /> ¥{project.budget.toLocaleString()}
+                              </span>
+                              <span className="text-slate-400 flex items-center gap-1">
+                                <Calendar className="w-3 h-3" /> {project.deadline}
+                              </span>
                            </div>
-                           <button 
-                             onClick={(e) => toggleLike(artwork.id, e)}
-                             className={`p-2.5 rounded-full backdrop-blur-md border transition-all ${likedArtworks.has(artwork.id) ? 'bg-rose-500 border-rose-500 text-white' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}`}
-                           >
-                             <Heart className={`w-5 h-5 ${likedArtworks.has(artwork.id) ? 'fill-current' : ''}`} />
-                           </button>
                          </div>
                       </div>
-                      
-                      {/* Badges */}
-                      <div className="absolute top-3 left-3 flex gap-2">
-                         {artwork.likes > 2000 && (
-                            <span className="bg-amber-400 text-white text-[10px] px-2 py-1 rounded-md font-bold shadow-sm flex items-center gap-1">
-                              <Flame className="w-3 h-3 fill-current" /> 热门
-                            </span>
-                         )}
-                      </div>
-                      {artwork.isAiGenerated && (
-                        <div className="absolute top-3 right-3">
-                           <span className="bg-purple-600/90 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-md font-bold shadow-sm flex items-center gap-1">
-                             <Sparkles className="w-3 h-3" /> AI
-                           </span>
-                        </div>
-                      )}
-                    </div>
+                   </div>
+                 ))}
+               </div>
+             </section>
 
-                    {/* Meta Info (Always Visible) */}
-                    <div className="p-4">
-                      <h3 className="font-bold text-slate-800 text-base mb-2 line-clamp-1 group-hover:text-indigo-600 transition-colors">
-                        {artwork.title}
-                      </h3>
-                      <div className="flex items-center justify-between">
-                        <div 
-                          className="flex items-center gap-2 cursor-pointer hover:opacity-75 transition-opacity"
-                          onClick={(e) => handleArtistClick(e, artwork.artist)}
-                        >
-                          <img 
-                            src={artwork.artistAvatar} 
-                            alt={artwork.artist} 
-                            className="w-8 h-8 rounded-full border border-slate-100 object-cover" 
-                            onError={handleImageError}
-                          />
-                          <div className="flex flex-col">
-                            <span className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                              {artwork.artist}
-                              {artwork.isVerified && <BadgeCheck className="w-3 h-3 text-blue-500" />}
-                            </span>
-                            <span className="text-[10px] text-slate-400">2小时前发布</span>
+             {/* MODULE: Rising Talents */}
+             <section>
+               <div className="flex items-center justify-between mb-4">
+                 <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                   <Sparkles className="w-5 h-5 text-pink-500" /> 
+                   新锐创作者
+                 </h2>
+                 <span className="text-xs text-slate-400">过去 24 小时关注度飙升</span>
+               </div>
+               <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0 no-scrollbar">
+                  {MOCK_CREATORS.slice(0, 5).map(creator => (
+                    <div key={creator.id} className="flex-shrink-0 w-44 bg-white rounded-xl border border-slate-100 p-4 text-center hover:border-pink-200 hover:shadow-md transition-all cursor-pointer group" onClick={(e) => handleArtistClick(e, creator.name)}>
+                       <div className="relative inline-block mb-3">
+                         <img src={creator.avatar} className="w-16 h-16 rounded-full mx-auto border-2 border-white shadow-sm" onError={handleImageError} alt={creator.name} />
+                         {creator.isVerified && <div className="absolute bottom-0 right-0 bg-white rounded-full p-0.5"><BadgeCheck className="w-4 h-4 text-blue-500" /></div>}
+                       </div>
+                       <h3 className="font-bold text-slate-800 text-sm truncate">{creator.name}</h3>
+                       <p className="text-xs text-slate-400 mb-3">{creator.tags[0]}</p>
+                       <button className="w-full py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-600 hover:bg-pink-50 hover:text-pink-600 hover:border-pink-200 transition-colors flex items-center justify-center gap-1">
+                         <UserPlus className="w-3 h-3" /> 关注
+                       </button>
+                    </div>
+                  ))}
+               </div>
+             </section>
+
+             {/* MODULE: Community News (Latest Insights) */}
+             <section>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                    <Newspaper className="w-5 h-5 text-purple-500" />
+                    前沿资讯
+                  </h2>
+                  <button className="text-sm text-indigo-600 font-medium hover:underline flex items-center gap-1">
+                    浏览专栏 <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                  {MOCK_ARTICLES.map((article) => (
+                    <div key={article.id} className="group cursor-pointer bg-white rounded-xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-all">
+                      <div className="h-32 overflow-hidden relative">
+                        <img
+                          src={article.coverImage}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          onError={handleImageError}
+                          alt={article.title}
+                        />
+                        <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
+                      </div>
+                      <div className="p-3">
+                        <h4 className="font-bold text-slate-800 text-sm leading-snug line-clamp-2 group-hover:text-indigo-600 transition-colors">
+                          {article.title}
+                        </h4>
+                        <p className="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> {article.date}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+             </section>
+
+             {/* Artwork Grid Section */}
+             <section>
+               <div className="flex items-center justify-between mb-6">
+                 <h2 className="text-xl font-bold text-slate-900">推荐作品</h2>
+                 {activeFilter !== '全部' && (
+                   <button onClick={() => setActiveFilter('全部')} className="text-sm text-indigo-600 font-medium hover:underline">
+                     清除筛选
+                   </button>
+                 )}
+               </div>
+
+               <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+                  {filteredArtworks.map((artwork, idx) => (
+                    <div 
+                      key={artwork.id} 
+                      className="group relative bg-white rounded-2xl overflow-hidden shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:shadow-[0_8px_30px_-4px_rgba(6,81,237,0.2)] transition-all duration-300 break-inside-avoid transform hover:-translate-y-1"
+                      style={{ animationDelay: `${idx * 50}ms` }}
+                    >
+                      <div className="relative overflow-hidden bg-slate-100">
+                        <img 
+                          src={artwork.imageUrl} 
+                          alt={artwork.title} 
+                          className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                          onError={handleImageError}
+                        />
+                        
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
+                           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full px-6 translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-75">
+                              <button 
+                                onClick={handleHireClick}
+                                className="w-full bg-white text-slate-900 hover:bg-indigo-50 font-bold py-3 rounded-xl shadow-lg transform active:scale-95 transition-all flex items-center justify-center gap-2"
+                              >
+                                <Briefcase className="w-4 h-4 text-indigo-600" />
+                                雇佣画师
+                              </button>
+                           </div>
+
+                           <div className="flex justify-between items-end transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                             <div className="text-white flex-1 pr-4">
+                               <div className="flex flex-wrap gap-2 mb-2">
+                                 {artwork.tags.slice(0, 2).map(tag => (
+                                   <span key={tag} className="text-[10px] font-bold bg-white/20 backdrop-blur-md px-2 py-1 rounded text-white">
+                                     #{tag}
+                                   </span>
+                                 ))}
+                               </div>
+                             </div>
+                             <button 
+                               onClick={(e) => toggleLike(artwork.id, e)}
+                               className={`p-2.5 rounded-full backdrop-blur-md border transition-all ${likedArtworks.has(artwork.id) ? 'bg-rose-500 border-rose-500 text-white' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}`}
+                             >
+                               <Heart className={`w-5 h-5 ${likedArtworks.has(artwork.id) ? 'fill-current' : ''}`} />
+                             </button>
+                           </div>
+                        </div>
+                        
+                        <div className="absolute top-3 left-3 flex gap-2">
+                           {artwork.likes > 2000 && (
+                              <span className="bg-amber-400 text-white text-[10px] px-2 py-1 rounded-md font-bold shadow-sm flex items-center gap-1">
+                                <Flame className="w-3 h-3 fill-current" /> 热门
+                              </span>
+                           )}
+                        </div>
+                        {artwork.isAiGenerated && (
+                          <div className="absolute top-3 right-3">
+                             <span className="bg-purple-600/90 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-md font-bold shadow-sm flex items-center gap-1">
+                               <Sparkles className="w-3 h-3" /> AI
+                             </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="p-4">
+                        <h3 className="font-bold text-slate-800 text-base mb-2 line-clamp-1 group-hover:text-indigo-600 transition-colors">
+                          {artwork.title}
+                        </h3>
+                        <div className="flex items-center justify-between">
+                          <div 
+                            className="flex items-center gap-2 cursor-pointer hover:opacity-75 transition-opacity"
+                            onClick={(e) => handleArtistClick(e, artwork.artist)}
+                          >
+                            <img 
+                              src={artwork.artistAvatar} 
+                              alt={artwork.artist} 
+                              className="w-8 h-8 rounded-full border border-slate-100 object-cover" 
+                              onError={handleImageError}
+                            />
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold text-slate-700 flex items-center gap-1">
+                                {artwork.artist}
+                                {artwork.isVerified && <BadgeCheck className="w-3 h-3 text-blue-500" />}
+                              </span>
+                              <span className="text-[10px] text-slate-400">2小时前发布</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-slate-400 font-medium">
+                             <span className="flex items-center gap-1 hover:text-slate-600">
+                               <Eye className="w-3.5 h-3.5" /> 
+                               {artwork.views > 1000 ? (artwork.views/1000).toFixed(1) + 'k' : artwork.views}
+                             </span>
+                             <span className={`flex items-center gap-1 ${likedArtworks.has(artwork.id) ? 'text-rose-500' : 'hover:text-slate-600'}`}>
+                               <Heart className={`w-3.5 h-3.5 ${likedArtworks.has(artwork.id) ? 'fill-current' : ''}`} /> 
+                               {likedArtworks.has(artwork.id) ? artwork.likes + 1 : artwork.likes}
+                             </span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-slate-400 font-medium">
-                           <span className="flex items-center gap-1 hover:text-slate-600">
-                             <Eye className="w-3.5 h-3.5" /> 
-                             {artwork.views > 1000 ? (artwork.views/1000).toFixed(1) + 'k' : artwork.views}
-                           </span>
-                           <span className={`flex items-center gap-1 ${likedArtworks.has(artwork.id) ? 'text-rose-500' : 'hover:text-slate-600'}`}>
-                             <Heart className={`w-3.5 h-3.5 ${likedArtworks.has(artwork.id) ? 'fill-current' : ''}`} /> 
-                             {likedArtworks.has(artwork.id) ? artwork.likes + 1 : artwork.likes}
-                           </span>
-                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-             </div>
+                  ))}
+               </div>
+             </section>
+
           </div>
 
           {/* Right Sidebar (Sticky) */}
@@ -453,5 +550,61 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
                 </div>
               </div>
 
-              {/* Latest News / Articles */}
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-2
+              {/* Events Banner */}
+              <div className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl p-5 text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-10 -mt-10"></div>
+                <h3 className="font-bold text-lg mb-2 relative z-10">2023 全球机甲设计大赛</h3>
+                <p className="text-xs text-indigo-200 mb-4 relative z-10">总奖池 ¥100,000 | 网易游戏官方合作</p>
+                <div className="flex items-center justify-between relative z-10">
+                   <span className="text-xs bg-white/20 px-2 py-1 rounded">剩 12 天</span>
+                   <button className="text-xs bg-white text-slate-900 px-3 py-1.5 rounded-full font-bold hover:bg-indigo-50 transition-colors flex items-center gap-1">
+                     立即参赛 <ArrowUpRight className="w-3 h-3" />
+                   </button>
+                </div>
+              </div>
+
+              {/* Top Creators List */}
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                    <Trophy className="w-4 h-4 text-amber-500" /> 
+                    影响力榜单
+                  </h3>
+                  <button className="text-xs text-indigo-600 hover:underline">查看全部</button>
+                </div>
+                <div className="space-y-4">
+                  {MOCK_CREATORS.slice(0, 5).map((creator, index) => (
+                    <div 
+                      key={creator.id} 
+                      className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer group"
+                      onClick={(e) => handleArtistClick(e, creator.name)}
+                    >
+                      <div className="relative font-bold text-slate-300 w-4 text-center">
+                        {index + 1}
+                      </div>
+                      <img src={creator.avatar} alt={creator.name} className="w-10 h-10 rounded-full border border-slate-100 object-cover" onError={handleImageError} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1">
+                          <h4 className="text-sm font-bold text-slate-700 truncate group-hover:text-indigo-600">{creator.name}</h4>
+                          {creator.isVerified && <BadgeCheck className="w-3 h-3 text-blue-500" />}
+                        </div>
+                        <p className="text-xs text-slate-400 truncate">{creator.tags.join(' ')}</p>
+                      </div>
+                      <div className="text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
+                        {(creator.followers / 1000).toFixed(1)}k
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default DiscoveryView;

@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Bell, MessageSquare, Hexagon, Briefcase, Palette, Plus, Upload, User as UserIcon } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Bell, MessageSquare, Hexagon, Briefcase, Palette, Plus, Upload, User as UserIcon, ChevronDown, LogOut, Settings } from 'lucide-react';
 import { ViewMode, UserRole, User } from '../types';
 
 interface HeaderProps {
@@ -17,12 +17,42 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ 
   viewMode, setViewMode, userRole, setUserRole, onUploadClick, currentUser, onNavigateToProfile, onLoginClick 
 }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   
-  const handleAvatarClick = () => {
+  const handleProfileClick = () => {
     if (onNavigateToProfile && currentUser) {
+      // Demo logic: map roles to specific demo profiles
       const targetProfileId = currentUser.role === 'creator' ? 'p_artmaster' : 'p_neon';
       onNavigateToProfile(targetProfileId);
     }
+    setIsMenuOpen(false);
+  };
+
+  const handleSwitchRole = () => {
+    // Toggle between creator and enterprise for demo purposes
+    // If user is admin, this will switch them to one of the main roles
+    const targetRole = userRole === 'creator' ? 'enterprise' : 'creator';
+    setUserRole(targetRole);
+    setIsMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    // For this demo, we can just trigger the login modal again to "switch user" or reload
+    // Ideally this would clear the user state in App.tsx
+    if (onLoginClick) onLoginClick();
+    setIsMenuOpen(false);
   };
 
   const handleAvatarError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
@@ -100,9 +130,9 @@ const Header: React.FC<HeaderProps> = ({
 
           {currentUser ? (
             <>
-              {/* Role Toggle */}
+              {/* Dedicated Role Switcher Button */}
               <button 
-                onClick={() => setUserRole(userRole === 'creator' ? 'enterprise' : 'creator')}
+                onClick={handleSwitchRole}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
                   userRole === 'creator' 
                     ? 'bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100' 
@@ -126,17 +156,63 @@ const Header: React.FC<HeaderProps> = ({
                 </button>
               </div>
               
-              <div 
-                className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 py-1 px-1 rounded-lg transition-colors group"
-                onClick={handleAvatarClick}
-                title="前往个人空间"
-              >
-                <img 
-                  src={currentUser.avatar}
-                  alt="User" 
-                  className="w-8 h-8 rounded-full border border-slate-200 group-hover:border-indigo-400 bg-slate-200"
-                  onError={handleAvatarError}
-                />
+              {/* User Dropdown Menu */}
+              <div className="relative" ref={menuRef}>
+                <button 
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 py-1 px-1 rounded-lg transition-colors group focus:outline-none"
+                >
+                  <img 
+                    src={currentUser.avatar}
+                    alt="User" 
+                    className="w-8 h-8 rounded-full border border-slate-200 group-hover:border-indigo-400 bg-slate-200 object-cover"
+                    onError={handleAvatarError}
+                  />
+                  <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-60 bg-white rounded-xl shadow-xl border border-slate-100 py-2 animate-scale-in origin-top-right z-50">
+                    <div className="px-4 py-3 border-b border-slate-50 mb-2">
+                      <p className="text-sm font-bold text-slate-800 truncate">{currentUser.name}</p>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className={`w-2 h-2 rounded-full ${userRole === 'enterprise' ? 'bg-indigo-500' : 'bg-pink-500'}`}></span>
+                        <p className="text-xs text-slate-500 truncate">{currentUser.roleName}</p>
+                      </div>
+                    </div>
+                    
+                    <button 
+                      onClick={handleProfileClick}
+                      className="w-full text-left px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 flex items-center gap-3 transition-colors"
+                    >
+                      <UserIcon className="w-4 h-4" /> 个人空间
+                    </button>
+                    
+                    <button 
+                      onClick={handleSwitchRole}
+                      className="w-full text-left px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 flex items-center gap-3 transition-colors"
+                    >
+                      {userRole === 'creator' ? <Briefcase className="w-4 h-4" /> : <Palette className="w-4 h-4" />}
+                      {userRole === 'creator' ? '切换为企业视角' : '切换为创作者视角'}
+                    </button>
+                    
+                    <button 
+                      onClick={() => { setIsMenuOpen(false); /* Add Settings logic here */ }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 flex items-center gap-3 transition-colors"
+                    >
+                      <Settings className="w-4 h-4" /> 账号设置
+                    </button>
+
+                    <div className="border-t border-slate-50 my-2"></div>
+                    
+                    <button 
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 flex items-center gap-3 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" /> 退出登录
+                    </button>
+                  </div>
+                )}
               </div>
             </>
           ) : (

@@ -1,6 +1,4 @@
 
-
-
 import { Artwork, Asset, Project, Task, Transaction, Invoice, Creator, Event, RoleDefinition, User, UserProfile, Article } from './types';
 
 // === RBAC CONFIGURATION ===
@@ -404,7 +402,6 @@ export const MOCK_PROJECTS: Project[] = [
     description: '为移动端银行应用提供全新的用户体验设计，包含暗色模式适配。',
     coverImage: 'https://image.pollinations.ai/prompt/fintech%20mobile%20app%20ui%20design%20dark%20mode%20modern?width=800&height=400&nologo=true'
   },
-  // New Added Project
   {
     id: 'p8',
     title: '可持续能源品牌宣传战役',
@@ -419,85 +416,65 @@ export const MOCK_PROJECTS: Project[] = [
   }
 ];
 
+// Re-populated Task Data for Richer Demo Experience
 export const MOCK_TASKS: Task[] = [
-  // P1
-  {
-    id: 't1', projectId: 'p1', title: '角色A线稿细化', assignee: 'Alex', assigneeAvatar: 'https://ui-avatars.com/api/?name=Alex&background=random',
-    status: 'done', priority: 'high', dueDate: '10月20日', comments: 3, attachments: 2
-  },
-  {
-    id: 't2', projectId: 'p1', title: '背景色彩氛围设定', assignee: 'Sam', assigneeAvatar: 'https://ui-avatars.com/api/?name=Sam&background=random',
-    status: 'in-progress', priority: 'medium', dueDate: '10月25日', comments: 5, attachments: 1
-  },
-  {
-    id: 't3', projectId: 'p1', title: '角色B/C 草图绘制', assignee: 'Alex', assigneeAvatar: 'https://ui-avatars.com/api/?name=Alex&background=random',
-    status: 'in-progress', priority: 'high', dueDate: '10月26日', comments: 0, attachments: 0
-  },
-  {
-    id: 't4', projectId: 'p1', title: '最终光影合成', assignee: 'Lead', assigneeAvatar: 'https://ui-avatars.com/api/?name=Lead&background=random',
-    status: 'todo', priority: 'high', dueDate: '11月01日', comments: 0, attachments: 0
-  },
-  {
-    id: 't1_1', projectId: 'p1', title: '海浪特效绘制', assignee: 'Sam', assigneeAvatar: 'https://ui-avatars.com/api/?name=Sam&background=random',
-    status: 'todo', priority: 'low', dueDate: '10月28日', comments: 1, attachments: 0
-  },
-  // P2
-  {
-    id: 't5', projectId: 'p2', title: 'Logo 矢量文件输出', assignee: 'DesignTeam', assigneeAvatar: 'https://ui-avatars.com/api/?name=Design+Team&background=random',
-    status: 'done', priority: 'high', dueDate: '10月15日', comments: 1, attachments: 4
-  },
-  {
-    id: 't6', projectId: 'p2', title: '官网 UI 视觉规范', assignee: 'DesignTeam', assigneeAvatar: 'https://ui-avatars.com/api/?name=Design+Team&background=random',
-    status: 'review', priority: 'medium', dueDate: '10月28日', comments: 8, attachments: 2
-  },
-  {
-    id: 't2_1', projectId: 'p2', title: 'PPT 母版样式微调', assignee: 'DesignTeam', assigneeAvatar: 'https://ui-avatars.com/api/?name=Design+Team&background=random',
-    status: 'done', priority: 'low', dueDate: '10月22日', comments: 2, attachments: 1
-  },
-  // P3
-  {
-    id: 't7', projectId: 'p3', title: '需求文档确认', assignee: 'PM', assigneeAvatar: 'https://ui-avatars.com/api/?name=PM&background=random',
-    status: 'done', priority: 'high', dueDate: '10月10日', comments: 12, attachments: 1
-  },
-  {
-    id: 't8', projectId: 'p3', title: '风格探索 (Moodboard)', assignee: 'Artist1', assigneeAvatar: 'https://ui-avatars.com/api/?name=Artist+1&background=random',
-    status: 'in-progress', priority: 'medium', dueDate: '11月05日', comments: 2, attachments: 5
-  },
-  // P4
-  {
-    id: 't4_1', projectId: 'p4', title: '头部高模雕刻', assignee: '3D_Max', assigneeAvatar: 'https://ui-avatars.com/api/?name=3D+Max&background=random',
-    status: 'done', priority: 'high', dueDate: '11月01日', comments: 4, attachments: 3
-  },
-  {
-    id: 't4_2', projectId: 'p4', title: '身体机甲结构搭建', assignee: '3D_Max', assigneeAvatar: 'https://ui-avatars.com/api/?name=3D+Max&background=random',
-    status: 'in-progress', priority: 'high', dueDate: '11月10日', comments: 1, attachments: 0
-  },
-  {
-    id: 't4_3', projectId: 'p4', title: '低模拓扑 (Retopology)', assignee: 'Junior_Mod', assigneeAvatar: 'https://ui-avatars.com/api/?name=Junior&background=random',
-    status: 'todo', priority: 'medium', dueDate: '11月15日', comments: 0, attachments: 0
-  },
-  {
-    id: 't4_4', projectId: 'p4', title: 'UV 拆分与整理', assignee: 'Junior_Mod', assigneeAvatar: 'https://ui-avatars.com/api/?name=Junior&background=random',
-    status: 'todo', priority: 'low', dueDate: '11月18日', comments: 0, attachments: 0
-  },
-  // P5 (New)
-  {
-    id: 't5_1', projectId: 'p5', title: '展厅平面布局图', assignee: 'Architect', assigneeAvatar: 'https://ui-avatars.com/api/?name=Architect&background=random',
-    status: 'review', priority: 'high', dueDate: '11月05日', comments: 6, attachments: 1
-  },
-  {
-    id: 't5_2', projectId: 'p5', title: 'VR 交互逻辑定义', assignee: 'Dev_Lead', assigneeAvatar: 'https://ui-avatars.com/api/?name=Dev+Lead&background=random',
-    status: 'todo', priority: 'medium', dueDate: '11月12日', comments: 0, attachments: 0
-  },
-  // P6 (New)
-  {
-    id: 't6_1', projectId: 'p6', title: '海洋生物资料收集', assignee: 'Illustrator', assigneeAvatar: 'https://ui-avatars.com/api/?name=Illustrator&background=random',
-    status: 'done', priority: 'low', dueDate: '10月25日', comments: 1, attachments: 8
-  },
-  {
-    id: 't6_2', projectId: 'p6', title: '第一批草图 (5张)', assignee: 'Illustrator', assigneeAvatar: 'https://ui-avatars.com/api/?name=Illustrator&background=random',
-    status: 'in-progress', priority: 'high', dueDate: '11月08日', comments: 2, attachments: 5
-  }
+  // === P1: 夏日游戏 KV ===
+  { id: 't1_1', projectId: 'p1', title: '初步构图草案 (3版)', assignee: 'Alex', assigneeAvatar: 'https://ui-avatars.com/api/?name=Alex&background=random', status: 'done', priority: 'high', dueDate: '10月15日', comments: 4, attachments: 3 },
+  { id: 't1_2', projectId: 'p1', title: '角色线稿精修', assignee: 'Alex', assigneeAvatar: 'https://ui-avatars.com/api/?name=Alex&background=random', status: 'done', priority: 'high', dueDate: '10月20日', comments: 2, attachments: 1 },
+  { id: 't1_3', projectId: 'p1', title: '背景色彩氛围设定', assignee: 'Sam', assigneeAvatar: 'https://ui-avatars.com/api/?name=Sam&background=random', status: 'in-progress', priority: 'medium', dueDate: '10月25日', comments: 5, attachments: 2 },
+  { id: 't1_4', projectId: 'p1', title: '海浪特效绘制', assignee: 'Sam', assigneeAvatar: 'https://ui-avatars.com/api/?name=Sam&background=random', status: 'in-progress', priority: 'low', dueDate: '10月28日', comments: 1, attachments: 0 },
+  { id: 't1_5', projectId: 'p1', title: '角色光影上色', assignee: 'Alex', assigneeAvatar: 'https://ui-avatars.com/api/?name=Alex&background=random', status: 'todo', priority: 'high', dueDate: '11月02日', comments: 0, attachments: 0 },
+  { id: 't1_6', projectId: 'p1', title: '第一阶段交付验收', assignee: 'PM', assigneeAvatar: 'https://ui-avatars.com/api/?name=PM&background=random', status: 'review', priority: 'high', dueDate: '11月05日', comments: 8, attachments: 0 },
+
+  // === P2: 品牌 VI ===
+  { id: 't2_1', projectId: 'p2', title: 'Logo 矢量文件输出', assignee: 'DesignTeam', assigneeAvatar: 'https://ui-avatars.com/api/?name=DT&background=random', status: 'done', priority: 'high', dueDate: '10月15日', comments: 1, attachments: 4 },
+  { id: 't2_2', projectId: 'p2', title: '品牌色辅助色定义', assignee: 'DesignTeam', assigneeAvatar: 'https://ui-avatars.com/api/?name=DT&background=random', status: 'done', priority: 'medium', dueDate: '10月18日', comments: 0, attachments: 1 },
+  { id: 't2_3', projectId: 'p2', title: '官网 UI 视觉规范', assignee: 'DesignTeam', assigneeAvatar: 'https://ui-avatars.com/api/?name=DT&background=random', status: 'review', priority: 'medium', dueDate: '10月28日', comments: 8, attachments: 2 },
+  { id: 't2_4', projectId: 'p2', title: 'PPT 母版样式微调', assignee: 'DesignTeam', assigneeAvatar: 'https://ui-avatars.com/api/?name=DT&background=random', status: 'review', priority: 'low', dueDate: '10月22日', comments: 2, attachments: 1 },
+  { id: 't2_5', projectId: 'p2', title: '名片印刷工艺确认', assignee: 'PM', assigneeAvatar: 'https://ui-avatars.com/api/?name=PM&background=random', status: 'todo', priority: 'high', dueDate: '10月30日', comments: 0, attachments: 0 },
+
+  // === P3: 移动端 Q版角色 ===
+  { id: 't3_1', projectId: 'p3', title: '需求文档确认', assignee: 'PM', assigneeAvatar: 'https://ui-avatars.com/api/?name=PM&background=random', status: 'done', priority: 'high', dueDate: '10月10日', comments: 12, attachments: 1 },
+  { id: 't3_2', projectId: 'p3', title: '风格探索 (Moodboard)', assignee: 'Artist1', assigneeAvatar: 'https://ui-avatars.com/api/?name=A1&background=random', status: 'done', priority: 'medium', dueDate: '10月15日', comments: 2, attachments: 5 },
+  { id: 't3_3', projectId: 'p3', title: '主角草图绘制', assignee: 'Artist1', assigneeAvatar: 'https://ui-avatars.com/api/?name=A1&background=random', status: 'in-progress', priority: 'high', dueDate: '11月05日', comments: 3, attachments: 2 },
+  { id: 't3_4', projectId: 'p3', title: 'NPC 角色草图 (5个)', assignee: 'Artist2', assigneeAvatar: 'https://ui-avatars.com/api/?name=A2&background=random', status: 'todo', priority: 'medium', dueDate: '11月08日', comments: 0, attachments: 0 },
+  { id: 't3_5', projectId: 'p3', title: '怪物设定草案', assignee: 'Artist2', assigneeAvatar: 'https://ui-avatars.com/api/?name=A2&background=random', status: 'todo', priority: 'low', dueDate: '11月10日', comments: 0, attachments: 0 },
+
+  // === P4: 机甲 3D 模型 ===
+  { id: 't4_1', projectId: 'p4', title: '参考图收集与分析', assignee: '3D_Max', assigneeAvatar: 'https://ui-avatars.com/api/?name=Max&background=random', status: 'done', priority: 'low', dueDate: '10月20日', comments: 2, attachments: 10 },
+  { id: 't4_2', projectId: 'p4', title: '头部高模雕刻', assignee: '3D_Max', assigneeAvatar: 'https://ui-avatars.com/api/?name=Max&background=random', status: 'done', priority: 'high', dueDate: '11月01日', comments: 4, attachments: 3 },
+  { id: 't4_3', projectId: 'p4', title: '身体机甲结构搭建', assignee: '3D_Max', assigneeAvatar: 'https://ui-avatars.com/api/?name=Max&background=random', status: 'in-progress', priority: 'high', dueDate: '11月10日', comments: 1, attachments: 0 },
+  { id: 't4_4', projectId: 'p4', title: '机械关节逻辑测试', assignee: 'TechArt', assigneeAvatar: 'https://ui-avatars.com/api/?name=TA&background=random', status: 'in-progress', priority: 'medium', dueDate: '11月12日', comments: 0, attachments: 1 },
+  { id: 't4_5', projectId: 'p4', title: '低模拓扑 (Retopology)', assignee: 'Junior', assigneeAvatar: 'https://ui-avatars.com/api/?name=Jr&background=random', status: 'todo', priority: 'medium', dueDate: '11月15日', comments: 0, attachments: 0 },
+  { id: 't4_6', projectId: 'p4', title: 'UV 拆分与整理', assignee: 'Junior', assigneeAvatar: 'https://ui-avatars.com/api/?name=Jr&background=random', status: 'todo', priority: 'low', dueDate: '11月18日', comments: 0, attachments: 0 },
+
+  // === P5: VR 展厅 ===
+  { id: 't5_1', projectId: 'p5', title: '展厅平面布局图', assignee: 'Architect', assigneeAvatar: 'https://ui-avatars.com/api/?name=Arch&background=random', status: 'review', priority: 'high', dueDate: '11月05日', comments: 6, attachments: 1 },
+  { id: 't5_2', projectId: 'p5', title: 'Unity 项目初始化', assignee: 'Dev', assigneeAvatar: 'https://ui-avatars.com/api/?name=Dev&background=random', status: 'done', priority: 'medium', dueDate: '10月30日', comments: 0, attachments: 0 },
+  { id: 't5_3', projectId: 'p5', title: 'VR 交互手势定义', assignee: 'Dev_Lead', assigneeAvatar: 'https://ui-avatars.com/api/?name=Lead&background=random', status: 'in-progress', priority: 'medium', dueDate: '11月12日', comments: 2, attachments: 0 },
+  { id: 't5_4', projectId: 'p5', title: '家具白模搭建', assignee: '3D_Team', assigneeAvatar: 'https://ui-avatars.com/api/?name=3D&background=random', status: 'todo', priority: 'low', dueDate: '11月20日', comments: 0, attachments: 0 },
+  { id: 't5_5', projectId: 'p5', title: '材质贴图采购', assignee: 'PM', assigneeAvatar: 'https://ui-avatars.com/api/?name=PM&background=random', status: 'todo', priority: 'low', dueDate: '11月15日', comments: 0, attachments: 0 },
+
+  // === P6: 少儿百科插画 ===
+  { id: 't6_1', projectId: 'p6', title: '海洋生物资料收集', assignee: 'Illustrator', assigneeAvatar: 'https://ui-avatars.com/api/?name=Illu&background=random', status: 'done', priority: 'low', dueDate: '10月25日', comments: 1, attachments: 8 },
+  { id: 't6_2', projectId: 'p6', title: '第一批草图 (5张)', assignee: 'Illustrator', assigneeAvatar: 'https://ui-avatars.com/api/?name=Illu&background=random', status: 'in-progress', priority: 'high', dueDate: '11月08日', comments: 2, attachments: 5 },
+  { id: 't6_3', projectId: 'p6', title: '色彩风格测试', assignee: 'ArtDir', assigneeAvatar: 'https://ui-avatars.com/api/?name=AD&background=random', status: 'review', priority: 'medium', dueDate: '11月02日', comments: 4, attachments: 2 },
+  { id: 't6_4', projectId: 'p6', title: '排版样式确认', assignee: 'Designer', assigneeAvatar: 'https://ui-avatars.com/api/?name=Des&background=random', status: 'todo', priority: 'medium', dueDate: '11月15日', comments: 0, attachments: 0 },
+
+  // === P7: 金融科技 App ===
+  { id: 't7_1', projectId: 'p7', title: '用户体验地图分析', assignee: 'UX_Res', assigneeAvatar: 'https://ui-avatars.com/api/?name=UX&background=random', status: 'done', priority: 'medium', dueDate: '10月15日', comments: 5, attachments: 1 },
+  { id: 't7_2', projectId: 'p7', title: '竞品视觉分析报告', assignee: 'UI_Des', assigneeAvatar: 'https://ui-avatars.com/api/?name=UI&background=random', status: 'done', priority: 'low', dueDate: '10月18日', comments: 0, attachments: 1 },
+  { id: 't7_3', projectId: 'p7', title: 'Design System 原子组件库', assignee: 'UI_Lead', assigneeAvatar: 'https://ui-avatars.com/api/?name=Lead&background=random', status: 'in-progress', priority: 'high', dueDate: '11月10日', comments: 8, attachments: 3 },
+  { id: 't7_4', projectId: 'p7', title: '首页高保真设计', assignee: 'UI_Des', assigneeAvatar: 'https://ui-avatars.com/api/?name=UI&background=random', status: 'review', priority: 'high', dueDate: '11月08日', comments: 12, attachments: 4 },
+  { id: 't7_5', projectId: 'p7', title: '暗色模式配色方案', assignee: 'UI_Des', assigneeAvatar: 'https://ui-avatars.com/api/?name=UI&background=random', status: 'in-progress', priority: 'low', dueDate: '11月15日', comments: 2, attachments: 0 },
+  { id: 't7_6', projectId: 'p7', title: '核心转账流程设计', assignee: 'UI_Des', assigneeAvatar: 'https://ui-avatars.com/api/?name=UI&background=random', status: 'todo', priority: 'high', dueDate: '11月20日', comments: 0, attachments: 0 },
+
+  // === P8: 品牌宣传战役 ===
+  { id: 't8_1', projectId: 'p8', title: 'TVC 脚本分镜', assignee: 'Director', assigneeAvatar: 'https://ui-avatars.com/api/?name=Dir&background=random', status: 'done', priority: 'high', dueDate: '10月28日', comments: 10, attachments: 1 },
+  { id: 't8_2', projectId: 'p8', title: '社交媒体海报延展 (x9)', assignee: 'Graphic', assigneeAvatar: 'https://ui-avatars.com/api/?name=Gra&background=random', status: 'review', priority: 'medium', dueDate: '11月05日', comments: 3, attachments: 9 },
+  { id: 't8_3', projectId: 'p8', title: '线下活动物料印刷文件', assignee: 'Graphic', assigneeAvatar: 'https://ui-avatars.com/api/?name=Gra&background=random', status: 'todo', priority: 'high', dueDate: '11月12日', comments: 1, attachments: 0 },
+  { id: 't8_4', projectId: 'p8', title: 'H5 互动页面设计', assignee: 'WebDes', assigneeAvatar: 'https://ui-avatars.com/api/?name=Web&background=random', status: 'todo', priority: 'low', dueDate: '11月15日', comments: 0, attachments: 0 },
+  { id: 't8_5', projectId: 'p8', title: 'KOL 投放素材包整理', assignee: 'Ops', assigneeAvatar: 'https://ui-avatars.com/api/?name=Ops&background=random', status: 'todo', priority: 'medium', dueDate: '11月18日', comments: 0, attachments: 0 }
 ];
 
 export const MOCK_ASSETS: Asset[] = [

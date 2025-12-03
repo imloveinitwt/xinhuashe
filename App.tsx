@@ -78,6 +78,14 @@ const App: React.FC = () => {
     setIsLoginModalOpen(true);
   };
 
+  const handleFooterNavigation = (mode: ViewMode) => {
+    if (mode === 'workspace' && !user) {
+      handleTriggerLogin();
+    } else {
+      setViewMode(mode);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
       
@@ -139,7 +147,12 @@ const App: React.FC = () => {
       </main>
 
       {/* Global Footer (Visible in Discovery/Profile) */}
-      {(viewMode === 'discovery' || viewMode === 'profile') && <Footer />}
+      {(viewMode === 'discovery' || viewMode === 'profile') && (
+        <Footer 
+          onNavigate={handleFooterNavigation}
+          onTriggerUpload={() => user ? setIsUploadModalOpen(true) : setIsLoginModalOpen(true)}
+        />
+      )}
 
       {/* Global Modals */}
       <UploadModal 
