@@ -1,12 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Heart, Eye, Filter, Sparkles, Search, BadgeCheck, X, Briefcase, 
+  Heart, Eye, Sparkles, Search, BadgeCheck, Briefcase, 
   Trophy, Flame, SlidersHorizontal, ArrowUpRight, TrendingUp, Zap, Newspaper, ArrowRight,
-  Calendar, DollarSign, UserPlus, MessageCircle, Clock
+  DollarSign, Calendar, UserPlus, Clock
 } from 'lucide-react';
-import { MOCK_ARTWORKS, MOCK_CREATORS, MOCK_EVENTS, MOCK_ARTICLES, MOCK_PROJECTS } from '../constants';
-import { User } from '../types';
+import { MOCK_CREATORS, MOCK_ARTICLES, MOCK_PROJECTS } from '../constants';
+import { User, Artwork } from '../types';
+import { ArtworkService } from '../services/ArtworkService';
+import ArtworkCard from './ArtworkCard';
 
 interface DiscoveryViewProps {
   onNavigateToProfile?: (profileId: string) => void;
@@ -32,6 +34,10 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
   const [aiFilter, setAiFilter] = useState<AiFilterOption>('all');
   const [likedArtworks, setLikedArtworks] = useState<Set<string>>(new Set());
   const [isScrolled, setIsScrolled] = useState(false);
+  
+  // Async Data State
+  const [artworks, setArtworks] = useState<Artwork[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const categories = ['全部', 'UI/UX', '插画', '3D模型', '概念设计', '二次元', '场景', '科幻', '像素画'];
   const trendingTags = ['赛博朋克', '国风', 'Blender', '机甲', '极简主义'];
@@ -44,6 +50,37 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Fetch Artworks (Simulated Service Call)
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const data = await ArtworkService.getArtworksByFilter(activeFilter, searchQuery, aiFilter);
+        
+        // Client-side sorting (usually done on server)
+        const sortedData = [...data].sort((a, b) => {
+          if (sortOption === 'likes') return b.likes - a.likes;
+          if (sortOption === 'views') return b.views - a.views;
+          return 0;
+        });
+
+        setArtworks(sortedData);
+      } catch (error) {
+        console.error("Failed to fetch artworks", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Debounce search
+    const timeoutId = setTimeout(() => {
+      fetchData();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [activeFilter, searchQuery, aiFilter, sortOption]);
+
 
   const toggleLike = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -69,40 +106,24 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
       else {
         console.log('Navigate to generic profile');
       }
+    } else {
+        // Fallback or guest behavior
+        if (!user && onTriggerLogin) onTriggerLogin();
     }
   };
 
-  const handleHireClick = (e: React.MouseEvent) => {
+  const handleHireClick = (artist: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user && onTriggerLogin) {
       onTriggerLogin();
     } else {
-      console.log("Hire clicked");
+      console.log(`Hire ${artist} clicked`);
     }
   };
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = 'https://placehold.co/600x400/f1f5f9/94a3b8?text=Image+Load+Error';
   };
-
-  // Filter Logic
-  const filteredArtworks = MOCK_ARTWORKS.filter(art => {
-    const matchCategory = activeFilter === '全部' || art.tags.includes(activeFilter);
-    const matchSearch = 
-      art.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      art.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      art.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchAi = 
-      aiFilter === 'all' ? true :
-      aiFilter === 'ai_only' ? art.isAiGenerated :
-      !art.isAiGenerated;
-
-    return matchCategory && matchSearch && matchAi;
-  }).sort((a, b) => {
-    if (sortOption === 'likes') return b.likes - a.likes;
-    if (sortOption === 'views') return b.views - a.views;
-    return 0;
-  });
 
   // Projects Filter for "Hot Opportunities"
   const activeProjects = MOCK_PROJECTS.filter(p => p.status === '进行中' || p.status === '草稿').slice(0, 4);
@@ -250,7 +271,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
                 <SlidersHorizontal className="w-4 h-4" />
                 <span className="hidden sm:inline">筛选 & 排序</span>
                 <span className="bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-xs ml-1">
-                  {filteredArtworks.length}
+                  {isLoading ? '...' : artworks.length}
                 </span>
              </button>
 
@@ -419,103 +440,25 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
                </div>
 
                <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-                  {filteredArtworks.map((artwork, idx) => (
-                    <div 
-                      key={artwork.id} 
-                      className="group relative bg-white rounded-2xl overflow-hidden shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:shadow-[0_8px_30px_-4px_rgba(6,81,237,0.2)] transition-all duration-300 break-inside-avoid transform hover:-translate-y-1"
-                      style={{ animationDelay: `${idx * 50}ms` }}
-                    >
-                      <div className="relative overflow-hidden bg-slate-100">
-                        <img 
-                          src={artwork.imageUrl} 
-                          alt={artwork.title} 
-                          className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                          onError={handleImageError}
-                        />
-                        
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
-                           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full px-6 translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-75">
-                              <button 
-                                onClick={handleHireClick}
-                                className="w-full bg-white text-slate-900 hover:bg-indigo-50 font-bold py-3 rounded-xl shadow-lg transform active:scale-95 transition-all flex items-center justify-center gap-2"
-                              >
-                                <Briefcase className="w-4 h-4 text-indigo-600" />
-                                雇佣画师
-                              </button>
-                           </div>
-
-                           <div className="flex justify-between items-end transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                             <div className="text-white flex-1 pr-4">
-                               <div className="flex flex-wrap gap-2 mb-2">
-                                 {artwork.tags.slice(0, 2).map(tag => (
-                                   <span key={tag} className="text-[10px] font-bold bg-white/20 backdrop-blur-md px-2 py-1 rounded text-white">
-                                     #{tag}
-                                   </span>
-                                 ))}
-                               </div>
-                             </div>
-                             <button 
-                               onClick={(e) => toggleLike(artwork.id, e)}
-                               className={`p-2.5 rounded-full backdrop-blur-md border transition-all ${likedArtworks.has(artwork.id) ? 'bg-rose-500 border-rose-500 text-white' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}`}
-                             >
-                               <Heart className={`w-5 h-5 ${likedArtworks.has(artwork.id) ? 'fill-current' : ''}`} />
-                             </button>
-                           </div>
-                        </div>
-                        
-                        <div className="absolute top-3 left-3 flex gap-2">
-                           {artwork.likes > 2000 && (
-                              <span className="bg-amber-400 text-white text-[10px] px-2 py-1 rounded-md font-bold shadow-sm flex items-center gap-1">
-                                <Flame className="w-3 h-3 fill-current" /> 热门
-                              </span>
-                           )}
-                        </div>
-                        {artwork.isAiGenerated && (
-                          <div className="absolute top-3 right-3">
-                             <span className="bg-purple-600/90 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-md font-bold shadow-sm flex items-center gap-1">
-                               <Sparkles className="w-3 h-3" /> AI
-                             </span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="p-4">
-                        <h3 className="font-bold text-slate-800 text-base mb-2 line-clamp-1 group-hover:text-indigo-600 transition-colors">
-                          {artwork.title}
-                        </h3>
-                        <div className="flex items-center justify-between">
-                          <div 
-                            className="flex items-center gap-2 cursor-pointer hover:opacity-75 transition-opacity"
-                            onClick={(e) => handleArtistClick(e, artwork.artist)}
-                          >
-                            <img 
-                              src={artwork.artistAvatar} 
-                              alt={artwork.artist} 
-                              className="w-8 h-8 rounded-full border border-slate-100 object-cover" 
-                              onError={handleImageError}
-                            />
-                            <div className="flex flex-col">
-                              <span className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                                {artwork.artist}
-                                {artwork.isVerified && <BadgeCheck className="w-3 h-3 text-blue-500" />}
-                              </span>
-                              <span className="text-[10px] text-slate-400">2小时前发布</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3 text-xs text-slate-400 font-medium">
-                             <span className="flex items-center gap-1 hover:text-slate-600">
-                               <Eye className="w-3.5 h-3.5" /> 
-                               {artwork.views > 1000 ? (artwork.views/1000).toFixed(1) + 'k' : artwork.views}
-                             </span>
-                             <span className={`flex items-center gap-1 ${likedArtworks.has(artwork.id) ? 'text-rose-500' : 'hover:text-slate-600'}`}>
-                               <Heart className={`w-3.5 h-3.5 ${likedArtworks.has(artwork.id) ? 'fill-current' : ''}`} /> 
-                               {likedArtworks.has(artwork.id) ? artwork.likes + 1 : artwork.likes}
-                             </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                  {isLoading ? (
+                    // Render Skeletons
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <ArtworkCard key={i} isLoading={true} style={{ animationDelay: `${i * 100}ms` }} />
+                    ))
+                  ) : (
+                    // Render Artworks
+                    artworks.map((artwork, idx) => (
+                      <ArtworkCard 
+                        key={artwork.id}
+                        artwork={artwork}
+                        isLiked={likedArtworks.has(artwork.id)}
+                        onLike={toggleLike}
+                        onHire={handleHireClick}
+                        onNavigateToProfile={(artist, e) => handleArtistClick(e, artist)}
+                        style={{ animationDelay: `${idx * 50}ms` }}
+                      />
+                    ))
+                  )}
                </div>
              </section>
 
