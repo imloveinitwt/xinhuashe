@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Plus, MoreHorizontal, Calendar, MessageSquare, Paperclip, 
@@ -25,7 +24,7 @@ const PriorityBadge = ({ priority }: { priority: Task['priority'] }) => {
   );
 };
 
-const TaskCard = ({ task }: { task: Task }) => (
+const TaskCard: React.FC<{ task: Task }> = ({ task }) => (
   <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-200 hover:shadow-md transition-all cursor-pointer group">
     <div className="flex justify-between items-start mb-2">
       <PriorityBadge priority={task.priority} />

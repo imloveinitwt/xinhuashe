@@ -1,4 +1,5 @@
-import { Artwork, Asset, Project, Task, Transaction, Invoice } from './types';
+
+import { Artwork, Asset, Project, Task, Transaction, Invoice, Creator, Event } from './types';
 
 export const MOCK_ARTWORKS: Artwork[] = [
   {
@@ -58,6 +59,18 @@ export const MOCK_ARTWORKS: Artwork[] = [
     tags: ['抽象', '材质'],
     isVerified: false
   }
+];
+
+export const MOCK_CREATORS: Creator[] = [
+  { id: 'c1', name: 'WLOP', avatar: 'https://picsum.photos/32/32?random=50', tags: ['插画', '古风'], followers: 850000, isVerified: true },
+  { id: 'c2', name: 'RuanJia', avatar: 'https://picsum.photos/32/32?random=51', tags: ['概念', '厚涂'], followers: 620000, isVerified: true },
+  { id: 'c3', name: 'TechDesign', avatar: 'https://picsum.photos/32/32?random=52', tags: ['UI', 'B端'], followers: 150000, isVerified: false },
+  { id: 'c4', name: 'LowPolyGod', avatar: 'https://picsum.photos/32/32?random=53', tags: ['3D', 'Blender'], followers: 98000, isVerified: true },
+];
+
+export const MOCK_EVENTS: Event[] = [
+  { id: 'e1', title: '2023 全球机甲设计大赛', coverUrl: 'https://picsum.photos/400/200?random=201', deadline: '剩余 12 天', prize: '¥100,000', status: 'active' },
+  { id: 'e2', title: '王者荣耀皮肤设计征集', coverUrl: 'https://picsum.photos/400/200?random=202', deadline: '剩余 25 天', prize: '签约机会', status: 'active' },
 ];
 
 export const MOCK_PROJECTS: Project[] = [
@@ -183,14 +196,24 @@ export const MOCK_ASSETS: Asset[] = [
   { id: 'a4', name: '合同_已签署.pdf', type: 'doc', size: '1.2 MB', modified: '10月20日', version: 'v1.0', tags: ['法务'] },
 ];
 
-export const CHART_DATA = [
-  { name: '周一', revenue: 4000, active: 24 },
-  { name: '周二', revenue: 3000, active: 13 },
-  { name: '周三', revenue: 2000, active: 38 },
-  { name: '周四', revenue: 2780, active: 39 },
-  { name: '周五', revenue: 1890, active: 48 },
-  { name: '周六', revenue: 2390, active: 38 },
-  { name: '周日', revenue: 3490, active: 43 },
+export const CHART_DATA_ARTIST = [
+  { name: '周一', revenue: 200, active: 450 },
+  { name: '周二', revenue: 500, active: 620 },
+  { name: '周三', revenue: 1200, active: 800 },
+  { name: '周四', revenue: 800, active: 750 },
+  { name: '周五', revenue: 2400, active: 900 },
+  { name: '周六', revenue: 1500, active: 1200 },
+  { name: '周日', revenue: 3000, active: 1500 },
+];
+
+export const CHART_DATA_CLIENT = [
+  { name: '周一', expenditure: 4000, active: 24 },
+  { name: '周二', expenditure: 3000, active: 13 },
+  { name: '周三', expenditure: 2000, active: 38 },
+  { name: '周四', expenditure: 2780, active: 39 },
+  { name: '周五', expenditure: 5890, active: 48 },
+  { name: '周六', expenditure: 2390, active: 38 },
+  { name: '周日', expenditure: 3490, active: 43 },
 ];
 
 export const MOCK_TRANSACTIONS: Transaction[] = [

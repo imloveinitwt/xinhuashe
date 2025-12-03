@@ -1,6 +1,15 @@
 
 export type ViewMode = 'discovery' | 'workspace';
 export type WorkspaceTab = 'dashboard' | 'projects' | 'dam' | 'finance';
+export type UserRole = 'artist' | 'client'; // New: Identity distinction
+
+export interface User {
+  id: string;
+  name: string;
+  avatar: string;
+  role: UserRole;
+  isAuthenticated: boolean;
+}
 
 export interface Artwork {
   id: string;
@@ -15,15 +24,33 @@ export interface Artwork {
   isVerified?: boolean;
 }
 
+export interface Creator {
+  id: string;
+  name: string;
+  avatar: string;
+  tags: string[];
+  followers: number;
+  isVerified: boolean;
+}
+
+export interface Event {
+  id: string;
+  title: string;
+  coverUrl: string;
+  deadline: string;
+  prize: string;
+  status: 'active' | 'upcoming';
+}
+
 export interface Project {
   id: string;
   title: string;
   client: string;
-  status: string; // Changed from literal union to string to support Chinese values
+  status: string; 
   budget: number;
   deadline: string;
-  progress: number; // 0-100
-  phase: string; // Changed from literal union to string to support Chinese values
+  progress: number; 
+  phase: string; 
   description?: string;
 }
 

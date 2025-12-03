@@ -27,7 +27,7 @@ const BalanceCard = ({ title, amount, subtitle, type }: { title: string, amount:
   );
 };
 
-const TransactionRow = ({ tx }: { tx: Transaction }) => {
+const TransactionRow: React.FC<{ tx: Transaction }> = ({ tx }) => {
   const isIncome = ['income', 'escrow_release'].includes(tx.type);
   const isFrozen = tx.type === 'escrow_frozen';
   
@@ -66,7 +66,7 @@ const TransactionRow = ({ tx }: { tx: Transaction }) => {
   );
 };
 
-const InvoiceRow = ({ inv }: { inv: Invoice }) => (
+const InvoiceRow: React.FC<{ inv: Invoice }> = ({ inv }) => (
   <div className="flex items-center justify-between p-4 border border-slate-100 rounded-lg hover:border-indigo-200 hover:shadow-sm transition-all bg-white">
     <div className="flex items-center gap-3">
       <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
