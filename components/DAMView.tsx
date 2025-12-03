@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Folder, FileImage, FileVideo, FileText, MoreVertical, 
@@ -51,9 +52,9 @@ const DAMView: React.FC = () => {
           const newTags = [...asset.tags];
           const aiTags = ['AI_Label', 'Smart_Tag'];
           
-          if (asset.type === 'image') aiTags.push('Visual_Content', 'High_Res');
-          if (asset.type === 'video') aiTags.push('Scene_Detect', 'Motion');
-          if (asset.type === 'psd') aiTags.push('Layered', 'Editable');
+          if (asset.type === 'image') aiTags.push('Visual_Content', 'High_Res', 'Color_Pop');
+          if (asset.type === 'video') aiTags.push('Scene_Detect', 'Motion', '4K');
+          if (asset.type === 'psd') aiTags.push('Layered', 'Editable', 'Design');
 
           // Add only unique tags
           aiTags.forEach(tag => {
@@ -249,18 +250,22 @@ const DAMView: React.FC = () => {
                       
                       {/* Tags */}
                       <div className="flex flex-wrap gap-1 mt-2 min-h-[1.5rem]">
-                        {asset.tags.map(tag => (
-                          <span 
-                            key={tag} 
-                            className={`px-1.5 py-0.5 text-[10px] rounded-sm transition-colors ${
-                              ['AI_Label', 'Smart_Tag', 'Visual_Content', 'Scene_Detect', 'High_Res'].includes(tag)
-                                ? 'bg-indigo-100 text-indigo-700 font-medium' // Highlight AI tags
-                                : 'bg-slate-100 text-slate-600'
-                            }`}
-                          >
-                            #{tag}
-                          </span>
-                        ))}
+                        {asset.tags.map(tag => {
+                          const isAiTag = ['AI_Label', 'Smart_Tag', 'Visual_Content', 'Scene_Detect', 'High_Res', 'Color_Pop', 'Motion', '4K', 'Layered', 'Editable', 'Design'].includes(tag);
+                          return (
+                            <span 
+                              key={tag} 
+                              className={`px-1.5 py-0.5 text-[10px] rounded-sm transition-colors flex items-center gap-0.5 ${
+                                isAiTag
+                                  ? 'bg-indigo-100 text-indigo-700 font-medium' // Highlight AI tags
+                                  : 'bg-slate-100 text-slate-600'
+                              }`}
+                            >
+                              {isAiTag && <Sparkles className="w-2 h-2" />}
+                              #{tag}
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>

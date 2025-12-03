@@ -1,14 +1,45 @@
 
 export type ViewMode = 'discovery' | 'workspace';
-export type WorkspaceTab = 'dashboard' | 'projects' | 'dam' | 'finance';
-export type UserRole = 'artist' | 'client'; // New: Identity distinction
+export type WorkspaceTab = 'dashboard' | 'projects' | 'dam' | 'finance' | 'admin_users' | 'admin_roles';
+
+// 2.2 角色定义
+export type UserRole = 
+  | 'root_admin'      // 系统根管理员
+  | 'platform_admin'  // 平台管理员
+  | 'content_ops'     // 内容运营/审核
+  | 'creator'         // 创作者
+  | 'enterprise'      // 企业用户
+  | 'general';        // 普通用户
+
+// 3.3 核心权限代码
+export type PermissionCode = 
+  // 用户管理
+  | 'USER_VIEW' | 'USER_EDIT' | 'USER_ROLE_ASSIGN' | 'USER_AUTH_REVIEW'
+  // 内容管理
+  | 'CONTENT_UPLOAD' | 'CONTENT_REVIEW' | 'CONTENT_DELETE' | 'CONTENT_RECOMMEND'
+  // 交易管理
+  | 'TRANSACTION_CREATE' | 'TRANSACTION_VIEW' | 'INVOICE_APPLY' | 'WITHDRAW_APPLY'
+  // 协作管理
+  | 'PROJECT_CREATE' | 'PROJECT_VIEW' | 'TASK_ASSIGN'
+  // 系统管理
+  | 'SYSTEM_CONFIG' | 'ROLE_MANAGE' | 'LOG_VIEW' | 'DATA_BACKUP';
 
 export interface User {
   id: string;
   name: string;
   avatar: string;
   role: UserRole;
+  roleName: string; // Display name for the role
+  permissions: PermissionCode[]; // Computed final permissions
   isAuthenticated: boolean;
+}
+
+// For Admin View
+export interface RoleDefinition {
+  code: UserRole;
+  name: string;
+  description: string;
+  defaultPermissions: PermissionCode[];
 }
 
 export interface Artwork {
@@ -84,6 +115,7 @@ export interface NavItem {
   id: WorkspaceTab;
   label: string;
   icon: any;
+  requiredPermission?: PermissionCode; // RBAC integration
 }
 
 // Finance Types

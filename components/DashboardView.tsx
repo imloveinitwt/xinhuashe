@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { CHART_DATA_ARTIST, CHART_DATA_CLIENT, MOCK_PROJECTS } from '../constants';
@@ -23,7 +22,7 @@ interface DashboardProps {
 }
 
 const DashboardView: React.FC<DashboardProps> = ({ userRole }) => {
-  const isClient = userRole === 'client';
+  const isClient = userRole === 'enterprise';
   const chartData = isClient ? CHART_DATA_CLIENT : CHART_DATA_ARTIST;
   const dataKey = isClient ? 'expenditure' : 'revenue';
   const color = isClient ? '#6366f1' : '#db2777'; // Indigo vs Pink

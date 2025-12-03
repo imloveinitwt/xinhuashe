@@ -1,5 +1,66 @@
 
-import { Artwork, Asset, Project, Task, Transaction, Invoice, Creator, Event } from './types';
+import { Artwork, Asset, Project, Task, Transaction, Invoice, Creator, Event, RoleDefinition, User } from './types';
+
+// === RBAC CONFIGURATION ===
+// 模拟数据库中的 Roles 和 Permissions 表配置
+export const ROLE_DEFINITIONS: RoleDefinition[] = [
+  {
+    code: 'root_admin',
+    name: '系统根管理员',
+    description: '系统最高权限，负责全局配置与安全',
+    defaultPermissions: [
+      'USER_VIEW', 'USER_EDIT', 'USER_ROLE_ASSIGN', 'USER_AUTH_REVIEW',
+      'CONTENT_REVIEW', 'CONTENT_DELETE', 'CONTENT_RECOMMEND',
+      'TRANSACTION_VIEW', 
+      'SYSTEM_CONFIG', 'ROLE_MANAGE', 'LOG_VIEW', 'DATA_BACKUP'
+    ]
+  },
+  {
+    code: 'content_ops',
+    name: '内容审核/运营',
+    description: '负责内容生态治理与推荐',
+    defaultPermissions: [
+      'USER_VIEW', 'USER_AUTH_REVIEW',
+      'CONTENT_REVIEW', 'CONTENT_DELETE', 'CONTENT_RECOMMEND',
+      'LOG_VIEW'
+    ]
+  },
+  {
+    code: 'creator',
+    name: '认证创作者',
+    description: '平台核心生产力，拥有接单与作品管理权限',
+    defaultPermissions: [
+      'CONTENT_UPLOAD', 
+      'TRANSACTION_VIEW', 'WITHDRAW_APPLY',
+      'PROJECT_VIEW'
+    ]
+  },
+  {
+    code: 'enterprise',
+    name: '企业主账号',
+    description: '拥有采购、DAM管理与财务权限',
+    defaultPermissions: [
+      'TRANSACTION_CREATE', 'TRANSACTION_VIEW', 'INVOICE_APPLY',
+      'PROJECT_CREATE', 'PROJECT_VIEW', 'TASK_ASSIGN'
+    ]
+  },
+  {
+    code: 'platform_admin',
+    name: '平台管理员',
+    description: '负责平台日常业务运营',
+    defaultPermissions: ['USER_VIEW', 'USER_ROLE_ASSIGN', 'TRANSACTION_VIEW', 'LOG_VIEW']
+  }
+];
+
+// Mock Users for Admin View
+export const MOCK_USERS_ADMIN_VIEW: Partial<User>[] = [
+  { id: 'u1', name: 'Admin_Root', role: 'root_admin', roleName: '系统根管理员', avatar: 'https://picsum.photos/32/32?random=99' },
+  { id: 'u2', name: 'Ops_Sarah', role: 'content_ops', roleName: '内容审核员', avatar: 'https://picsum.photos/32/32?random=98' },
+  { id: 'u3', name: 'NeonDreamer', role: 'creator', roleName: '认证创作者', avatar: 'https://picsum.photos/32/32?random=1' },
+  { id: 'u4', name: 'TechNova_PM', role: 'enterprise', roleName: '企业主账号', avatar: 'https://picsum.photos/32/32?random=88' },
+];
+
+// === EXISTING MOCK DATA ===
 
 export const MOCK_ARTWORKS: Artwork[] = [
   {
@@ -121,7 +182,6 @@ export const MOCK_PROJECTS: Project[] = [
 ];
 
 export const MOCK_TASKS: Task[] = [
-  // p1 Tasks: KV
   {
     id: 't1', projectId: 'p1', title: '角色A线稿细化', assignee: 'Alex', assigneeAvatar: 'https://picsum.photos/32/32?random=10',
     status: 'done', priority: 'high', dueDate: '10月20日', comments: 3, attachments: 2
@@ -142,8 +202,6 @@ export const MOCK_TASKS: Task[] = [
     id: 't1_1', projectId: 'p1', title: '海浪特效绘制', assignee: 'Sam', assigneeAvatar: 'https://picsum.photos/32/32?random=11',
     status: 'todo', priority: 'low', dueDate: '10月28日', comments: 1, attachments: 0
   },
-
-  // p2 Tasks: VI
   {
     id: 't5', projectId: 'p2', title: 'Logo 矢量文件输出', assignee: 'DesignTeam', assigneeAvatar: 'https://picsum.photos/32/32?random=13',
     status: 'done', priority: 'high', dueDate: '10月15日', comments: 1, attachments: 4
@@ -156,8 +214,6 @@ export const MOCK_TASKS: Task[] = [
     id: 't2_1', projectId: 'p2', title: 'PPT 母版样式微调', assignee: 'DesignTeam', assigneeAvatar: 'https://picsum.photos/32/32?random=13',
     status: 'done', priority: 'low', dueDate: '10月22日', comments: 2, attachments: 1
   },
-
-  // p3 Tasks: Chara
   {
     id: 't7', projectId: 'p3', title: '需求文档确认', assignee: 'PM', assigneeAvatar: 'https://picsum.photos/32/32?random=14',
     status: 'done', priority: 'high', dueDate: '10月10日', comments: 12, attachments: 1
@@ -166,8 +222,6 @@ export const MOCK_TASKS: Task[] = [
     id: 't8', projectId: 'p3', title: '风格探索 (Moodboard)', assignee: 'Artist1', assigneeAvatar: 'https://picsum.photos/32/32?random=15',
     status: 'in-progress', priority: 'medium', dueDate: '11月05日', comments: 2, attachments: 5
   },
-
-  // p4 Tasks: 3D
   {
     id: 't4_1', projectId: 'p4', title: '头部高模雕刻', assignee: '3D_Max', assigneeAvatar: 'https://picsum.photos/32/32?random=16',
     status: 'done', priority: 'high', dueDate: '11月01日', comments: 4, attachments: 3

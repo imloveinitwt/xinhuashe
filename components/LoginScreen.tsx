@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Hexagon, Palette, Briefcase, ArrowRight, ShieldCheck, Sparkles, Globe } from 'lucide-react';
+import { Hexagon, Palette, Briefcase, ArrowRight, ShieldCheck, Sparkles, Globe, Lock } from 'lucide-react';
 import { UserRole } from '../types';
 
 interface LoginScreenProps {
@@ -18,8 +18,16 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
           </div>
           <span className="font-bold text-2xl text-slate-900 tracking-tight">薪画社</span>
         </div>
-        <div className="text-sm text-slate-500">
-          创意众包与数字资产管理一体化平台
+        <div className="flex items-center gap-4">
+           <div className="text-sm text-slate-500 hidden md:block">
+            创意众包与数字资产管理一体化平台
+          </div>
+          <button 
+            onClick={() => onLogin('root_admin')}
+            className="text-xs font-medium text-slate-400 hover:text-red-500 flex items-center gap-1 transition-colors"
+          >
+            <Lock className="w-3 h-3" /> 后台管理
+          </button>
         </div>
       </nav>
 
@@ -63,7 +71,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
             
             {/* Artist Entry */}
             <div 
-              onClick={() => onLogin('artist')}
+              onClick={() => onLogin('creator')}
               className="group relative bg-white p-8 rounded-2xl shadow-sm border border-slate-200 cursor-pointer hover:shadow-xl hover:border-pink-300 transition-all duration-300 overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-pink-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
@@ -88,7 +96,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
 
             {/* Client Entry */}
             <div 
-              onClick={() => onLogin('client')}
+              onClick={() => onLogin('enterprise')}
               className="group relative bg-white p-8 rounded-2xl shadow-sm border border-slate-200 cursor-pointer hover:shadow-xl hover:border-indigo-300 transition-all duration-300 overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
@@ -117,12 +125,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
       
       {/* Footer Logos Mockup */}
       <div className="py-8 text-center border-t border-slate-100">
-        <p className="text-xs text-slate-400 mb-4 uppercase tracking-wider">Trusted Integration Partners</p>
-        <div className="flex justify-center gap-8 opacity-40 grayscale">
-          <span className="font-bold text-slate-600">网易画架</span>
-          <span className="font-bold text-slate-600">米画师</span>
-          <span className="font-bold text-slate-600">特赞</span>
-          <span className="font-bold text-slate-600">涂鸦王国</span>
+        <p className="text-xs text-slate-400 mb-4 uppercase tracking-wider">核心生态合作伙伴</p>
+        <div className="flex flex-wrap justify-center gap-6 md:gap-8 opacity-60">
+          <a href="https://huajia.163.com/" target="_blank" rel="noreferrer" className="font-bold text-slate-600 hover:text-indigo-600 hover:opacity-100 transition-all">网易画架</a>
+          <a href="https://www.mihuashi.com/" target="_blank" rel="noreferrer" className="font-bold text-slate-600 hover:text-indigo-600 hover:opacity-100 transition-all">米画师</a>
+          <a href="https://www.tezign.com/" target="_blank" rel="noreferrer" className="font-bold text-slate-600 hover:text-indigo-600 hover:opacity-100 transition-all">特赞</a>
+          <a href="https://www.gracg.com/" target="_blank" rel="noreferrer" className="font-bold text-slate-600 hover:text-indigo-600 hover:opacity-100 transition-all">涂鸦王国</a>
+          <a href="https://www.huashi6.com/" target="_blank" rel="noreferrer" className="font-bold text-slate-600 hover:text-indigo-600 hover:opacity-100 transition-all">触站</a>
+          <a href="https://www.huashilm.com/" target="_blank" rel="noreferrer" className="font-bold text-slate-600 hover:text-indigo-600 hover:opacity-100 transition-all">画盟网</a>
         </div>
       </div>
     </div>
