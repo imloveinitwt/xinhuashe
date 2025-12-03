@@ -9,9 +9,11 @@ import ProjectsView from './components/ProjectsView';
 import FinanceView from './components/FinanceView';
 import LoginScreen from './components/LoginScreen';
 import UploadModal from './components/UploadModal';
-import AdminView from './components/AdminView'; // New component
+import AdminView from './components/AdminView';
+import PersonalSpaceView from './components/PersonalSpaceView'; 
+import Footer from './components/Footer';
 import { ViewMode, WorkspaceTab, UserRole, User } from './types';
-import { ROLE_DEFINITIONS } from './constants';
+import { ROLE_DEFINITIONS, getProfileById } from './constants';
 
 const App: React.FC = () => {
   // Authentication State with User Object
@@ -21,6 +23,9 @@ const App: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('discovery');
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<WorkspaceTab>('dashboard');
   
+  // Profile State
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+
   // Modal State
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
@@ -31,10 +36,14 @@ const App: React.FC = () => {
     if (!roleDef) return;
 
     // 2. Create Mock User with Permissions
+    // For demo: creator maps to ID 'u_101' which matches MOCK_PROFILES[0].userId
+    const mockId = roleCode === 'creator' ? 'u_101' : `u_${Math.floor(Math.random() * 1000)}`;
+    const mockName = roleCode === 'creator' ? 'ArtMaster' : roleCode === 'root_admin' ? 'SysAdmin' : 'TechCorp_PM';
+
     const newUser: User = {
-      id: `u_${Math.floor(Math.random() * 1000)}`,
-      name: roleCode === 'creator' ? 'ArtMaster' : roleCode === 'root_admin' ? 'SysAdmin' : 'TechCorp_PM',
-      avatar: `https://picsum.photos/32/32?random=${roleCode.length}`,
+      id: mockId,
+      name: mockName,
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(mockName)}&background=random&color=fff`,
       role: roleCode,
       roleName: roleDef.name,
       permissions: roleDef.defaultPermissions,
@@ -60,13 +69,18 @@ const App: React.FC = () => {
      handleLogin(role);
   };
 
+  const handleNavigateToProfile = (profileId: string) => {
+    setSelectedProfileId(profileId);
+    setViewMode('profile');
+  };
+
   // If not authenticated, show the Login Entry Screen
   if (!user || !user.isAuthenticated) {
     return <LoginScreen onLogin={handleLogin} />;
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
       
       {/* Top Header */}
       <Header 
@@ -75,6 +89,8 @@ const App: React.FC = () => {
         userRole={user.role}
         setUserRole={handleSetUserRole}
         onUploadClick={() => setIsUploadModalOpen(true)}
+        currentUser={user}
+        onNavigateToProfile={handleNavigateToProfile}
       />
 
       {/* Workspace Sidebar - Only in Workspace mode */}
@@ -87,15 +103,21 @@ const App: React.FC = () => {
       )}
 
       {/* Main Content Area */}
-      <main className={`transition-all duration-300 ${
+      <main className={`flex-1 transition-all duration-300 ${
         viewMode === 'workspace' ? 'ml-64 pt-16 h-screen overflow-hidden' : 'pt-0'
       }`}>
         
         {viewMode === 'discovery' ? (
-          // === COMMUNITY MODE (All users see the same creative content) ===
-          <DiscoveryView />
+          // === COMMUNITY MODE ===
+          <DiscoveryView onNavigateToProfile={handleNavigateToProfile} />
+        ) : viewMode === 'profile' && selectedProfileId ? (
+          // === PERSONAL SPACE MODE ===
+          <PersonalSpaceView 
+            profile={getProfileById(selectedProfileId)} 
+            currentUser={user}
+          />
         ) : (
-          // === WORKSPACE MODE (Adapts to Role via RBAC) ===
+          // === WORKSPACE MODE ===
           <div className="h-full p-6 md:p-8 overflow-y-auto custom-scrollbar">
              {/* Content Switcher based on Sidebar selection */}
              {activeWorkspaceTab === 'dashboard' && <DashboardView userRole={user.role} />}
@@ -108,6 +130,9 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Global Footer (Visible in Discovery/Profile) */}
+      {(viewMode === 'discovery' || viewMode === 'profile') && <Footer />}
 
       {/* Global Modals */}
       <UploadModal 

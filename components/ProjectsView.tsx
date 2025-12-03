@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Plus, MoreHorizontal, Calendar, MessageSquare, Paperclip, 
@@ -48,7 +49,7 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => (
         )}
         <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {task.dueDate}</span>
       </div>
-      <img src={task.assigneeAvatar} alt={task.assignee} className="w-6 h-6 rounded-full border border-white" />
+      <img src={task.assigneeAvatar} alt={task.assignee} className="w-6 h-6 rounded-full border border-white bg-slate-200" />
     </div>
   </div>
 );
@@ -83,16 +84,33 @@ const ProjectsView: React.FC = () => {
 
   const activeProject = MOCK_PROJECTS.find(p => p.id === activeProjectId);
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = 'https://placehold.co/100x100?text=Project';
+  };
+
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800">项目看板</h2>
-          <p className="text-slate-500 text-sm mt-1">
-            {activeProject ? activeProject.description : '查看所有项目的任务进度与状态'}
-          </p>
+      <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="flex gap-4 items-center">
+          {activeProject && (
+            <img 
+              src={activeProject.coverImage || "https://placehold.co/100x100?text=Cover"} 
+              alt={activeProject.title} 
+              className="w-16 h-16 rounded-xl object-cover border border-slate-200 shadow-sm"
+              onError={handleImageError}
+            />
+          )}
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800">
+              {activeProject ? activeProject.title : '项目看板'}
+            </h2>
+            <p className="text-slate-500 text-sm mt-1 max-w-xl">
+              {activeProject ? activeProject.description : '查看所有项目的任务进度与状态'}
+            </p>
+          </div>
         </div>
+
         <div className="flex items-center gap-3">
           {/* Project Switcher */}
           <select 
@@ -122,9 +140,9 @@ const ProjectsView: React.FC = () => {
            <Filter className="w-4 h-4" /> 筛选
         </div>
         <div className="flex items-center -space-x-2">
-            <img className="w-7 h-7 rounded-full border-2 border-slate-50" src="https://picsum.photos/32/32?random=10" alt="User" />
-            <img className="w-7 h-7 rounded-full border-2 border-slate-50" src="https://picsum.photos/32/32?random=11" alt="User" />
-            <img className="w-7 h-7 rounded-full border-2 border-slate-50" src="https://picsum.photos/32/32?random=13" alt="User" />
+            <img className="w-7 h-7 rounded-full border-2 border-slate-50 bg-slate-200" src="https://ui-avatars.com/api/?name=User+A&background=random" alt="User" />
+            <img className="w-7 h-7 rounded-full border-2 border-slate-50 bg-slate-200" src="https://ui-avatars.com/api/?name=User+B&background=random" alt="User" />
+            <img className="w-7 h-7 rounded-full border-2 border-slate-50 bg-slate-200" src="https://ui-avatars.com/api/?name=User+C&background=random" alt="User" />
             <div className="w-7 h-7 rounded-full border-2 border-slate-50 bg-slate-100 flex items-center justify-center text-[10px] font-medium">+2</div>
         </div>
       </div>

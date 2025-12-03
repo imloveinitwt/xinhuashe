@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { Bell, MessageSquare, Hexagon, Briefcase, Palette, Plus, Upload } from 'lucide-react';
-import { ViewMode, UserRole } from '../types';
+import { ViewMode, UserRole, User } from '../types';
 
 interface HeaderProps {
   viewMode: ViewMode;
@@ -8,9 +9,27 @@ interface HeaderProps {
   userRole: UserRole;
   setUserRole: (role: UserRole) => void;
   onUploadClick: () => void;
+  currentUser?: User;
+  onNavigateToProfile?: (profileId: string) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ viewMode, setViewMode, userRole, setUserRole, onUploadClick }) => {
+const Header: React.FC<HeaderProps> = ({ 
+  viewMode, setViewMode, userRole, setUserRole, onUploadClick, currentUser, onNavigateToProfile 
+}) => {
+  
+  const handleAvatarClick = () => {
+    if (onNavigateToProfile && currentUser) {
+      // Demo logic: If creator, assume they have a profile 'p_artmaster' (linked to u_101)
+      // In real app, we would fetch the profile ID associated with the user ID
+      const targetProfileId = currentUser.role === 'creator' ? 'p_artmaster' : 'p_neon';
+      onNavigateToProfile(targetProfileId);
+    }
+  };
+
+  const handleAvatarError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = 'https://ui-avatars.com/api/?name=User&background=cbd5e1&color=fff';
+  };
+
   return (
     <header className={`fixed top-0 w-full z-30 transition-all duration-300 ${
       viewMode === 'workspace' 
@@ -19,9 +38,9 @@ const Header: React.FC<HeaderProps> = ({ viewMode, setViewMode, userRole, setUse
     }`}>
       <div className="px-6 h-16 flex items-center justify-between">
         
-        {/* Left: Branding (Only visible in discovery mode) */}
-        {viewMode === 'discovery' ? (
-          <div className="flex items-center gap-2">
+        {/* Left: Branding */}
+        {(viewMode === 'discovery' || viewMode === 'profile') ? (
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setViewMode('discovery')}>
             <div className="bg-indigo-600 p-1.5 rounded-lg">
               <Hexagon className="w-5 h-5 text-white fill-current" />
             </div>
@@ -46,7 +65,7 @@ const Header: React.FC<HeaderProps> = ({ viewMode, setViewMode, userRole, setUse
             <button
               onClick={() => setViewMode('discovery')}
               className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all ${
-                viewMode === 'discovery' 
+                viewMode === 'discovery' || viewMode === 'profile'
                   ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200' 
                   : 'text-slate-500 hover:text-slate-700'
               }`}
@@ -69,7 +88,7 @@ const Header: React.FC<HeaderProps> = ({ viewMode, setViewMode, userRole, setUse
         {/* Right: User Actions & Role Switcher */}
         <div className="flex items-center gap-3 md:gap-4">
           
-          {/* Create/Upload Button (New Feature) */}
+          {/* Create/Upload Button */}
           <button 
             onClick={onUploadClick}
             className="hidden md:flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-full text-sm font-medium transition-colors shadow-sm"
@@ -83,13 +102,13 @@ const Header: React.FC<HeaderProps> = ({ viewMode, setViewMode, userRole, setUse
             onClick={() => setUserRole(userRole === 'creator' ? 'enterprise' : 'creator')}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
               userRole === 'creator' 
-                ? 'bg-pink-50 text-pink-600 border-pink-200 hover:bg-pink-100' 
-                : 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100'
+                ? 'bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100' // Target Enterprise style
+                : 'bg-pink-50 text-pink-600 border-pink-200 hover:bg-pink-100' // Target Creator style
             }`}
-            title="点击切换身份"
+            title={userRole === 'creator' ? "切换为企业主视角" : "切换为创作者视角"}
           >
-             {userRole === 'creator' ? <Palette className="w-3 h-3" /> : <Briefcase className="w-3 h-3" />}
-             <span className="hidden sm:inline">{userRole === 'creator' ? '我是画师' : '我是企业'}</span>
+             {userRole === 'creator' ? <Briefcase className="w-3 h-3" /> : <Palette className="w-3 h-3" />}
+             <span className="hidden sm:inline">{userRole === 'creator' ? '切换为企业' : '切换为画师'}</span>
           </button>
 
           <div className="h-6 w-px bg-slate-200 hidden md:block"></div>
@@ -104,11 +123,16 @@ const Header: React.FC<HeaderProps> = ({ viewMode, setViewMode, userRole, setUse
             </button>
           </div>
           
-          <div className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 py-1 px-1 rounded-lg transition-colors">
+          <div 
+            className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 py-1 px-1 rounded-lg transition-colors group"
+            onClick={handleAvatarClick}
+            title="前往个人空间"
+          >
             <img 
-              src={userRole === 'creator' ? "https://picsum.photos/32/32?random=99" : "https://picsum.photos/32/32?random=88"}
+              src={currentUser?.avatar || "https://ui-avatars.com/api/?name=User&background=random"}
               alt="User" 
-              className="w-8 h-8 rounded-full border border-slate-200"
+              className="w-8 h-8 rounded-full border border-slate-200 group-hover:border-indigo-400 bg-slate-200"
+              onError={handleAvatarError}
             />
           </div>
         </div>

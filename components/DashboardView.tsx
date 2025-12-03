@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { CHART_DATA_ARTIST, CHART_DATA_CLIENT, MOCK_PROJECTS } from '../constants';
@@ -26,6 +27,10 @@ const DashboardView: React.FC<DashboardProps> = ({ userRole }) => {
   const chartData = isClient ? CHART_DATA_CLIENT : CHART_DATA_ARTIST;
   const dataKey = isClient ? 'expenditure' : 'revenue';
   const color = isClient ? '#6366f1' : '#db2777'; // Indigo vs Pink
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = 'https://placehold.co/100x100/e2e8f0/64748b?text=Project';
+  };
 
   return (
     <div className="space-y-6">
@@ -103,25 +108,34 @@ const DashboardView: React.FC<DashboardProps> = ({ userRole }) => {
           <div className="space-y-6">
             {MOCK_PROJECTS.map((project) => (
               <div key={project.id} className="flex flex-col gap-2 pb-4 border-b border-slate-50 last:border-0 last:pb-0">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="font-semibold text-slate-800 text-sm">{project.title}</h4>
-                    <p className="text-xs text-slate-500">{project.client} • {project.phase}</p>
+                <div className="flex gap-3">
+                  {/* Thumbnail Image */}
+                  <img 
+                    src={project.coverImage || `https://placehold.co/100x100?text=${project.id}`} 
+                    alt={project.title}
+                    className="w-12 h-12 rounded-lg object-cover flex-shrink-0 bg-slate-100"
+                    onError={handleImageError}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start mb-1">
+                      <h4 className="font-semibold text-slate-800 text-sm truncate pr-2">{project.title}</h4>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap ${
+                        project.status === '进行中' ? 'bg-blue-100 text-blue-700' :
+                        project.status === '已完成' ? 'bg-green-100 text-green-700' :
+                        project.status === '审核中' ? 'bg-amber-100 text-amber-700' :
+                        'bg-slate-100 text-slate-600'
+                      }`}>
+                        {project.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 truncate mb-2">{project.client} • {project.phase}</p>
+                    <div className="w-full bg-slate-100 rounded-full h-1.5">
+                      <div 
+                        className={`${isClient ? 'bg-indigo-500' : 'bg-pink-500'} h-1.5 rounded-full transition-all duration-500`} 
+                        style={{ width: `${project.progress}%` }}
+                      ></div>
+                    </div>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                    project.status === '进行中' ? 'bg-blue-100 text-blue-700' :
-                    project.status === '已完成' ? 'bg-green-100 text-green-700' :
-                    project.status === '审核中' ? 'bg-amber-100 text-amber-700' :
-                    'bg-slate-100 text-slate-600'
-                  }`}>
-                    {project.status}
-                  </span>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-1.5 mt-1">
-                  <div 
-                    className={`${isClient ? 'bg-indigo-500' : 'bg-pink-500'} h-1.5 rounded-full transition-all duration-500`} 
-                    style={{ width: `${project.progress}%` }}
-                  ></div>
                 </div>
               </div>
             ))}

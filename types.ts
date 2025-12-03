@@ -1,5 +1,5 @@
 
-export type ViewMode = 'discovery' | 'workspace';
+export type ViewMode = 'discovery' | 'workspace' | 'profile';
 export type WorkspaceTab = 'dashboard' | 'projects' | 'dam' | 'finance' | 'admin_users' | 'admin_roles';
 
 // 2.2 角色定义
@@ -32,6 +32,34 @@ export interface User {
   roleName: string; // Display name for the role
   permissions: PermissionCode[]; // Computed final permissions
   isAuthenticated: boolean;
+}
+
+export type ThemeColor = 'indigo' | 'pink' | 'blue' | 'purple' | 'emerald';
+
+export interface UserProfilePreferences {
+  themeColor: ThemeColor;
+  layoutMode: 'grid' | 'list';
+}
+
+export interface UserProfile {
+  id: string;
+  userId: string; // Links to User.id
+  displayName: string;
+  avatar: string;
+  coverImage: string;
+  bio: string;
+  location: string;
+  website?: string;
+  skills: string[];
+  stats: {
+    followers: number;
+    following: number;
+    likes: number;
+    views: number;
+  };
+  joinedDate: string;
+  isVerified: boolean;
+  preferences?: UserProfilePreferences;
 }
 
 // For Admin View
@@ -83,6 +111,7 @@ export interface Project {
   progress: number; 
   phase: string; 
   description?: string;
+  coverImage?: string; // New field for project visual
 }
 
 export type TaskStatus = 'todo' | 'in-progress' | 'review' | 'done';

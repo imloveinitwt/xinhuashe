@@ -101,8 +101,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user }) => {
         <div className="px-6 py-4">
            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">团队成员</p>
            <div className="flex -space-x-2 overflow-hidden">
-             <img className="inline-block h-8 w-8 rounded-full ring-2 ring-slate-900" src="https://picsum.photos/32/32?random=1" alt=""/>
-             <img className="inline-block h-8 w-8 rounded-full ring-2 ring-slate-900" src="https://picsum.photos/32/32?random=2" alt=""/>
+             <img className="inline-block h-8 w-8 rounded-full ring-2 ring-slate-900 bg-slate-700" src="https://ui-avatars.com/api/?name=Team+A&background=random" alt=""/>
+             <img className="inline-block h-8 w-8 rounded-full ring-2 ring-slate-900 bg-slate-700" src="https://ui-avatars.com/api/?name=Team+B&background=random" alt=""/>
              <div className="h-8 w-8 rounded-full ring-2 ring-slate-900 bg-slate-700 flex items-center justify-center text-xs">+5</div>
            </div>
         </div>
