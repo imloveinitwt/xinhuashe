@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Eye, EyeOff, Mail, Lock, User as UserIcon, CheckCircle2, Loader2, Hexagon, AlertCircle } from 'lucide-react';
+import { X, Eye, EyeOff, Mail, Lock, User as UserIcon, CheckCircle2, Loader2, Hexagon, AlertCircle, Smartphone, MessageSquare } from 'lucide-react';
 import { UserRole, User } from '../types';
 import { AuthService } from '../services/AuthService';
 
@@ -13,27 +12,37 @@ interface LoginModalProps {
 
 const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => {
   const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [regMethod, setRegMethod] = useState<'email' | 'phone'>('email'); // New state for registration method
+  
   const [formData, setFormData] = useState({
     email: '',
+    phone: '',
+    verifyCode: '',
     username: '',
     password: '',
     confirmPassword: '',
     agreeTerms: false
   });
+  
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
+  
+  // Timer for verification code
+  const [countdown, setCountdown] = useState(0);
 
   // Reset state when opening/closing
   useEffect(() => {
     if (isOpen) {
       setMode('login');
-      setFormData({ email: '', username: '', password: '', confirmPassword: '', agreeTerms: false });
+      setRegMethod('email');
+      setFormData({ email: '', phone: '', verifyCode: '', username: '', password: '', confirmPassword: '', agreeTerms: false });
       setErrors({});
       setGeneralError(null);
       setSubmitSuccess(false);
+      setCountdown(0);
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -41,38 +50,88 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
     return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
 
+  // Handle Timer
+  useEffect(() => {
+    let timer: any;
+    if (countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [countdown]);
+
   if (!isOpen) return null;
+
+  const handleSendCode = async () => {
+    // Validate Phone first
+    if (!formData.phone) {
+      setErrors(prev => ({...prev, phone: '请输入手机号'}));
+      return;
+    }
+    if (!/^1[3-9]\d{9}$/.test(formData.phone)) {
+      setErrors(prev => ({...prev, phone: '手机号格式不正确'}));
+      return;
+    }
+    
+    // Clear phone error if any
+    setErrors(prev => {
+      const newErrors = {...prev};
+      delete newErrors.phone;
+      return newErrors;
+    });
+
+    try {
+      await AuthService.sendSmsCode(formData.phone);
+      setCountdown(60);
+      setFormData(prev => ({ ...prev, verifyCode: '123456' })); // Demo auto-fill
+    } catch (err: any) {
+      setGeneralError(err.message || '验证码发送失败');
+    }
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
-    // Email Validation
-    if (!formData.email) {
-      newErrors.email = '请输入电子邮箱';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = '邮箱格式不正确';
-    }
+    if (mode === 'login') {
+       // Login validation (simplified)
+       if (!formData.email) newErrors.email = '请输入账号（邮箱/手机）';
+       if (!formData.password) newErrors.password = '请输入密码';
+    } else {
+       // Register Validation
+       if (!formData.username) newErrors.username = '请输入用户名';
+       
+       if (regMethod === 'email') {
+          if (!formData.email) {
+            newErrors.email = '请输入电子邮箱';
+          } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+            newErrors.email = '邮箱格式不正确';
+          }
+       } else {
+          if (!formData.phone) {
+            newErrors.phone = '请输入手机号';
+          } else if (!/^1[3-9]\d{9}$/.test(formData.phone)) {
+            newErrors.phone = '手机号格式不正确';
+          }
+          
+          if (!formData.verifyCode) {
+            newErrors.verifyCode = '请输入验证码';
+          }
+       }
 
-    // Password Validation
-    if (!formData.password) {
-      newErrors.password = '请输入密码';
-    } else if (formData.password.length < 6) {
-      newErrors.password = '密码长度至少需6位';
-    }
+       if (!formData.password) {
+         newErrors.password = '请输入密码';
+       } else if (formData.password.length < 6) {
+         newErrors.password = '密码长度至少需6位';
+       }
 
-    if (mode === 'register') {
-      // Username
-      if (!formData.username) newErrors.username = '请输入用户名';
-      
-      // Confirm Password
-      if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = '两次输入的密码不一致';
-      }
+       if (formData.password !== formData.confirmPassword) {
+         newErrors.confirmPassword = '两次输入的密码不一致';
+       }
 
-      // Terms
-      if (!formData.agreeTerms) {
-        newErrors.terms = '请同意服务条款与隐私政策';
-      }
+       if (!formData.agreeTerms) {
+         newErrors.terms = '请同意服务条款与隐私政策';
+       }
     }
 
     setErrors(newErrors);
@@ -88,23 +147,24 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
 
     try {
       if (mode === 'login') {
-        // 使用 AuthService 登录
-        // 简单逻辑：如果邮箱包含特定关键词，赋予特定角色，否则默认 creator
+        // Login Logic
         let role: UserRole = 'creator';
         if (formData.email.includes('admin')) role = 'root_admin';
         else if (formData.email.includes('enter') || formData.email.includes('corp')) role = 'enterprise';
         
+        // Use email field as generic identifier input for login
         const user = await AuthService.login(formData.email, role);
         onLogin(user);
       } else {
-        // 使用 AuthService 注册
-        await AuthService.register(formData.username, formData.email, 'creator');
+        // Register Logic
+        const contact = regMethod === 'email' ? formData.email : formData.phone;
+        await AuthService.register(formData.username, contact, regMethod, 'creator');
         
         // Register Success UI Flow
         setSubmitSuccess(true);
         setTimeout(async () => {
            // Auto login after register
-           const user = await AuthService.login(formData.email);
+           const user = await AuthService.login(contact);
            onLogin(user);
         }, 1500);
       }
@@ -170,6 +230,31 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                  </div>
               )}
 
+              {/* Registration Method Tabs */}
+              {mode === 'register' && (
+                <div className="flex p-1 bg-slate-100 rounded-lg mb-2">
+                   <button
+                     type="button"
+                     onClick={() => { setRegMethod('email'); setErrors({}); }}
+                     className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-2 ${
+                       regMethod === 'email' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                     }`}
+                   >
+                     <Mail className="w-3.5 h-3.5" /> 邮箱注册
+                   </button>
+                   <button
+                     type="button"
+                     onClick={() => { setRegMethod('phone'); setErrors({}); }}
+                     className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-2 ${
+                       regMethod === 'phone' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                     }`}
+                   >
+                     <Smartphone className="w-3.5 h-3.5" /> 手机注册
+                   </button>
+                </div>
+              )}
+
+              {/* Username Field (Register Only) */}
               {mode === 'register' && (
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">用户名</label>
@@ -187,21 +272,76 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                 </div>
               )}
 
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">电子邮箱</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input 
-                    type="email" 
-                    className={`w-full pl-9 pr-4 py-2.5 bg-slate-50 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-all ${errors.email ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-200'}`}
-                    placeholder="name@example.com"
-                    value={formData.email}
-                    onChange={e => setFormData({...formData, email: e.target.value})}
-                  />
+              {/* Account Input (Email or Phone or Generic for Login) */}
+              {(mode === 'login' || regMethod === 'email') && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                    {mode === 'login' ? '账号 (邮箱/手机)' : '电子邮箱'}
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input 
+                      type="text" 
+                      className={`w-full pl-9 pr-4 py-2.5 bg-slate-50 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-all ${errors.email ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-200'}`}
+                      placeholder={mode === 'login' ? "请输入账号" : "name@example.com"}
+                      value={formData.email}
+                      onChange={e => setFormData({...formData, email: e.target.value})}
+                    />
+                  </div>
+                  {errors.email && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {errors.email}</p>}
                 </div>
-                {errors.email && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {errors.email}</p>}
-              </div>
+              )}
 
+              {/* Phone Registration Fields */}
+              {mode === 'register' && regMethod === 'phone' && (
+                <>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">手机号码</label>
+                    <div className="relative">
+                      <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input 
+                        type="text" 
+                        className={`w-full pl-9 pr-4 py-2.5 bg-slate-50 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-all ${errors.phone ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-200'}`}
+                        placeholder="请输入11位手机号"
+                        value={formData.phone}
+                        onChange={e => setFormData({...formData, phone: e.target.value})}
+                      />
+                    </div>
+                    {errors.phone && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {errors.phone}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">验证码</label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input 
+                          type="text" 
+                          className={`w-full pl-9 pr-4 py-2.5 bg-slate-50 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-all ${errors.verifyCode ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-200'}`}
+                          placeholder="6位数字"
+                          value={formData.verifyCode}
+                          onChange={e => setFormData({...formData, verifyCode: e.target.value})}
+                        />
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={handleSendCode}
+                        disabled={countdown > 0}
+                        className={`w-24 px-0 py-2.5 rounded-lg text-xs font-bold transition-colors ${
+                          countdown > 0 
+                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
+                            : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+                        }`}
+                      >
+                        {countdown > 0 ? `${countdown}s` : '获取验证码'}
+                      </button>
+                    </div>
+                    {errors.verifyCode && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {errors.verifyCode}</p>}
+                  </div>
+                </>
+              )}
+
+              {/* Password Fields */}
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs font-bold text-slate-500 uppercase">密码</label>
@@ -246,6 +386,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                 </div>
               )}
 
+              {/* Login Options */}
               {mode === 'login' && (
                 <div className="flex items-center">
                   <input id="remember-me" type="checkbox" className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" />
@@ -255,6 +396,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                 </div>
               )}
 
+              {/* Register Terms */}
               {mode === 'register' && (
                 <div className="flex items-start">
                   <input 

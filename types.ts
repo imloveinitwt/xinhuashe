@@ -1,5 +1,4 @@
 
-
 export type ViewMode = 'discovery' | 'workspace' | 'profile' | 'artworks' | 'projects_hub' | 'rising_creators' | 'rankings' | 'help_center' | 'painter_guide_full' | 'employer_guide_full' | 'terms_service_full' | 'enterprise_showcase' | 'messages';
 export type WorkspaceTab = 'dashboard' | 'projects' | 'dam' | 'finance' | 'admin_users' | 'admin_roles';
 
@@ -33,6 +32,9 @@ export interface User {
   roleName: string; // Display name for the role
   permissions: PermissionCode[]; // Computed final permissions
   isAuthenticated: boolean;
+  email?: string; // Added for admin view and login
+  phone?: string; // Added for phone registration
+  status?: 'active' | 'banned' | 'inactive'; // Added for admin view
 }
 
 export type ThemeColor = 'indigo' | 'pink' | 'blue' | 'purple' | 'emerald';
@@ -71,6 +73,23 @@ export interface RoleDefinition {
   defaultPermissions: PermissionCode[];
 }
 
+export interface SystemLog {
+  id: string;
+  action: string;
+  operator: string;
+  target: string;
+  timestamp: string;
+  ip: string;
+  status: 'success' | 'failure';
+}
+
+export interface SystemConfig {
+  maintenanceMode: boolean;
+  allowRegistration: boolean;
+  contentAuditLevel: 'low' | 'medium' | 'high' | 'strict';
+  maxUploadSize: number;
+}
+
 export interface Artwork {
   id: string;
   title: string;
@@ -87,6 +106,8 @@ export interface Artwork {
   publishDate?: string;
   tools?: string[];
   resolution?: string;
+  // Admin fields
+  status?: 'approved' | 'pending' | 'rejected';
 }
 
 export interface Creator {
