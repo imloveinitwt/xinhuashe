@@ -4,8 +4,7 @@ import {
   Folder, FileImage, FileVideo, FileText, MoreVertical, 
   Search, Grid, List, Download, Share2, Sparkles, Plus, Image as ImageIcon,
   Check, Loader2, X, Info, History, Tag, Trash2, SplitSquareHorizontal, 
-  ArrowLeftRight, GitCompare, ArrowRight, Minus, Maximize, PlayCircle,
-  ChevronRight, ChevronDown, FolderOpen
+  ArrowLeftRight, GitCompare, ArrowRight, Minus, Maximize, PlayCircle
 } from 'lucide-react';
 import { MOCK_ASSETS } from '../constants';
 import { Asset } from '../types';
@@ -28,41 +27,28 @@ const AssetIcon = ({ type, size = 'md' }: { type: Asset['type'], size?: 'sm'|'md
   }
 };
 
-// ... (Helper functions getMockHistoryVersion, getMockPreviewUrl remain the same as previous) ...
-// Simplified purely for brevity in this response, assume they exist or copy from original
-const getMockHistoryVersion = (asset: Asset) => ({
+// Mock function to generate history data for demo
+const getMockHistoryVersion = (asset: Asset) => {
+  return {
     version: 'v1.0',
     modified: '3天前',
     size: asset.size ? (parseFloat(asset.size) * 0.8).toFixed(1) + ' MB' : '-',
-    tags: asset.tags.slice(0, Math.max(0, asset.tags.length - 2)) 
-});
+    tags: asset.tags.slice(0, Math.max(0, asset.tags.length - 2)) // Simulate fewer tags in old version
+  };
+};
 
+// Helper to get mock preview URL based on asset type
 const getMockPreviewUrl = (asset: Asset) => {
   if (asset.type === 'image' || asset.type === 'psd') {
+    // Generate a consistent placeholder image based on asset name
     return `https://image.pollinations.ai/prompt/digital%20art%20${encodeURIComponent(asset.name)}?width=800&height=600&nologo=true`;
   }
   if (asset.type === 'video') {
+    // Standard sample video for demo
     return 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
   }
   return null;
 };
-
-// --- Tree Node Component ---
-const TreeNode = ({ name, isOpen, onClick, hasChildren }: { name: string, isOpen: boolean, onClick: () => void, hasChildren: boolean }) => (
-  <div 
-    onClick={onClick}
-    className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors text-sm ${isOpen ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}
-  >
-    {hasChildren && (
-      <span className="text-slate-400">
-        {isOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-      </span>
-    )}
-    {!hasChildren && <span className="w-3"></span>}
-    {isOpen ? <FolderOpen className="w-4 h-4 text-blue-500" /> : <Folder className="w-4 h-4 text-blue-400" />}
-    {name}
-  </div>
-);
 
 const DAMView: React.FC = () => {
   const [assets, setAssets] = useState<Asset[]>(MOCK_ASSETS);
@@ -70,18 +56,14 @@ const DAMView: React.FC = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeAssetId, setActiveAssetId] = useState<string | null>(null);
+  
+  // New State for Version Comparison
   const [isCompareMode, setIsCompareMode] = useState(false);
   const [compareVersion, setCompareVersion] = useState<any>(null);
-  
-  // Tree State
-  const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({ 'root': true, 'projects': true });
-
-  const toggleFolder = (id: string) => {
-    setOpenFolders(prev => ({ ...prev, [id]: !prev[id] }));
-  };
 
   const activeAsset = assets.find(a => a.id === activeAssetId);
 
+  // Initialize comparison when entering mode
   const toggleCompareMode = () => {
     if (!isCompareMode && activeAsset) {
       setCompareVersion(getMockHistoryVersion(activeAsset));
@@ -101,28 +83,83 @@ const DAMView: React.FC = () => {
     setSelectedIds(newSelected);
   };
 
-  const clearSelection = () => setSelectedIds(new Set());
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+  };
 
   const handleAIAnalysis = () => {
     if (selectedIds.size === 0) return;
+
     setIsAnalyzing(true);
+    
+    // Simulate AI Processing Delay
     setTimeout(() => {
-      setAssets(prev => prev.map(asset => {
+      setAssets(prevAssets => prevAssets.map(asset => {
         if (selectedIds.has(asset.id) && asset.type !== 'folder') {
-          return { ...asset, tags: [...asset.tags, 'AI_Label', 'Smart_Tag'] };
+          // Generate mock AI tags based on type
+          const newTags = [...asset.tags];
+          const aiTags = ['AI_Label', 'Smart_Tag'];
+          
+          if (asset.type === 'image') aiTags.push('Visual_Content', 'High_Res', 'Color_Pop');
+          if (asset.type === 'video') aiTags.push('Scene_Detect', 'Motion', '4K');
+          if (asset.type === 'psd') aiTags.push('Layered', 'Editable', 'Design');
+
+          // Add only unique tags
+          aiTags.forEach(tag => {
+            if (!newTags.includes(tag)) newTags.push(tag);
+          });
+          
+          return { ...asset, tags: newTags };
         }
         return asset;
       }));
+
       setToastMessage(`成功为 ${selectedIds.size} 个资产生成 AI 元数据`);
       setIsAnalyzing(false);
       setSelectedIds(new Set());
+
+      // Hide toast after 3 seconds
       setTimeout(() => setToastMessage(null), 3000);
-    }, 2000);
+    }, 2500);
+  };
+
+  // Helper to render tag diffs
+  const renderTagDiff = () => {
+    if (!activeAsset || !compareVersion) return null;
+    
+    const oldTags = new Set(compareVersion.tags as string[]);
+    const newTags = new Set(activeAsset.tags);
+    
+    const added = activeAsset.tags.filter(t => !oldTags.has(t));
+    const removed = (compareVersion.tags as string[]).filter(t => !newTags.has(t));
+    const common = activeAsset.tags.filter(t => oldTags.has(t));
+
+    return (
+      <div className="flex flex-wrap gap-2">
+        {common.map(tag => (
+           <span key={tag} className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs border border-slate-200">#{tag}</span>
+        ))}
+        {added.map(tag => (
+           <span key={tag} className="bg-green-50 text-green-700 px-2 py-1 rounded text-xs border border-green-200 flex items-center gap-1">
+             <Plus className="w-3 h-3" /> {tag}
+           </span>
+        ))}
+        {removed.map(tag => (
+           <span key={tag} className="bg-red-50 text-red-700 px-2 py-1 rounded text-xs border border-red-200 flex items-center gap-1 opacity-70 decoration-slice">
+             <Minus className="w-3 h-3" /> {tag}
+           </span>
+        ))}
+        {added.length === 0 && removed.length === 0 && common.length === 0 && (
+          <span className="text-xs text-slate-400 italic">无标签数据</span>
+        )}
+      </div>
+    );
   };
 
   return (
     <div className="h-full flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative">
       
+      {/* Toast Notification */}
       {toastMessage && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2 rounded-lg shadow-xl flex items-center gap-2 animate-fade-in-up">
           <Check className="w-4 h-4 text-green-400" />
@@ -130,150 +167,450 @@ const DAMView: React.FC = () => {
         </div>
       )}
 
-      {/* Toolbar */}
+      {/* DAM Header / Toolbar */}
       <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-bold text-slate-800">资产列表</h2>
           <div className="h-6 w-px bg-slate-300"></div>
+          
+          {/* Breadcrumb Mockup */}
           <div className="flex items-center text-sm text-slate-600">
-             <span className="hover:text-indigo-600 cursor-pointer">项目库</span>
+             <span className="hover:text-indigo-600 cursor-pointer">空间</span>
              <span className="mx-2">/</span>
-             <span className="font-semibold text-slate-900">2023 营销物料</span>
+             <span className="font-semibold text-slate-900">项目 Alpha</span>
           </div>
         </div>
+
         <div className="flex items-center gap-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
             <input 
               type="text" 
-              placeholder="搜索..." 
-              className="pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 w-48 lg:w-64"
+              placeholder="搜索资产..." 
+              className="pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-64"
             />
           </div>
+          <div className="flex bg-white border border-slate-300 rounded-lg p-1">
+            <button className="p-1.5 bg-slate-100 rounded text-slate-700"><Grid className="w-4 h-4" /></button>
+            <button className="p-1.5 hover:bg-slate-50 rounded text-slate-500"><List className="w-4 h-4" /></button>
+          </div>
           <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-            <Plus className="w-4 h-4" /> 上传
+            <Plus className="w-4 h-4" />
+            上传
           </button>
         </div>
       </div>
 
       <div className="flex-1 flex overflow-hidden">
-        
-        {/* LEFT: Tree View Sidebar */}
-        <div className="w-60 border-r border-slate-200 bg-slate-50/50 p-4 overflow-y-auto hidden md:block">
-           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-2">目录结构</h3>
-           <div className="space-y-1">
-              <TreeNode name="所有项目" isOpen={openFolders['root']} onClick={() => toggleFolder('root')} hasChildren={true} />
-              {openFolders['root'] && (
-                <div className="pl-4 border-l border-slate-200 ml-2 space-y-1">
-                   <TreeNode name="市场部物料" isOpen={openFolders['mkt']} onClick={() => toggleFolder('mkt')} hasChildren={true} />
-                   {openFolders['mkt'] && (
-                      <div className="pl-4 border-l border-slate-200 ml-2 space-y-1">
-                         <TreeNode name="2023 Q4" isOpen={false} onClick={() => {}} hasChildren={false} />
-                         <TreeNode name="品牌 VI" isOpen={false} onClick={() => {}} hasChildren={false} />
-                      </div>
-                   )}
-                   <TreeNode name="产品研发" isOpen={openFolders['dev']} onClick={() => toggleFolder('dev')} hasChildren={true} />
-                   <TreeNode name="合同归档" isOpen={false} onClick={() => {}} hasChildren={false} />
-                </div>
-              )}
-              <div className="mt-4 pt-4 border-t border-slate-200">
-                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-2">我的收藏</h3>
-                 <TreeNode name="常用素材" isOpen={false} onClick={() => {}} hasChildren={false} />
-                 <TreeNode name="待审核" isOpen={false} onClick={() => {}} hasChildren={false} />
-              </div>
-           </div>
-        </div>
-
-        {/* MIDDLE: Main Content */}
+        {/* Main Content Area */}
         <div className="flex-1 overflow-auto p-6 custom-scrollbar bg-white relative">
           
-          {/* AI Banner */}
-          <div className={`transition-all duration-300 border p-4 rounded-xl mb-6 flex items-center justify-between ${selectedIds.size > 0 ? 'bg-indigo-50 border-indigo-200 shadow-sm' : 'bg-gradient-to-r from-slate-50 to-white border-slate-100'}`}>
+          {/* AI Action Banner */}
+          <div className={`transition-all duration-300 border p-4 rounded-xl mb-6 flex items-center justify-between ${
+            selectedIds.size > 0 
+              ? 'bg-indigo-50 border-indigo-200 shadow-sm' 
+              : 'bg-gradient-to-r from-slate-50 to-white border-slate-100'
+          }`}>
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-full shadow-sm transition-colors ${selectedIds.size > 0 ? 'bg-indigo-100' : 'bg-white'}`}>
                 <Sparkles className={`w-5 h-5 ${selectedIds.size > 0 ? 'text-indigo-600' : 'text-slate-400'}`} />
               </div>
               <div>
-                <h4 className="font-semibold text-slate-800 text-sm">{selectedIds.size > 0 ? `已选择 ${selectedIds.size} 个资产` : 'AI 智能打标'}</h4>
-                <p className="text-xs text-slate-500">{selectedIds.size > 0 ? '准备运行 AI 分析...' : '自动识别内容生成元数据。'}</p>
+                <h4 className="font-semibold text-slate-800 text-sm">
+                  {selectedIds.size > 0 ? `已选择 ${selectedIds.size} 个资产` : 'Gemini AI 智能打标'}
+                </h4>
+                <p className="text-xs text-slate-500">
+                  {selectedIds.size > 0 ? '准备运行 AI 分析以生成智能标签...' : '自动分类图片并生成元数据，提升检索效率。'}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {selectedIds.size > 0 && <button onClick={clearSelection} className="text-sm text-slate-500 hover:text-slate-700">取消</button>}
-              <button onClick={handleAIAnalysis} disabled={selectedIds.size === 0 || isAnalyzing} className={`flex items-center gap-2 text-sm px-4 py-2 rounded-lg font-medium transition-all ${selectedIds.size > 0 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
-                {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                {isAnalyzing ? '分析中...' : '生成标签'}
+              {selectedIds.size > 0 && (
+                <button 
+                  onClick={clearSelection}
+                  className="text-sm text-slate-500 hover:text-slate-700 font-medium px-3 py-1.5"
+                >
+                  取消
+                </button>
+              )}
+              <button 
+                onClick={handleAIAnalysis}
+                disabled={selectedIds.size === 0 || isAnalyzing}
+                className={`flex items-center gap-2 text-sm px-4 py-2 rounded-lg font-medium transition-all ${
+                  selectedIds.size > 0 
+                    ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md' 
+                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                }`}
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    分析中...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    {selectedIds.size > 0 ? '生成标签' : '请选择资产'}
+                  </>
+                )}
               </button>
             </div>
           </div>
 
-          {/* Files Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-20">
-             {assets.map(asset => {
+          {/* Section: Folders */}
+          <div className="mb-8">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">文件夹</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {assets.filter(a => a.type === 'folder').map(asset => (
+                <div key={asset.id} className="group p-4 border border-slate-100 rounded-xl hover:bg-slate-50 hover:border-indigo-100 cursor-pointer transition-all">
+                  <div className="flex justify-between items-start mb-2">
+                    <Folder className="w-10 h-10 text-blue-400 fill-current" />
+                    <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white rounded-full"><MoreVertical className="w-4 h-4 text-slate-400" /></button>
+                  </div>
+                  <p className="font-medium text-slate-700 text-sm truncate">{asset.name}</p>
+                  <p className="text-xs text-slate-400 mt-1">{asset.modified}</p>
+                </div>
+              ))}
+              <div className="border border-dashed border-slate-300 rounded-xl flex items-center justify-center p-4 hover:bg-slate-50 cursor-pointer text-slate-400 hover:text-indigo-500">
+                <Plus className="w-6 h-6" />
+              </div>
+            </div>
+          </div>
+
+          {/* Section: Files */}
+          <div>
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">文件</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {assets.filter(a => a.type !== 'folder').map(asset => {
                 const isSelected = selectedIds.has(asset.id);
+                const isItemAnalyzing = isAnalyzing && isSelected;
                 const isActive = activeAssetId === asset.id;
+
                 return (
-                  <div key={asset.id} onClick={() => setActiveAssetId(asset.id)} className={`group relative border rounded-xl p-4 cursor-pointer bg-white transition-all ${isActive ? 'border-indigo-500 ring-2 ring-indigo-500/20' : isSelected ? 'border-indigo-500 ring-1 ring-indigo-500 bg-indigo-50/10' : 'border-slate-200 hover:shadow-md'}`}>
-                     <div onClick={(e) => toggleSelection(asset.id, e)} className={`absolute top-3 right-3 z-10 ${isSelected || isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                        <div className={`w-5 h-5 rounded border flex items-center justify-center ${isSelected ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-slate-300'}`}>
-                           {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                  <div 
+                    key={asset.id} 
+                    onClick={() => setActiveAssetId(asset.id)}
+                    className={`group relative border rounded-xl p-4 transition-all cursor-pointer bg-white ${
+                      isActive 
+                        ? 'border-indigo-500 ring-2 ring-indigo-500/20' 
+                        : isSelected 
+                          ? 'border-indigo-500 ring-1 ring-indigo-500 bg-indigo-50/10' 
+                          : 'border-slate-200 hover:shadow-md hover:border-indigo-200'
+                    }`}
+                  >
+                    {/* Selection Checkbox */}
+                    <div 
+                      onClick={(e) => toggleSelection(asset.id, e)}
+                      className={`absolute top-3 right-3 z-10 transition-all ${
+                        isSelected || isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                        isSelected 
+                          ? 'bg-indigo-600 border-indigo-600' 
+                          : 'bg-white border-slate-300 hover:border-indigo-400'
+                      }`}>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                      </div>
+                    </div>
+
+                    {/* Analyzing Overlay */}
+                    {isItemAnalyzing && (
+                      <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-20 flex flex-col items-center justify-center rounded-xl">
+                        <Loader2 className="w-8 h-8 text-indigo-600 animate-spin mb-2" />
+                        <span className="text-xs font-semibold text-indigo-700">AI 分析中...</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 bg-slate-50 p-3 rounded-lg">
+                        <AssetIcon type={asset.type} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className={`text-sm font-semibold truncate transition-colors ${isSelected || isActive ? 'text-indigo-700' : 'text-slate-800'}`} title={asset.name}>
+                          {asset.name}
+                        </h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-slate-500">{asset.size}</span>
+                          <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                          <span className="text-xs text-slate-500">{asset.version}</span>
                         </div>
-                     </div>
-                     <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 bg-slate-50 p-3 rounded-lg"><AssetIcon type={asset.type} /></div>
-                        <div className="flex-1 min-w-0">
-                           <h4 className="text-sm font-semibold truncate" title={asset.name}>{asset.name}</h4>
-                           <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs text-slate-500">{asset.size}</span>
-                              <span className="text-xs text-slate-300">•</span>
-                              <span className="text-xs text-slate-500">{asset.modified}</span>
-                           </div>
-                           <div className="flex flex-wrap gap-1 mt-2 h-5 overflow-hidden">
-                              {asset.tags.slice(0, 3).map(tag => (
-                                 <span key={tag} className="px-1.5 py-0.5 text-[10px] bg-slate-100 rounded text-slate-600">#{tag}</span>
-                              ))}
-                           </div>
+                        
+                        {/* Tags */}
+                        <div className="flex flex-wrap gap-1 mt-2 min-h-[1.5rem]">
+                          {asset.tags.map(tag => {
+                            const isAiTag = ['AI_Label', 'Smart_Tag', 'Visual_Content', 'Scene_Detect', 'High_Res', 'Color_Pop', 'Motion', '4K', 'Layered', 'Editable', 'Design'].includes(tag);
+                            return (
+                              <span 
+                                key={tag} 
+                                className={`px-1.5 py-0.5 text-[10px] rounded-sm transition-colors flex items-center gap-0.5 ${
+                                  isAiTag
+                                    ? 'bg-indigo-100 text-indigo-700 font-medium' // Highlight AI tags
+                                    : 'bg-slate-100 text-slate-600'
+                                }`}
+                              >
+                                {isAiTag && <Sparkles className="w-2 h-2" />}
+                                #{tag}
+                              </span>
+                            );
+                          })}
                         </div>
-                     </div>
+                      </div>
+                    </div>
+
+                    {/* Hover Actions */}
+                    {!isSelected && !isAnalyzing && (
+                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 p-1 rounded-lg backdrop-blur-sm z-10">
+                        <button 
+                          className="p-1.5 hover:bg-slate-100 rounded text-slate-600" 
+                          title="查看详情"
+                          onClick={(e) => { e.stopPropagation(); setActiveAssetId(asset.id); }}
+                        >
+                          <Info className="w-4 h-4" />
+                        </button>
+                        <button 
+                          className="p-1.5 hover:bg-slate-100 rounded text-slate-600" 
+                          title="下载"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Download className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
-             })}
+              })}
+            </div>
           </div>
         </div>
 
-        {/* RIGHT: Detail Pane (Simplified for Code Length) */}
+        {/* Asset Detail Pane (Right Sidebar) */}
         {activeAsset && (
-          <div className={`bg-white border-l border-slate-200 flex flex-col h-full shadow-xl animate-fade-in-right z-20 transition-all duration-300 ${isCompareMode ? 'w-[600px]' : 'w-80'}`}>
-             <div className="p-4 border-b border-slate-100 flex justify-between">
-                <h3 className="font-bold text-slate-800">资产详情</h3>
-                <button onClick={() => setActiveAssetId(null)}><X className="w-5 h-5 text-slate-400" /></button>
-             </div>
-             <div className="p-6 flex-1 overflow-y-auto">
-                <div className="bg-slate-100 rounded-lg aspect-video flex items-center justify-center mb-4 overflow-hidden">
-                   {['image','psd'].includes(activeAsset.type) ? <img src={getMockPreviewUrl(activeAsset)!} className="w-full h-full object-contain" /> : <AssetIcon type={activeAsset.type} size="xl" />}
-                </div>
-                <div className="space-y-4">
-                   <div>
-                      <label className="text-xs font-bold text-slate-400 uppercase">文件名</label>
-                      <p className="text-sm font-semibold break-words">{activeAsset.name}</p>
-                   </div>
-                   <div className="flex gap-4">
-                      <button onClick={toggleCompareMode} className="flex-1 bg-indigo-50 text-indigo-700 py-2 rounded text-sm font-bold flex items-center justify-center gap-2">
-                         <GitCompare className="w-4 h-4" /> {isCompareMode ? '退出对比' : '版本对比'}
-                      </button>
-                      <button className="flex-1 bg-slate-900 text-white py-2 rounded text-sm font-bold">下载</button>
-                   </div>
-                   {isCompareMode && (
-                      <div className="bg-slate-50 p-3 rounded border border-slate-200 text-xs">
-                         <p className="font-bold text-slate-700 mb-2">版本差异检测</p>
-                         <div className="flex gap-2"><span className="text-green-600">+ #Smart_Tag</span><span className="text-red-500 line-through">- #Draft</span></div>
+          <div className={`bg-white border-l border-slate-200 flex flex-col h-full shadow-xl animate-fade-in-right z-20 transition-all duration-300 ${isCompareMode ? 'w-[600px]' : 'w-96'}`}>
+            {/* Header */}
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                 {isCompareMode ? <GitCompare className="w-4 h-4 text-indigo-600" /> : <Info className="w-4 h-4" />}
+                 {isCompareMode ? '版本对比' : '资产详情'}
+              </h3>
+              <div className="flex gap-1">
+                 <button 
+                  onClick={toggleCompareMode}
+                  className={`p-1.5 rounded transition-colors flex items-center gap-2 px-3 ${isCompareMode ? 'bg-indigo-100 text-indigo-700 font-bold' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
+                  title={isCompareMode ? "退出对比" : "版本对比"}
+                >
+                  <SplitSquareHorizontal className="w-4 h-4" />
+                  <span className="text-xs">{isCompareMode ? '退出对比' : '版本对比'}</span>
+                </button>
+                <button 
+                  onClick={() => setActiveAssetId(null)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              
+              {/* Preview with Compare Mode */}
+              <div className="relative">
+                 {isCompareMode && compareVersion ? (
+                   <div className="grid grid-cols-2 gap-4">
+                      {/* Left: Old Version */}
+                      <div className="flex flex-col gap-2">
+                        <div className="bg-slate-50 border border-slate-200 rounded-xl aspect-square flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                           <div className="absolute top-2 left-2 bg-slate-200 text-slate-600 text-[10px] px-2 py-0.5 rounded font-bold">{compareVersion.version}</div>
+                           <AssetIcon type={activeAsset.type} size="lg" />
+                           <div className="absolute inset-0 bg-slate-500/5 pointer-events-none"></div>
+                        </div>
+                        <div className="px-1 space-y-1">
+                           <p className="text-xs font-bold text-slate-700 text-center">历史版本</p>
+                           <p className="text-[10px] text-slate-400 text-center">{compareVersion.modified}</p>
+                           <p className="text-[10px] text-slate-400 text-center">{compareVersion.size}</p>
+                        </div>
                       </div>
+
+                      {/* Center Arrow */}
+                      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-1 border border-slate-200 shadow-sm">
+                        <ArrowRight className="w-4 h-4 text-slate-400" />
+                      </div>
+
+                      {/* Right: New Version */}
+                      <div className="flex flex-col gap-2">
+                        <div className="bg-indigo-50 border border-indigo-200 rounded-xl aspect-square flex flex-col items-center justify-center p-4 relative">
+                           <div className="absolute top-2 right-2 bg-indigo-500 text-white text-[10px] px-2 py-0.5 rounded font-bold">Current</div>
+                           <AssetIcon type={activeAsset.type} size="lg" />
+                        </div>
+                        <div className="px-1 space-y-1">
+                           <p className="text-xs font-bold text-indigo-700 text-center">当前版本 {activeAsset.version}</p>
+                           <p className="text-[10px] text-slate-400 text-center">{activeAsset.modified}</p>
+                           <p className="text-[10px] text-slate-400 text-center">{activeAsset.size}</p>
+                        </div>
+                      </div>
+                   </div>
+                 ) : (
+                    <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-900 relative group min-h-[300px] flex items-center justify-center shadow-inner">
+                       {/* Interactive Preview Container */}
+                       {['image', 'psd'].includes(activeAsset.type) && (
+                         <div className="w-full h-full bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] flex items-center justify-center relative group-hover:bg-slate-800 transition-colors">
+                            <img 
+                              src={getMockPreviewUrl(activeAsset)!} 
+                              className="w-full h-auto max-h-[320px] object-contain transition-transform group-hover:scale-105 duration-500" 
+                              alt="Preview" 
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                               <button className="bg-white/20 backdrop-blur-md text-white p-3 rounded-full hover:bg-white/30 pointer-events-auto transition-colors transform hover:scale-110">
+                                 <Maximize className="w-6 h-6" />
+                               </button>
+                            </div>
+                            <div className="absolute bottom-3 left-3 bg-black/60 text-white text-[10px] px-2 py-1 rounded backdrop-blur-sm">
+                               1920 x 1080 • 72 DPI
+                            </div>
+                         </div>
+                       )}
+
+                       {activeAsset.type === 'video' && (
+                         <div className="w-full bg-black relative flex items-center justify-center">
+                            <video 
+                              controls 
+                              src={getMockPreviewUrl(activeAsset)!} 
+                              className="w-full max-h-[320px] object-contain" 
+                              poster={`https://image.pollinations.ai/prompt/video%20thumbnail%20${encodeURIComponent(activeAsset.name)}?width=800&height=450&nologo=true`}
+                            />
+                         </div>
+                       )}
+
+                       {/* Fallback for other types */}
+                       {!['image', 'video', 'psd'].includes(activeAsset.type) && (
+                         <div className="flex flex-col items-center justify-center p-8 bg-slate-50 border border-dashed border-slate-200 w-full h-full min-h-[300px]">
+                           <AssetIcon type={activeAsset.type} size="xl" />
+                           <p className="mt-4 text-sm font-medium text-slate-600 uppercase">{activeAsset.type}</p>
+                         </div>
+                       )}
+                    </div>
+                 )}
+              </div>
+
+              {/* Tag Comparison (Only in Compare Mode) */}
+              {isCompareMode && (
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 animate-fade-in-up">
+                  <h4 className="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2">
+                    <Tag className="w-3 h-3" /> 标签变更差异
+                  </h4>
+                  {renderTagDiff()}
+                </div>
+              )}
+
+              {/* Basic Info (Hidden in compare mode to save space, or simplified) */}
+              {!isCompareMode && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-bold text-slate-400 uppercase">文件名</label>
+                    <p className="text-sm font-semibold text-slate-800 break-words">{activeAsset.name}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-bold text-slate-400 uppercase">大小</label>
+                        <p className="text-sm text-slate-800">{activeAsset.size || '-'}</p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-slate-400 uppercase">修改时间</label>
+                        <p className="text-sm text-slate-800">{activeAsset.modified}</p>
+                      </div>
+                  </div>
+                  <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase">当前版本</label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-xs font-bold">{activeAsset.version}</span>
+                        <span className="text-xs text-green-600 flex items-center gap-1"><Check className="w-3 h-3" /> 最新</span>
+                      </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tags (Standard View) */}
+              {!isCompareMode && (
+                <div className="pt-4 border-t border-slate-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-bold text-slate-400 uppercase flex items-center gap-1">
+                      <Tag className="w-3 h-3" /> 标签
+                    </label>
+                    <button className="text-xs text-indigo-600 hover:underline">编辑</button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {activeAsset.tags.length > 0 ? activeAsset.tags.map(tag => (
+                      <span key={tag} className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs">#{tag}</span>
+                    )) : (
+                      <span className="text-xs text-slate-400 italic">无标签</span>
+                    )}
+                    <button className="text-xs text-slate-400 border border-dashed border-slate-300 px-2 py-1 rounded hover:border-indigo-400 hover:text-indigo-600">
+                      + 添加
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Version History (Interactive in Compare Mode) */}
+              <div className="pt-4 border-t border-slate-100">
+                <label className="text-xs font-bold text-slate-400 uppercase flex items-center gap-1 mb-3">
+                  <History className="w-3 h-3" /> {isCompareMode ? '选择对比版本' : '版本记录'}
+                </label>
+                <div className="space-y-3 relative before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
+                   <div className="relative pl-5">
+                      <div className="absolute left-0 top-1.5 w-3 h-3 bg-indigo-500 rounded-full border-2 border-white"></div>
+                      <p className="text-xs font-bold text-slate-800">{activeAsset.version} (Current)</p>
+                      <p className="text-[10px] text-slate-500">Modified by ArtMaster • {activeAsset.modified}</p>
+                   </div>
+                   
+                   {/* Interactive History Items */}
+                   {activeAsset.version !== 'v1.0' && (
+                     <div 
+                       className={`relative pl-5 transition-all rounded-r-lg p-1 -ml-1 cursor-pointer ${
+                         isCompareMode 
+                           ? 'hover:bg-slate-50 border border-transparent hover:border-slate-200' 
+                           : 'opacity-60 hover:opacity-100'
+                       } ${isCompareMode && compareVersion?.version === 'v1.0' ? 'bg-indigo-50 border-indigo-100' : ''}`}
+                       onClick={() => isCompareMode && setCompareVersion(getMockHistoryVersion(activeAsset))}
+                     >
+                        <div className={`absolute left-0 top-2.5 w-3 h-3 rounded-full border-2 border-white ${
+                          isCompareMode && compareVersion?.version === 'v1.0' ? 'bg-indigo-400' : 'bg-slate-300'
+                        }`}></div>
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className={`text-xs font-bold ${isCompareMode && compareVersion?.version === 'v1.0' ? 'text-indigo-700' : 'text-slate-800'}`}>v1.0</p>
+                            <p className="text-[10px] text-slate-500">Original Upload • 3 days ago</p>
+                          </div>
+                          {isCompareMode && (
+                            <button className="text-[10px] border border-slate-200 bg-white px-2 py-0.5 rounded hover:bg-slate-50 text-slate-500">
+                              {compareVersion?.version === 'v1.0' ? '对比中' : '选择'}
+                            </button>
+                          )}
+                        </div>
+                     </div>
                    )}
                 </div>
-             </div>
+              </div>
+
+            </div>
+
+            {/* Actions Footer */}
+            {!isCompareMode && (
+              <div className="p-4 border-t border-slate-100 bg-slate-50 flex gap-2">
+                <button className="flex-1 bg-indigo-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2">
+                  <Download className="w-4 h-4" /> 下载
+                </button>
+                <button className="p-2 border border-slate-200 rounded-lg hover:bg-white text-slate-600 transition-colors">
+                  <Share2 className="w-5 h-5" />
+                </button>
+                <button className="p-2 border border-slate-200 rounded-lg hover:bg-red-50 text-slate-600 hover:text-red-600 transition-colors">
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
+            )}
           </div>
         )}
-
       </div>
     </div>
   );

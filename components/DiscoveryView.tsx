@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { 
   Search, Sparkles, TrendingUp, ArrowRight, Zap, 
   Briefcase, Clock, 
@@ -8,16 +7,16 @@ import {
   Heart, Eye, User as UserIcon
 } from 'lucide-react';
 import { MOCK_PROJECTS, MOCK_ARTWORKS } from '../constants';
-import { Artwork } from '../types';
+import { User, Artwork, ViewMode } from '../types';
 import { ArtworkService } from '../services/ArtworkService';
-import { useAuth } from '../contexts/AuthContext';
 import ArtworkCard from './ArtworkCard';
 import ArtworkDetailModal from './ArtworkDetailModal';
 
 interface DiscoveryViewProps {
-  // Legacy props kept optional for compatibility, but internal hooks preferred
   onNavigateToProfile?: (profileId: string) => void;
   onTriggerLogin?: () => void;
+  onNavigate?: (mode: ViewMode) => void;
+  user?: User | null;
 }
 
 // === Sub-Components ===
@@ -175,10 +174,7 @@ const FeaturedItem = ({
   );
 };
 
-const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onTriggerLogin }) => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  
+const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTriggerLogin, onNavigate, user }) => {
   // State
   const [activeCategory, setActiveCategory] = useState('全部');
   const [searchQuery, setSearchQuery] = useState('');
@@ -261,9 +257,11 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onTriggerLogin }) => {
 
   const handleArtistClick = (e: React.MouseEvent, artistName: string) => {
     e.stopPropagation();
-    // Demo logic mapping
-    const profileId = artistName === 'NeonDreamer' ? 'p_neon' : artistName === 'InkFlow' ? 'p_ink' : 'p_artmaster';
-    navigate(`/profile/${profileId}`);
+    if (onNavigateToProfile) {
+      // Demo logic mapping
+      const profileId = artistName === 'NeonDreamer' ? 'p_neon' : artistName === 'InkFlow' ? 'p_ink' : 'p_artmaster';
+      onNavigateToProfile(profileId);
+    }
   };
 
   return (
@@ -329,7 +327,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onTriggerLogin }) => {
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
                 <button 
-                  onClick={() => navigate('/enterprise')}
+                  onClick={() => onNavigate?.('enterprise_showcase')}
                   className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 group"
                 >
                   <Briefcase className="w-5 h-5" />
@@ -337,7 +335,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onTriggerLogin }) => {
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button 
-                  onClick={() => navigate('/artworks')}
+                  onClick={() => onNavigate?.('artworks')}
                   className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl font-bold transition-all backdrop-blur-md flex items-center justify-center gap-2"
                 >
                   <Sparkles className="w-5 h-5" />
@@ -524,7 +522,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onTriggerLogin }) => {
              subtitle="优质甲方 · 预算托管 · 极速结算" 
              icon={Briefcase}
              actionText="进入企划大厅"
-             onAction={() => navigate('/projects')}
+             onAction={() => onNavigate?.('projects_hub')}
            />
            <div className="relative group/scroll">
               <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar snap-x snap-mandatory">
@@ -559,7 +557,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onTriggerLogin }) => {
                  
                  {/* View All Card */}
                  <div 
-                   onClick={() => navigate('/projects')}
+                   onClick={() => onNavigate?.('projects_hub')}
                    className="min-w-[150px] bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition-colors snap-start"
                  >
                     <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm mb-3 text-indigo-600 group-hover:scale-110 transition-transform">
