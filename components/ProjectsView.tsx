@@ -260,6 +260,23 @@ const TaskDetailModal = ({ task, onClose }: { task: Task | null; onClose: () => 
   );
 };
 
+// Filter Button Component
+const FilterButton = ({ label, value, activeValue, onClick }: { label: string, value: string, activeValue: string, onClick: (val: string) => void }) => {
+  const isActive = value === activeValue;
+  return (
+    <button
+      onClick={() => onClick(value)}
+      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border whitespace-nowrap ${
+        isActive 
+          ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' 
+          : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-200 hover:text-indigo-600 hover:bg-slate-50'
+      }`}
+    >
+      {label}
+    </button>
+  );
+};
+
 const ProjectsView: React.FC = () => {
   const [viewMode, setViewMode] = useState<'kanban' | 'archive'>('kanban');
   const [activeProjectId, setActiveProjectId] = useState<string>('all');
@@ -488,58 +505,50 @@ const ProjectsView: React.FC = () => {
                 </div>
               </div>
 
-              {/* Bottom Row: Dropdowns */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
-                 {/* Status */}
-                 <div className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2 border border-slate-200">
-                    <Filter className="w-4 h-4 text-slate-400" />
-                    <span className="text-xs font-bold text-slate-500 whitespace-nowrap">状态</span>
-                    <select 
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value as any)}
-                        className="bg-transparent border-none text-sm text-slate-700 focus:ring-0 w-full cursor-pointer outline-none"
-                      >
-                        <option value="all">全部</option>
-                        <option value="todo">待办</option>
-                        <option value="in-progress">进行中</option>
-                        <option value="review">审核</option>
-                        <option value="done">完成</option>
-                      </select>
-                 </div>
+              {/* Bottom Row: Button Filters (Replaced Dropdowns) */}
+              <div className="flex flex-col gap-4 pt-4 border-t border-slate-100">
+                
+                {/* Status Filter Row */}
+                <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1">
+                   <span className="text-xs font-bold text-slate-500 whitespace-nowrap flex items-center gap-1.5 w-20">
+                      <Filter className="w-3.5 h-3.5" /> 状态:
+                   </span>
+                   <div className="flex items-center gap-2">
+                     <FilterButton label="全部" value="all" activeValue={filterStatus} onClick={(v) => setFilterStatus(v as any)} />
+                     <FilterButton label="待办" value="todo" activeValue={filterStatus} onClick={(v) => setFilterStatus(v as any)} />
+                     <FilterButton label="进行中" value="in-progress" activeValue={filterStatus} onClick={(v) => setFilterStatus(v as any)} />
+                     <FilterButton label="审核" value="review" activeValue={filterStatus} onClick={(v) => setFilterStatus(v as any)} />
+                     <FilterButton label="完成" value="done" activeValue={filterStatus} onClick={(v) => setFilterStatus(v as any)} />
+                   </div>
+                </div>
 
-                 {/* Priority */}
-                 <div className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2 border border-slate-200">
-                    <AlertCircle className="w-4 h-4 text-slate-400" />
-                    <span className="text-xs font-bold text-slate-500 whitespace-nowrap">优先级</span>
-                    <select 
-                        value={filterPriority}
-                        onChange={(e) => setFilterPriority(e.target.value as any)}
-                        className="bg-transparent border-none text-sm text-slate-700 focus:ring-0 w-full cursor-pointer outline-none"
-                      >
-                        <option value="all">全部</option>
-                        <option value="high">高优</option>
-                        <option value="medium">中等</option>
-                        <option value="low">低优</option>
-                      </select>
-                 </div>
+                {/* Priority Filter Row */}
+                <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1">
+                    <span className="text-xs font-bold text-slate-500 whitespace-nowrap flex items-center gap-1.5 w-20">
+                      <AlertCircle className="w-3.5 h-3.5" /> 优先级:
+                   </span>
+                   <div className="flex items-center gap-2">
+                     <FilterButton label="全部" value="all" activeValue={filterPriority} onClick={(v) => setFilterPriority(v as any)} />
+                     <FilterButton label="高优" value="high" activeValue={filterPriority} onClick={(v) => setFilterPriority(v as any)} />
+                     <FilterButton label="中等" value="medium" activeValue={filterPriority} onClick={(v) => setFilterPriority(v as any)} />
+                     <FilterButton label="低优" value="low" activeValue={filterPriority} onClick={(v) => setFilterPriority(v as any)} />
+                   </div>
+                </div>
 
-                 {/* Assignee */}
-                 <div className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2 border border-slate-200">
-                    <User className="w-4 h-4 text-slate-400" />
-                    <span className="text-xs font-bold text-slate-500 whitespace-nowrap">负责人</span>
-                    <select 
-                        value={filterAssignee}
-                        onChange={(e) => setFilterAssignee(e.target.value)}
-                        className="bg-transparent border-none text-sm text-slate-700 focus:ring-0 w-full cursor-pointer outline-none"
-                      >
-                        <option value="all">全部</option>
-                        {uniqueAssignees.map(a => (
-                          <option key={a} value={a}>{a}</option>
-                        ))}
-                      </select>
-                 </div>
+                {/* Assignee Filter Row */}
+                <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1">
+                    <span className="text-xs font-bold text-slate-500 whitespace-nowrap flex items-center gap-1.5 w-20">
+                      <User className="w-3.5 h-3.5" /> 负责人:
+                   </span>
+                   <div className="flex items-center gap-2">
+                     <FilterButton label="全部" value="all" activeValue={filterAssignee} onClick={(v) => setFilterAssignee(v)} />
+                     {uniqueAssignees.map(assignee => (
+                        <FilterButton key={assignee} label={assignee} value={assignee} activeValue={filterAssignee} onClick={(v) => setFilterAssignee(v)} />
+                     ))}
+                   </div>
+                </div>
+
               </div>
-
             </div>
           </div>
 

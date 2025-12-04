@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Eye, EyeOff, Mail, Lock, User, CheckCircle2, Loader2, ArrowRight, Hexagon, AlertCircle } from 'lucide-react';
-import { UserRole } from '../types';
+import { X, Eye, EyeOff, Mail, Lock, User as UserIcon, CheckCircle2, Loader2, Hexagon, AlertCircle } from 'lucide-react';
+import { UserRole, User } from '../types';
+import { AuthService } from '../services/AuthService';
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (role: UserRole) => void;
+  onLogin: (user: User) => void;
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => {
@@ -22,6 +23,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [generalError, setGeneralError] = useState<string | null>(null);
 
   // Reset state when opening/closing
   useEffect(() => {
@@ -29,6 +31,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
       setMode('login');
       setFormData({ email: '', username: '', password: '', confirmPassword: '', agreeTerms: false });
       setErrors({});
+      setGeneralError(null);
       setSubmitSuccess(false);
     }
   }, [isOpen]);
@@ -73,37 +76,52 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setGeneralError(null);
     if (!validateForm()) return;
 
     setIsLoading(true);
 
-    // Simulate API Call
-    setTimeout(() => {
-      setIsLoading(false);
-      
+    try {
       if (mode === 'login') {
-        // Mock Login Logic based on email content for demo purposes
-        let role: UserRole = 'creator'; // default
+        // 使用 AuthService 登录
+        // 简单逻辑：如果邮箱包含特定关键词，赋予特定角色，否则默认 creator
+        let role: UserRole = 'creator';
         if (formData.email.includes('admin')) role = 'root_admin';
-        else if (formData.email.includes('enter')) role = 'enterprise';
-        else if (formData.email.includes('corp')) role = 'enterprise';
+        else if (formData.email.includes('enter') || formData.email.includes('corp')) role = 'enterprise';
         
-        onLogin(role);
+        const user = await AuthService.login(formData.email, role);
+        onLogin(user);
       } else {
-        // Register Success
+        // 使用 AuthService 注册
+        await AuthService.register(formData.username, formData.email, 'creator');
+        
+        // Register Success UI Flow
         setSubmitSuccess(true);
-        // Auto switch to login after 1.5s
-        setTimeout(() => {
-          setSubmitSuccess(false);
-          setMode('login');
-          setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
+        setTimeout(async () => {
+           // Auto login after register
+           const user = await AuthService.login(formData.email);
+           onLogin(user);
         }, 1500);
       }
-    }, 1500);
+    } catch (error: any) {
+      setGeneralError(error.message || '操作失败，请重试');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleQuickLogin = (role: UserRole) => {
-    onLogin(role);
+  const handleQuickLogin = async (role: UserRole) => {
+    setIsLoading(true);
+    try {
+      // 快速生成一个演示账号
+      const demoEmail = `${role}_demo@xinhuashe.com`;
+      const user = await AuthService.login(demoEmail, role);
+      onLogin(user);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -127,7 +145,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
             {submitSuccess ? '注册成功' : (mode === 'login' ? '欢迎回来' : '创建账号')}
           </h2>
           <p className="text-slate-500 text-sm mt-2">
-            {submitSuccess ? '正在跳转至登录页面...' : (mode === 'login' ? '登录以管理您的创意资产与项目' : '加入薪画社，连接无限创意可能')}
+            {submitSuccess ? '正在自动登录...' : (mode === 'login' ? '登录以管理您的创意资产与项目' : '加入薪画社，连接无限创意可能')}
           </p>
         </div>
 
@@ -140,11 +158,18 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               
+              {generalError && (
+                 <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg flex items-center gap-2">
+                   <AlertCircle className="w-4 h-4" />
+                   {generalError}
+                 </div>
+              )}
+
               {mode === 'register' && (
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">用户名</label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input 
                       type="text" 
                       className={`w-full pl-9 pr-4 py-2.5 bg-slate-50 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-all ${errors.username ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-200'}`}
@@ -244,10 +269,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
               <button 
                 type="submit" 
                 disabled={isLoading}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-2"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                {mode === 'login' ? '登录' : '立即注册'}
+                {mode === 'login' ? (isLoading ? '登录中...' : '登录') : (isLoading ? '注册中...' : '立即注册')}
               </button>
 
             </form>
@@ -269,7 +294,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
           )}
 
           {/* Quick Login Demo (Prototype Only) */}
-          {!submitSuccess && mode === 'login' && (
+          {!submitSuccess && mode === 'login' && !isLoading && (
              <div className="mt-8 pt-6 border-t border-slate-100">
                 <p className="text-[10px] font-bold text-slate-400 uppercase text-center mb-3">原型演示 · 快速通道</p>
                 <div className="flex gap-2 justify-center">

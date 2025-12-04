@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -13,12 +14,15 @@ import AdminView from './components/AdminView';
 import PersonalSpaceView from './components/PersonalSpaceView'; 
 import Footer from './components/Footer';
 import { ViewMode, WorkspaceTab, UserRole, User } from './types';
-import { ROLE_DEFINITIONS, getProfileById } from './constants';
+import { getProfileById } from './constants';
+import { AuthService } from './services/AuthService';
+import { Loader2 } from 'lucide-react';
 
 const App: React.FC = () => {
   // Authentication State
   const [user, setUser] = useState<User | null>(null);
-  const [showSplash, setShowSplash] = useState(true);
+  const [isAuthLoading, setIsAuthLoading] = useState(true); // New loading state
+  const [showSplash, setShowSplash] = useState(false); // Changed default to false, handle in useEffect
   
   // Navigation State
   const [viewMode, setViewMode] = useState<ViewMode>('discovery');
@@ -33,37 +37,39 @@ const App: React.FC = () => {
 
   // Smooth Transition State
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [activeView, setActiveView] = useState<React.ReactNode>(null);
 
-  const handleLogin = (roleCode: UserRole) => {
-    // 1. Find Role Definition
-    const roleDef = ROLE_DEFINITIONS.find(r => r.code === roleCode);
-    
-    if (!roleDef) return;
-
-    // 2. Create Mock User with Permissions
-    const mockId = roleCode === 'creator' ? 'u_101' : `u_${Math.floor(Math.random() * 1000)}`;
-    const mockName = roleCode === 'creator' ? 'ArtMaster' : roleCode === 'root_admin' ? 'SysAdmin' : 'TechCorp_PM';
-
-    const newUser: User = {
-      id: mockId,
-      name: mockName,
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(mockName)}&background=random&color=fff`,
-      role: roleCode,
-      roleName: roleDef.name,
-      permissions: roleDef.defaultPermissions,
-      isAuthenticated: true
+  // === INITIALIZATION: Check Session ===
+  useEffect(() => {
+    const initSession = async () => {
+      try {
+        const currentUser = await AuthService.getCurrentUser();
+        if (currentUser) {
+          setUser(currentUser);
+          // If user exists, stay on current logic or default
+          setShowSplash(false);
+        } else {
+          setShowSplash(true);
+        }
+      } catch (error) {
+        console.error("Session restore failed", error);
+        setShowSplash(true);
+      } finally {
+        setIsAuthLoading(false);
+      }
     };
+    initSession();
+  }, []);
 
-    setUser(newUser);
+  const handleLoginSuccess = (loggedInUser: User) => {
+    setUser(loggedInUser);
     setShowSplash(false);
     setIsLoginModalOpen(false);
 
-    // 3. Set default view based on role
-    if (roleCode === 'root_admin' || roleCode === 'platform_admin') {
+    // Set default view based on role
+    if (loggedInUser.role === 'root_admin' || loggedInUser.role === 'platform_admin') {
        changeViewMode('workspace');
        setActiveWorkspaceTab('admin_users'); 
-    } else if (roleCode === 'enterprise') {
+    } else if (loggedInUser.role === 'enterprise') {
       changeViewMode('workspace');
       setActiveWorkspaceTab('dashboard');
     } else {
@@ -71,8 +77,12 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSetUserRole = (role: UserRole) => {
-     handleLogin(role);
+  const handleSetUserRole = async (role: UserRole) => {
+     // Switch role simulation (In real app, this might be switching organizations)
+     const tempUser = AuthService.createMockUser(role, user?.name || 'User');
+     setUser(tempUser);
+     // Update session in storage (optional for demo)
+     // StorageService.setSession(tempUser); 
   };
 
   const changeViewMode = (mode: ViewMode) => {
@@ -94,7 +104,8 @@ const App: React.FC = () => {
     setIsLoginModalOpen(true);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await AuthService.logout();
     setUser(null);
     setShowSplash(true);
     changeViewMode('discovery');
@@ -151,11 +162,26 @@ const App: React.FC = () => {
     );
   };
 
+  // Global Loading State
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+          <p className="text-slate-500 font-medium">正在加载薪画社...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Show Splash Screen for guests initially
   if (!user && showSplash) {
     return (
       <LoginScreen 
-        onLogin={handleLogin} 
+        onLogin={(role) => {
+          // Quick login for splash screen demo
+          AuthService.login(`${role}_demo@xinhuashe.com`, role).then(handleLoginSuccess);
+        }} 
         onGuestEnter={() => setShowSplash(false)}
       />
     );
@@ -213,7 +239,7 @@ const App: React.FC = () => {
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
-        onLogin={handleLogin}
+        onLogin={(user) => handleLoginSuccess(user as any)} // Callback adapter
       />
 
     </div>

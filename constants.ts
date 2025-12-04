@@ -62,6 +62,8 @@ export const MOCK_USERS_ADMIN_VIEW: Partial<User>[] = [
   { id: 'u4', name: 'TechNova_PM', role: 'enterprise', roleName: '企业主账号', avatar: 'https://ui-avatars.com/api/?name=Tech+Nova&background=3b82f6&color=fff' },
   { id: 'u5', name: 'InkFlow', role: 'creator', roleName: '创作者', avatar: 'https://ui-avatars.com/api/?name=Ink+Flow&background=10b981&color=fff' },
   { id: 'u6', name: 'GameStudio_HR', role: 'enterprise', roleName: '企业主账号', avatar: 'https://ui-avatars.com/api/?name=Game+Studio&background=6366f1&color=fff' },
+  { id: 'u7', name: 'PixelArtist_99', role: 'creator', roleName: '创作者', avatar: 'https://ui-avatars.com/api/?name=Pixel+Artist&background=random&color=fff' },
+  { id: 'u8', name: 'Marketing_Lead', role: 'enterprise', roleName: '企业主账号', avatar: 'https://ui-avatars.com/api/?name=Marketing&background=random&color=fff' },
 ];
 
 // === EXISTING MOCK DATA ===
@@ -213,7 +215,6 @@ export const MOCK_ARTWORKS: Artwork[] = [
     tags: ['3D模型', 'Blender', '游戏资产'],
     isVerified: true
   },
-  // New Added Artworks
   {
     id: '14',
     title: '浮空岛：天空之城',
@@ -246,6 +247,61 @@ export const MOCK_ARTWORKS: Artwork[] = [
     views: 11000,
     tags: ['MattePainting', '电影概念', '科幻'],
     isVerified: true
+  },
+  {
+    id: '17',
+    title: '极简咖啡馆',
+    artist: 'PixelRetro',
+    artistAvatar: 'https://ui-avatars.com/api/?name=Pixel+Retro&background=f59e0b&color=fff',
+    imageUrl: 'https://image.pollinations.ai/prompt/isometric%20pixel%20art%20cozy%20coffee%20shop%20interior?width=600&height=600&nologo=true',
+    likes: 1900,
+    views: 4500,
+    tags: ['像素画', '场景', '可爱'],
+    isVerified: false
+  },
+  {
+    id: '18',
+    title: '蒸汽朋克飞艇',
+    artist: 'SteamEngine',
+    artistAvatar: 'https://ui-avatars.com/api/?name=Steam+Engine&background=78350f&color=fff',
+    imageUrl: 'https://image.pollinations.ai/prompt/steampunk%20airship%20flying%20in%20clouds%20brass%20gears?width=600&height=400&nologo=true',
+    likes: 3100,
+    views: 7800,
+    tags: ['蒸汽朋克', '插画', '概念设计'],
+    isVerified: true
+  },
+  {
+    id: '19',
+    title: '极光下的雪屋',
+    artist: 'NatureStroke',
+    artistAvatar: 'https://ui-avatars.com/api/?name=Nature+Stroke&background=10b981&color=fff',
+    imageUrl: 'https://image.pollinations.ai/prompt/northern%20lights%20aurora%20over%20snowy%20cabin%20winter?width=600&height=400&nologo=true',
+    likes: 4200,
+    views: 9500,
+    tags: ['风景', '插画', '治愈系'],
+    isVerified: true
+  },
+  {
+    id: '20',
+    title: '电商活动促销 C4D',
+    artist: '3DAdMaster',
+    artistAvatar: 'https://ui-avatars.com/api/?name=3D+Ad+Master&background=ef4444&color=fff',
+    imageUrl: 'https://image.pollinations.ai/prompt/c4d%203d%20render%20ecommerce%20sale%20podium%20colorful?width=600&height=600&nologo=true',
+    likes: 1100,
+    views: 2800,
+    tags: ['C4D', '电商设计', '3D'],
+    isVerified: false
+  },
+  {
+    id: '21',
+    title: '二次元机能风少女',
+    artist: 'AnimePro',
+    artistAvatar: 'https://ui-avatars.com/api/?name=Anime+Pro&background=ec4899&color=fff',
+    imageUrl: 'https://image.pollinations.ai/prompt/anime%20girl%20techwear%20cyberpunk%20street%20style?width=600&height=800&nologo=true',
+    likes: 5600,
+    views: 18000,
+    tags: ['二次元', '角色', '插画'],
+    isVerified: true
   }
 ];
 
@@ -257,6 +313,8 @@ export const MOCK_CREATORS: Creator[] = [
   { id: 'c5', name: 'InkFlow', avatar: 'https://ui-avatars.com/api/?name=Ink+Flow&background=10b981&color=fff', tags: ['水墨', '国风'], followers: 45000, isVerified: true },
   { id: 'c6', name: 'MotionMaster', avatar: 'https://ui-avatars.com/api/?name=Motion+Master&background=ec4899&color=fff', tags: ['动画', 'VFX'], followers: 210000, isVerified: true },
   { id: 'c7', name: 'PixelRetro', avatar: 'https://ui-avatars.com/api/?name=Pixel+Retro&background=f59e0b&color=fff', tags: ['像素', '独立游戏'], followers: 32000, isVerified: false },
+  { id: 'c8', name: 'NeonDreamer', avatar: 'https://ui-avatars.com/api/?name=Neon+Dreamer&background=8b5cf6&color=fff', tags: ['赛博朋克', '场景'], followers: 120000, isVerified: true },
+  { id: 'c9', name: 'VoxelBuilder', avatar: 'https://ui-avatars.com/api/?name=Voxel+Builder&background=10b981&color=fff', tags: ['体素', '3D'], followers: 15000, isVerified: false },
 ];
 
 // === PROFILE DATA ===
@@ -406,26 +464,79 @@ export const MOCK_PROJECTS: Project[] = [
     id: 'p8',
     title: '可持续能源品牌宣传战役',
     client: 'GreenEnergy',
-    status: '进行中',
+    status: '已完成',
     budget: 75000,
-    deadline: '2024-03-15',
-    progress: 60,
-    phase: '物料延展',
+    deadline: '2023-09-15',
+    progress: 100,
+    phase: '交付',
     description: '包含品牌视频、社交媒体海报及线下活动物料的全案设计。',
     coverImage: 'https://image.pollinations.ai/prompt/sustainable%20energy%20brand%20campaign%20poster%20wind%20solar%20clean?width=800&height=400&nologo=true'
+  },
+  {
+    id: 'p9',
+    title: '元宇宙演唱会场景搭建',
+    client: 'VirtualStage',
+    status: '进行中',
+    budget: 120000,
+    deadline: '2024-01-20',
+    progress: 55,
+    phase: '资源整合',
+    description: '超大型虚拟演唱会舞台设计与资源整合，支持万人同屏。',
+    coverImage: 'https://image.pollinations.ai/prompt/metaverse%20concert%20stage%20neon%20lights%20crowd%20virtual?width=800&height=400&nologo=true'
+  },
+  {
+    id: 'p10',
+    title: '智能手表表盘设计套装',
+    client: 'SmartWear',
+    status: '审核中',
+    budget: 18000,
+    deadline: '2023-11-10',
+    progress: 95,
+    phase: '微调',
+    description: '为新款运动手表设计 5 款动态表盘，包含健康数据可视化。',
+    coverImage: 'https://image.pollinations.ai/prompt/smart%20watch%20face%20ui%20design%20fitness%20health%20modern?width=800&height=400&nologo=true'
   }
 ];
 
 export const MOCK_TASKS: Task[] = [
-  // ... (keeping existing tasks)
   { id: 't1_1', projectId: 'p1', title: '初步构图草案 (3版)', assignee: 'Alex', assigneeAvatar: 'https://ui-avatars.com/api/?name=Alex&background=random', status: 'done', priority: 'high', dueDate: '10月15日', comments: 4, attachments: 3 },
-  // ... (abbreviated for brevity, assuming existing data is kept)
+  { id: 't1_2', projectId: 'p1', title: '角色A线稿细化', assignee: 'Alex', assigneeAvatar: 'https://ui-avatars.com/api/?name=Alex&background=random', status: 'in-progress', priority: 'high', dueDate: '10月25日', comments: 2, attachments: 1 },
+  { id: 't1_3', projectId: 'p1', title: '背景色彩氛围测试', assignee: 'Sarah', assigneeAvatar: 'https://ui-avatars.com/api/?name=Sarah&background=random', status: 'review', priority: 'medium', dueDate: '10月28日', comments: 5, attachments: 2 },
+  
+  { id: 't2_1', projectId: 'p2', title: 'Logo 规范手册 V1.0', assignee: 'David', assigneeAvatar: 'https://ui-avatars.com/api/?name=David&background=random', status: 'done', priority: 'high', dueDate: '10月10日', comments: 8, attachments: 1 },
+  { id: 't2_2', projectId: 'p2', title: '名片与信纸设计', assignee: 'David', assigneeAvatar: 'https://ui-avatars.com/api/?name=David&background=random', status: 'review', priority: 'medium', dueDate: '10月22日', comments: 1, attachments: 4 },
+  
+  { id: 't4_1', projectId: 'p4', title: '机甲头部建模', assignee: 'Mike', assigneeAvatar: 'https://ui-avatars.com/api/?name=Mike&background=random', status: 'done', priority: 'high', dueDate: '10月18日', comments: 3, attachments: 2 },
+  { id: 't4_2', projectId: 'p4', title: '身体骨骼绑定', assignee: 'Mike', assigneeAvatar: 'https://ui-avatars.com/api/?name=Mike&background=random', status: 'in-progress', priority: 'high', dueDate: '11月05日', comments: 0, attachments: 0 },
+  
+  { id: 't6_1', projectId: 'p6', title: '海洋生物草图 - 鲸鱼', assignee: 'Lily', assigneeAvatar: 'https://ui-avatars.com/api/?name=Lily&background=random', status: 'done', priority: 'medium', dueDate: '10月20日', comments: 2, attachments: 1 },
+  { id: 't6_2', projectId: 'p6', title: '海洋生物草图 - 海豚', assignee: 'Lily', assigneeAvatar: 'https://ui-avatars.com/api/?name=Lily&background=random', status: 'todo', priority: 'low', dueDate: '11月01日', comments: 0, attachments: 0 },
 ];
 
 export const MOCK_ASSETS: Asset[] = [
-  // ... (keeping existing assets)
+  // Folders
   { id: 'f1', name: '2023 营销物料', type: 'folder', modified: '2天前', version: '-', tags: [] },
-  // ... 
+  { id: 'f2', name: '项目 Alpha 交付', type: 'folder', modified: '5天前', version: '-', tags: [] },
+  { id: 'f3', name: '合同与法务', type: 'folder', modified: '1周前', version: '-', tags: [] },
+  { id: 'f4', name: '参考图库', type: 'folder', modified: '2周前', version: '-', tags: [] },
+  
+  // Images
+  { id: 'a1', name: 'Cyberpunk_City_Final_v2.jpg', type: 'image', size: '12.5 MB', modified: '3小时前', version: 'v2.1', tags: ['High_Res', 'Sci-Fi'] },
+  { id: 'a2', name: 'Character_Concept_Sketch.png', type: 'image', size: '4.2 MB', modified: '昨天', version: 'v1.0', tags: ['Draft', 'Sketch'] },
+  { id: 'a3', name: 'Logo_Variant_Blue.png', type: 'image', size: '1.8 MB', modified: '3天前', version: 'v1.5', tags: ['Branding', 'Logo'] },
+  { id: 'a4', name: 'Background_Texture_001.jpg', type: 'image', size: '8.5 MB', modified: '1周前', version: 'v1.0', tags: ['Asset', 'Texture'] },
+  
+  // PSDs
+  { id: 'p1', name: 'Main_Poster_Layers.psd', type: 'psd', size: '245 MB', modified: '5小时前', version: 'v3.2', tags: ['Source', 'Editable'] },
+  { id: 'p2', name: 'UI_Kit_Master.fig', type: 'psd', size: '56 MB', modified: '2天前', version: 'v2.0', tags: ['UI', 'Component'] },
+  
+  // Videos
+  { id: 'v1', name: 'Promo_Teaser_Final.mp4', type: 'video', size: '1.2 GB', modified: '1天前', version: 'v1.0', tags: ['Video', 'Marketing'] },
+  { id: 'v2', name: 'Animation_Test_Render.mov', type: 'video', size: '450 MB', modified: '4天前', version: 'v0.9', tags: ['WIP', '3D'] },
+  
+  // Docs
+  { id: 'd1', name: 'Project_Brief_2023.pdf', type: 'doc', size: '2.4 MB', modified: '2周前', version: 'v1.0', tags: ['Doc', 'Brief'] },
+  { id: 'd2', name: 'Contract_Signed.pdf', type: 'doc', size: '1.5 MB', modified: '1个月前', version: 'v1.0', tags: ['Legal', 'Signed'] },
 ];
 
 export const CHART_DATA_ARTIST = [
@@ -458,25 +569,39 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
   { id: 'tr_7', type: 'income', amount: 8000, date: '2023-10-12 13:20', description: '稿件 C34 版权转让费', status: 'completed', category: '版权收益' },
   { id: 'tr_8', type: 'escrow_frozen', amount: 12000, date: '2023-10-28 09:00', description: '项目 P6 第一阶段托管', status: 'completed', relatedProject: 'p6', category: '项目支出' },
   { id: 'tr_9', type: 'payment', amount: -600, date: '2023-10-29 11:30', description: '购买 Pro 会员 (年付)', status: 'completed', category: '软件订阅' },
-  { id: 'tr_10', type: 'income', amount: 1500, date: '2023-10-30 15:45', description: '素材库分成收入', status: 'completed', category: '被动收入' }
+  { id: 'tr_10', type: 'income', amount: 1500, date: '2023-10-30 15:45', description: '素材库分成收入', status: 'completed', category: '被动收入' },
+  { id: 'tr_11', type: 'income', amount: 3500, date: '2023-10-05 10:00', description: '私人约稿 - 头像绘制', status: 'completed', category: '项目收入' },
+  { id: 'tr_12', type: 'payment', amount: -128, date: '2023-10-03 14:20', description: '购买笔刷素材包', status: 'completed', category: '素材购买' },
+  { id: 'tr_13', type: 'escrow_frozen', amount: 28000, date: '2023-09-28 09:30', description: '项目 P4 全款托管', status: 'completed', relatedProject: 'p4', category: '项目支出' },
 ];
 
 export const MOCK_INVOICES: Invoice[] = [
   { id: 'INV-2023-1001', amount: 45000, createdDate: '2023-10-20', title: '技术服务费 - TechNova 科技', status: 'paid', companyName: 'TechNova 科技' },
   { id: 'INV-2023-1002', amount: 12000, createdDate: '2023-10-26', title: '美术设计费 - 网易游戏', status: 'paid', companyName: '网易游戏' },
   { id: 'INV-2023-1003', amount: 5000, createdDate: '2023-10-28', title: '创意咨询费 - 独立工作室', status: 'processing', companyName: '独立工作室' },
-  { id: 'INV-2023-1004', amount: 35000, createdDate: '2023-10-29', title: '插画制作费 - EduPress', status: 'unpaid', companyName: 'EduPress' }
+  { id: 'INV-2023-1004', amount: 35000, createdDate: '2023-10-29', title: '插画制作费 - EduPress', status: 'unpaid', companyName: 'EduPress' },
+  { id: 'INV-2023-0901', amount: 75000, createdDate: '2023-09-15', title: '全案设计费 - GreenEnergy', status: 'paid', companyName: 'GreenEnergy' },
 ];
 
 export const MOCK_ARTICLES: Article[] = [
-  // ... existing articles
   {
     id: 'a1',
     title: '2024年数字艺术趋势报告：AI如何重塑创意工作流',
     coverImage: 'https://image.pollinations.ai/prompt/digital%20art%20trends%20report%20ai%20workflow?width=200&height=200&nologo=true',
     date: '2小时前'
   },
-  // ...
+  {
+    id: 'a2',
+    title: '从接单到签约：自由插画师的职业进阶指南',
+    coverImage: 'https://image.pollinations.ai/prompt/illustrator%20career%20growth%20freelancer?width=200&height=200&nologo=true',
+    date: '1天前'
+  },
+  {
+    id: 'a3',
+    title: '深度解析：如何利用 DAM 系统提升企业资产复用率',
+    coverImage: 'https://image.pollinations.ai/prompt/digital%20asset%20management%20system%20enterprise?width=200&height=200&nologo=true',
+    date: '3天前'
+  }
 ];
 
 // === NEW MOCK DATA FOR FINANCE VIEW ===
@@ -484,7 +609,8 @@ export const MOCK_ARTICLES: Article[] = [
 export const MOCK_SAVINGS_GOALS: SavingsGoal[] = [
   { id: 'g1', name: '新款 MacBook Pro', targetAmount: 20000, currentAmount: 12500, deadline: '2023-12-31', color: 'bg-indigo-500', icon: Laptop },
   { id: 'g2', name: '日本游学基金', targetAmount: 50000, currentAmount: 18000, deadline: '2024-06-01', color: 'bg-pink-500', icon: Plane },
-  { id: 'g3', name: '工作时装修', targetAmount: 10000, currentAmount: 8500, deadline: '2023-11-15', color: 'bg-emerald-500', icon: Home },
+  { id: 'g3', name: '工作室装修', targetAmount: 10000, currentAmount: 8500, deadline: '2023-11-15', color: 'bg-emerald-500', icon: Home },
+  { id: 'g4', name: '购车计划', targetAmount: 150000, currentAmount: 45000, deadline: '2025-01-01', color: 'bg-blue-500', icon: Car },
 ];
 
 export const MOCK_DEPT_BUDGETS: DepartmentBudget[] = [
@@ -514,7 +640,7 @@ export const CHART_DATA_PERSONAL_SPENDING = [
 
 export const MOCK_ENTERPRISE_PROFILE: EnterpriseProfile = {
   name: 'TechNova 科技',
-  description: 'TechNova 是一家专注于人工智能与大数据分析的领先科技企业，致力于通过技术创新为全球客户提供智能化解决方案。',
+  description: 'TechNova 是一家专注于人工智能与大数据分析的领先科技企业，致力于通过技术创新为全球客户提供智能化解决方案。我们与全球顶尖设计师合作，打造卓越的品牌视觉体验。',
   industry: '互联网 / 人工智能',
   size: '500-1000人',
   founded: '2015年',
