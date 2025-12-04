@@ -1,13 +1,15 @@
 
-
 import React, { useState } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, PieChart, Pie, Cell, Legend 
+} from 'recharts';
 import { CHART_DATA_ARTIST, CHART_DATA_CLIENT, MOCK_PROJECTS, MOCK_ENTERPRISE_PROFILE } from '../constants';
-import { DollarSign, Clock, Briefcase, TrendingUp, Eye, Users, Layers, Award, Building, Globe, Flag, GitFork, Calendar } from 'lucide-react';
-import { UserRole } from '../types';
+import { DollarSign, Clock, Briefcase, TrendingUp, Eye, Users, Layers, Award, Building, Globe, Flag, GitFork, Calendar, PieChart as PieChartIcon, ShieldCheck, Zap, Crown } from 'lucide-react';
+import { UserRole, User } from '../types';
 
 const StatCard: React.FC<{ title: string; value: string; trend?: string; icon: any; color: string }> = ({ title, value, trend, icon: Icon, color }) => (
-  <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between">
+  <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
     <div>
       <p className="text-slate-500 text-sm font-medium mb-1">{title}</p>
       <h3 className="text-2xl font-bold text-slate-800">{value}</h3>
@@ -19,17 +21,75 @@ const StatCard: React.FC<{ title: string; value: string; trend?: string; icon: a
   </div>
 );
 
+// Mock Data for New Charts
+const COMPLETION_DATA = [
+  { name: '1月', target: 12, completed: 10 },
+  { name: '2月', target: 15, completed: 14 },
+  { name: '3月', target: 18, completed: 18 },
+  { name: '4月', target: 20, completed: 15 },
+  { name: '5月', target: 25, completed: 22 },
+  { name: '6月', target: 22, completed: 20 },
+];
+
+const BUDGET_DISTRIBUTION = [
+  { name: '研发', value: 45, color: '#6366f1' }, // Indigo
+  { name: '市场', value: 25, color: '#ec4899' }, // Pink
+  { name: '运营', value: 20, color: '#10b981' }, // Emerald
+  { name: '设计', value: 10, color: '#f59e0b' }, // Amber
+];
+
 interface DashboardProps {
-  userRole: UserRole;
+  user: User;
 }
 
-const DashboardView: React.FC<DashboardProps> = ({ userRole }) => {
+const getCreditLevel = (score: number) => {
+  if (score >= 800) return { label: '极好', color: 'text-green-600', bg: 'bg-green-100' };
+  if (score >= 700) return { label: '优秀', color: 'text-indigo-600', bg: 'bg-indigo-100' };
+  if (score >= 600) return { label: '良好', color: 'text-blue-600', bg: 'bg-blue-100' };
+  return { label: '一般', color: 'text-amber-600', bg: 'bg-amber-100' };
+};
+
+const getEnterpriseRating = (score: number) => {
+  if (score >= 900) return 'AAA';
+  if (score >= 800) return 'AA';
+  if (score >= 700) return 'A';
+  if (score >= 600) return 'BBB';
+  return 'B';
+};
+
+const DashboardView: React.FC<DashboardProps> = ({ user }) => {
+  const userRole = user.role;
   const isClient = userRole === 'enterprise';
   const [viewMode, setViewMode] = useState<'overview' | 'profile'>('overview');
 
   const chartData = isClient ? CHART_DATA_CLIENT : CHART_DATA_ARTIST;
   const dataKey = isClient ? 'expenditure' : 'revenue';
   const color = isClient ? '#6366f1' : '#db2777'; // Indigo vs Pink
+
+  const creditInfo = isClient 
+    ? { 
+        title: '企业信用评级', 
+        score: user.creditScore || 850, 
+        label: getEnterpriseRating(user.creditScore || 850),
+        desc: '信用极佳，享极速结算',
+        icon: ShieldCheck,
+        color: 'bg-indigo-500'
+      }
+    : { 
+        title: '个人信用分', 
+        score: user.creditScore || 700, 
+        label: getCreditLevel(user.creditScore || 700).label,
+        desc: '超过 85% 的同行',
+        icon: Zap,
+        color: 'bg-pink-500'
+      };
+
+  const membershipInfo = {
+    level: user.membershipLevel || 'none',
+    title: user.membershipLevel === 'max' ? '旗舰版会员' : user.membershipLevel === 'pro' ? '专业版会员' : '免费版',
+    icon: Crown,
+    color: user.membershipLevel === 'max' ? 'bg-amber-500' : user.membershipLevel === 'pro' ? 'bg-indigo-500' : 'bg-slate-400'
+  };
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = 'https://placehold.co/100x100/e2e8f0/64748b?text=Project';
@@ -179,21 +239,68 @@ const DashboardView: React.FC<DashboardProps> = ({ userRole }) => {
         renderEnterpriseProfile()
       ) : (
         <>
-          {/* Stats Grid - Adapted for Role */}
+          {/* Stats Grid - Adapted for Role with Credit Score */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
             {isClient ? (
               <>
                 <StatCard title="总支出" value="¥142,593" trend="+12.5% 环比" icon={DollarSign} color="bg-indigo-500" />
                 <StatCard title="活跃项目" value="8" trend="3个即将交付" icon={Briefcase} color="bg-blue-500" />
-                <StatCard title="待验收" value="5" trend="需尽快处理" icon={Clock} color="bg-amber-500" />
-                <StatCard title="资产总数" value="1,240" trend="+120 本周新增" icon={Layers} color="bg-emerald-500" />
+                
+                {/* Enterprise Credit Card */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
+                  <div>
+                    <p className="text-slate-500 text-sm font-medium mb-1">{creditInfo.title}</p>
+                    <h3 className="text-2xl font-bold text-slate-800">{creditInfo.label}</h3>
+                    <span className="text-indigo-500 text-xs font-semibold mt-2 inline-block">{creditInfo.desc}</span>
+                  </div>
+                  <div className={`p-3 rounded-lg ${creditInfo.color} bg-opacity-10`}>
+                    <creditInfo.icon className={`w-6 h-6 ${creditInfo.color.replace('bg-', 'text-')}`} />
+                  </div>
+                </div>
+
+                {/* Membership Card */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
+                  <div>
+                    <p className="text-slate-500 text-sm font-medium mb-1">当前套餐</p>
+                    <h3 className="text-lg font-bold text-slate-800 truncate">{membershipInfo.title}</h3>
+                    <span className="text-slate-400 text-xs font-medium mt-2 inline-block">企业级特权生效中</span>
+                  </div>
+                  <div className={`p-3 rounded-lg ${membershipInfo.color} bg-opacity-10`}>
+                    <membershipInfo.icon className={`w-6 h-6 ${membershipInfo.color.replace('bg-', 'text-')}`} />
+                  </div>
+                </div>
               </>
             ) : (
               <>
                 <StatCard title="本月收入" value="¥12,450" trend="+8.2% 环比" icon={DollarSign} color="bg-pink-500" />
                 <StatCard title="主页访问" value="5.4k" trend="+240 今日新增" icon={Eye} color="bg-purple-500" />
-                <StatCard title="粉丝增长" value="890" trend="+12 本周新增" icon={Users} color="bg-orange-500" />
-                <StatCard title="作品收藏" value="2.1k" trend="热度上升中" icon={Award} color="bg-rose-500" />
+                
+                {/* Personal Credit Card */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
+                  <div>
+                    <p className="text-slate-500 text-sm font-medium mb-1">{creditInfo.title}</p>
+                    <h3 className="text-2xl font-bold text-slate-800 flex items-end gap-1">
+                      {creditInfo.score}
+                      <span className="text-sm font-medium text-slate-400 mb-1">/ 950</span>
+                    </h3>
+                    <span className="text-pink-500 text-xs font-semibold mt-2 inline-block">{creditInfo.label}</span>
+                  </div>
+                  <div className={`p-3 rounded-lg ${creditInfo.color} bg-opacity-10`}>
+                    <creditInfo.icon className={`w-6 h-6 ${creditInfo.color.replace('bg-', 'text-')}`} />
+                  </div>
+                </div>
+
+                {/* Membership Card */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
+                  <div>
+                    <p className="text-slate-500 text-sm font-medium mb-1">会员等级</p>
+                    <h3 className="text-lg font-bold text-slate-800 truncate">{membershipInfo.title}</h3>
+                    <span className="text-slate-400 text-xs font-medium mt-2 inline-block">服务费减免中</span>
+                  </div>
+                  <div className={`p-3 rounded-lg ${membershipInfo.color} bg-opacity-10`}>
+                    <membershipInfo.icon className={`w-6 h-6 ${membershipInfo.color.replace('bg-', 'text-')}`} />
+                  </div>
+                </div>
               </>
             )}
           </div>
@@ -269,6 +376,72 @@ const DashboardView: React.FC<DashboardProps> = ({ userRole }) => {
               </div>
             </div>
           </div>
+
+          {/* Additional Charts for Enterprise Dashboard */}
+          {isClient && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+              {/* Completion Rate - Bar Chart */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                 <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                       <Award className="w-5 h-5 text-indigo-500" />
+                       项目交付达成率 (2023上半年)
+                    </h3>
+                 </div>
+                 <div className="h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                       <BarChart data={COMPLETION_DATA} barGap={4}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
+                          <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
+                          <Tooltip 
+                             cursor={{fill: '#f8fafc'}}
+                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                          />
+                          <Legend iconType="circle" />
+                          <Bar dataKey="target" name="目标项目数" fill="#e2e8f0" radius={[4, 4, 0, 0]} barSize={20} />
+                          <Bar dataKey="completed" name="实际交付" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={20} />
+                       </BarChart>
+                    </ResponsiveContainer>
+                 </div>
+              </div>
+
+              {/* Budget Utilization - Pie Chart */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                 <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                       <PieChartIcon className="w-5 h-5 text-pink-500" />
+                       各部门预算消耗占比
+                    </h3>
+                 </div>
+                 <div className="h-64 w-full relative">
+                    <ResponsiveContainer width="100%" height="100%">
+                       <PieChart>
+                          <Pie
+                            data={BUDGET_DISTRIBUTION}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={70}
+                            outerRadius={100}
+                            paddingAngle={5}
+                            dataKey="value"
+                          >
+                            {BUDGET_DISTRIBUTION.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip contentStyle={{ borderRadius: '8px', border: 'none' }} />
+                          <Legend verticalAlign="middle" align="right" layout="vertical" iconType="circle" />
+                       </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-[60%] -translate-y-1/2 text-center pointer-events-none">
+                       <div className="text-xs text-slate-400">总预算消耗</div>
+                       <div className="text-xl font-bold text-slate-800">85%</div>
+                    </div>
+                 </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

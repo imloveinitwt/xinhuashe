@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Bell, MessageSquare, Hexagon, Plus, Upload, 
   User as UserIcon, ChevronDown, LogOut, Settings, Menu,
-  Info, Briefcase, Wallet
+  Info, Briefcase, Wallet, Crown
 } from 'lucide-react';
 import { ViewMode, UserRole, User } from '../types';
 import { MOCK_NOTIFICATIONS } from '../constants'; // Import notifications to check unread count
@@ -112,6 +112,12 @@ const Header: React.FC<HeaderProps> = ({
                   >
                       企业服务
                   </button>
+                  <button 
+                      onClick={() => setViewMode('membership')} 
+                      className={`text-sm font-medium transition-colors ${viewMode === 'membership' ? 'text-indigo-600 font-bold' : 'text-slate-600 hover:text-indigo-600'}`}
+                  >
+                      会员中心
+                  </button>
                 </nav>
             </div>
           ) : (
@@ -169,6 +175,17 @@ const Header: React.FC<HeaderProps> = ({
             {userRole === 'creator' ? <Upload className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
             {userRole === 'creator' ? '发布作品' : '发布需求'}
           </button>
+
+          {/* Membership Icon (Only if logged in) */}
+          {currentUser && (
+            <button 
+              onClick={() => setViewMode('membership')}
+              className="p-2 text-amber-500 hover:bg-amber-50 rounded-full transition-colors hidden sm:block"
+              title="会员中心"
+            >
+              <Crown className={`w-5 h-5 ${currentUser.membershipLevel !== 'none' ? 'fill-current' : ''}`} />
+            </button>
+          )}
 
           {/* Mobile Menu Toggle */}
           <button 
@@ -270,7 +287,15 @@ const Header: React.FC<HeaderProps> = ({
                 {isMenuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 py-2 animate-scale-in origin-top-right z-50">
                     <div className="px-4 py-3 border-b border-slate-50 mb-2">
-                      <p className="text-sm font-bold text-slate-800 truncate">{currentUser.name}</p>
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm font-bold text-slate-800 truncate">{currentUser.name}</p>
+                        {currentUser.membershipLevel && currentUser.membershipLevel !== 'none' && (
+                          <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold flex items-center gap-0.5">
+                            <Crown className="w-3 h-3 fill-current" /> 
+                            {currentUser.membershipLevel === 'max' ? 'MAX' : 'PRO'}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-1.5 mt-1">
                         <span className={`w-2 h-2 rounded-full ${
                           userRole === 'enterprise' ? 'bg-indigo-500' : 
@@ -290,6 +315,16 @@ const Header: React.FC<HeaderProps> = ({
                       className="w-full text-left px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 flex items-center gap-3 transition-colors"
                     >
                       <UserIcon className="w-4 h-4" /> 个人空间
+                    </button>
+
+                    <button 
+                      onClick={() => {
+                        setViewMode('membership');
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-amber-600 flex items-center gap-3 transition-colors"
+                    >
+                      <Crown className="w-4 h-4" /> 会员中心
                     </button>
                     
                     {/* Responsive View Switcher in Menu */}
@@ -364,6 +399,12 @@ const Header: React.FC<HeaderProps> = ({
               className={`px-4 py-3 rounded-lg text-left text-sm font-medium ${viewMode === 'artworks' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600'}`}
             >
               作品广场
+            </button>
+            <button 
+              onClick={() => { setViewMode('membership'); setIsMobileMenuOpen(false); }}
+              className={`px-4 py-3 rounded-lg text-left text-sm font-medium ${viewMode === 'membership' ? 'bg-amber-50 text-amber-600' : 'text-slate-600'}`}
+            >
+              会员中心
             </button>
             <button 
               onClick={() => { setViewMode('enterprise_showcase'); setIsMobileMenuOpen(false); }}

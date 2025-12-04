@@ -1,5 +1,5 @@
 
-export type ViewMode = 'discovery' | 'workspace' | 'profile' | 'artworks' | 'projects_hub' | 'rising_creators' | 'rankings' | 'help_center' | 'painter_guide_full' | 'employer_guide_full' | 'terms_service_full' | 'enterprise_showcase' | 'messages';
+export type ViewMode = 'discovery' | 'workspace' | 'profile' | 'artworks' | 'projects_hub' | 'rising_creators' | 'rankings' | 'help_center' | 'painter_guide_full' | 'employer_guide_full' | 'terms_service_full' | 'enterprise_showcase' | 'messages' | 'membership';
 export type WorkspaceTab = 'dashboard' | 'projects' | 'dam' | 'finance' | 'admin_users' | 'admin_roles';
 
 // 2.2 角色定义
@@ -10,6 +10,8 @@ export type UserRole =
   | 'creator'         // 创作者
   | 'enterprise'      // 企业用户
   | 'general';        // 普通用户
+
+export type MembershipLevel = 'none' | 'pro' | 'max';
 
 // 3.3 核心权限代码
 export type PermissionCode = 
@@ -35,6 +37,7 @@ export interface User {
   email?: string; // Added for admin view and login
   phone?: string; // Added for phone registration
   status?: 'active' | 'banned' | 'inactive'; // Added for admin view
+  membershipLevel?: MembershipLevel; // Added membership
 }
 
 export type ThemeColor = 'indigo' | 'pink' | 'blue' | 'purple' | 'emerald';
@@ -63,6 +66,19 @@ export interface UserProfile {
   joinedDate: string;
   isVerified: boolean;
   preferences?: UserProfilePreferences;
+  membershipLevel?: MembershipLevel; // Display on profile
+}
+
+// For Membership Plans
+export interface MembershipPlan {
+  id: MembershipLevel;
+  name: string;
+  price: number; // Monthly price in CNY
+  features: string[];
+  roleType: 'creator' | 'enterprise'; // Which role is this plan for
+  color: string;
+  icon?: any;
+  recommended?: boolean;
 }
 
 // For Admin View

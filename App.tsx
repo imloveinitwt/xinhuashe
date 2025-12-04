@@ -21,9 +21,10 @@ import PainterGuidePage from './components/PainterGuidePage';
 import EmployerGuidePage from './components/EmployerGuidePage'; 
 import TermsServicePage from './components/TermsServicePage'; 
 import EnterprisePage from './components/EnterprisePage';
-import MessagesPage from './components/MessagesPage'; // Import new page
+import MessagesPage from './components/MessagesPage'; 
+import MembershipPage from './components/MembershipPage'; // Import new page
 import Footer from './components/Footer';
-import { ViewMode, WorkspaceTab, UserRole, User } from './types';
+import { ViewMode, WorkspaceTab, UserRole, User, MembershipLevel } from './types';
 import { getProfileById } from './constants';
 import { AuthService } from './services/AuthService';
 import { Loader2 } from 'lucide-react';
@@ -90,9 +91,19 @@ const App: React.FC = () => {
   const handleSetUserRole = async (role: UserRole) => {
      // Switch role simulation (In real app, this might be switching organizations)
      const tempUser = AuthService.createMockUser(role, user?.name || 'User');
+     // Keep membership level when switching for demo purposes, or reset
+     tempUser.membershipLevel = user?.membershipLevel || 'none';
      setUser(tempUser);
      // Update session in storage (optional for demo)
      // StorageService.setSession(tempUser); 
+  };
+
+  const handleUpgradeMembership = (level: MembershipLevel) => {
+    if (user) {
+      const updatedUser = { ...user, membershipLevel: level };
+      setUser(updatedUser);
+      // In real app, persist to DB via AuthService/StorageService
+    }
   };
 
   const changeViewMode = (mode: ViewMode) => {
@@ -138,6 +149,17 @@ const App: React.FC = () => {
           onTriggerLogin={handleTriggerLogin}
           user={user}
           onNavigate={changeViewMode}
+        />
+      );
+    }
+
+    if (viewMode === 'membership') {
+      return (
+        <MembershipPage 
+          onBack={() => changeViewMode('discovery')}
+          user={user}
+          onUpgrade={handleUpgradeMembership}
+          onTriggerLogin={handleTriggerLogin}
         />
       );
     }
@@ -249,7 +271,7 @@ const App: React.FC = () => {
       // Workspace Views
       return (
         <div className="h-full p-6 md:p-8 overflow-y-auto custom-scrollbar animate-fade-in">
-           {activeWorkspaceTab === 'dashboard' && <DashboardView userRole={user.role} />}
+           {activeWorkspaceTab === 'dashboard' && <DashboardView user={user} />}
            {activeWorkspaceTab === 'dam' && <DAMView />}
            {activeWorkspaceTab === 'projects' && <ProjectsView />}
            {activeWorkspaceTab === 'finance' && <FinanceView user={user} />}
@@ -327,7 +349,7 @@ const App: React.FC = () => {
       </main>
 
       {/* Global Footer (Visible in Discovery/Profile/Pages) */}
-      {(viewMode === 'discovery' || viewMode === 'profile' || viewMode === 'artworks' || viewMode === 'projects_hub' || viewMode === 'rising_creators' || viewMode === 'rankings' || viewMode === 'help_center' || viewMode === 'painter_guide_full' || viewMode === 'employer_guide_full' || viewMode === 'terms_service_full' || viewMode === 'enterprise_showcase' || viewMode === 'messages') && !isTransitioning && (
+      {(viewMode === 'discovery' || viewMode === 'profile' || viewMode === 'artworks' || viewMode === 'projects_hub' || viewMode === 'rising_creators' || viewMode === 'rankings' || viewMode === 'help_center' || viewMode === 'painter_guide_full' || viewMode === 'employer_guide_full' || viewMode === 'terms_service_full' || viewMode === 'enterprise_showcase' || viewMode === 'messages' || viewMode === 'membership') && !isTransitioning && (
         <Footer 
           onNavigate={handleFooterNavigation}
           onTriggerUpload={() => user ? setIsUploadModalOpen(true) : setIsLoginModalOpen(true)}

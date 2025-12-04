@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { 
   MapPin, Link as LinkIcon, Calendar, BadgeCheck, Settings, 
   UserPlus, Mail, Eye, Heart, Share2, PenTool, Image as ImageIcon,
-  Grid, List, Check, X, Palette, Layout, Users
+  Grid, List, Check, X, Palette, Layout, Users, Crown, Zap
 } from 'lucide-react';
 import { User, UserProfile, UserProfilePreferences, ThemeColor } from '../types';
 import { MOCK_ARTWORKS, MOCK_CREATORS, MOCK_USERS_ADMIN_VIEW } from '../constants';
@@ -95,6 +95,8 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
   const handleArtworkError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = 'https://placehold.co/600x400/f1f5f9/94a3b8?text=Image+Load+Error';
   };
+
+  const hasMembership = profile.membershipLevel && profile.membershipLevel !== 'none';
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20 relative">
@@ -212,13 +214,18 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
           <div className="lg:w-80 flex-shrink-0">
              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col items-center lg:items-start text-center lg:text-left relative">
                 {/* Avatar */}
-                <div className={`w-32 h-32 rounded-full border-4 border-white shadow-md overflow-hidden mb-4 bg-white`}>
+                <div className={`w-32 h-32 rounded-full border-4 border-white shadow-md overflow-hidden mb-4 bg-white relative`}>
                   <img 
                     src={profile.avatar} 
                     alt={profile.displayName} 
                     className="w-full h-full object-cover bg-slate-200" 
                     onError={handleAvatarError}
                   />
+                  {hasMembership && (
+                    <div className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm">
+                       <Crown className={`w-5 h-5 ${profile.membershipLevel === 'max' ? 'text-amber-500 fill-amber-500' : 'text-indigo-500 fill-indigo-500'}`} />
+                    </div>
+                  )}
                 </div>
                 
                 {/* Name & Verify */}
@@ -228,6 +235,26 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
                     {profile.isVerified && <BadgeCheck className={`w-5 h-5 ${getThemeColorClass('text')}`} />}
                   </h1>
                   <p className="text-slate-500 text-sm mt-1">@{profile.id.split('_')[1]}</p>
+                </div>
+
+                {/* Badges Row (Credit + Membership) */}
+                <div className="flex flex-wrap justify-center lg:justify-start gap-2 mb-4">
+                  {profile.creditScore && (
+                    <div className="bg-slate-50 px-3 py-1 rounded-full border border-slate-200 flex items-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5 text-yellow-500 fill-current" />
+                      <span className="text-xs font-bold text-slate-700">信用 {profile.creditScore}</span>
+                    </div>
+                  )}
+                  {hasMembership && (
+                    <div className={`px-3 py-1 rounded-full border flex items-center gap-1.5 ${
+                      profile.membershipLevel === 'max' 
+                        ? 'bg-amber-50 border-amber-200 text-amber-700' 
+                        : 'bg-indigo-50 border-indigo-200 text-indigo-700'
+                    }`}>
+                      <Crown className="w-3.5 h-3.5 fill-current" />
+                      <span className="text-xs font-bold">{profile.membershipLevel === 'max' ? 'MAX会员' : 'PRO会员'}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Bio */}

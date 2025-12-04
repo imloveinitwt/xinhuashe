@@ -1,5 +1,5 @@
 
-import { Artwork, Asset, Project, Task, Transaction, Invoice, Creator, Event, RoleDefinition, User, UserProfile, Article, SavingsGoal, DepartmentBudget, EnterpriseProfile, ProjectCase, Notification, SystemLog, VerificationRequest } from './types';
+import { Artwork, Asset, Project, Task, Transaction, Invoice, Creator, Event, RoleDefinition, User, UserProfile, Article, SavingsGoal, DepartmentBudget, EnterpriseProfile, ProjectCase, Notification, SystemLog, VerificationRequest, MembershipPlan } from './types';
 import { Laptop, Plane, Home, Briefcase, Car } from 'lucide-react';
 
 // === RBAC CONFIGURATION ===
@@ -55,16 +55,72 @@ export const ROLE_DEFINITIONS: RoleDefinition[] = [
 
 // Mock Users for Admin View
 export const MOCK_USERS_ADMIN_VIEW: User[] = [
-  { id: 'u1', name: 'Admin_Root', role: 'root_admin', roleName: '系统根管理员', avatar: 'https://ui-avatars.com/api/?name=Admin+Root&background=ef4444&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'root@xhs.com' },
-  { id: 'u2', name: 'Ops_Sarah', role: 'content_ops', roleName: '内容审核员', avatar: 'https://ui-avatars.com/api/?name=Sarah+Ops&background=f97316&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'sarah@xhs.com' },
-  { id: 'u3', name: 'NeonDreamer', role: 'creator', roleName: '认证创作者', avatar: 'https://ui-avatars.com/api/?name=Neon+Dreamer&background=8b5cf6&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'neon@gmail.com' },
-  { id: 'u4', name: 'TechNova_PM', role: 'enterprise', roleName: '企业主账号', avatar: 'https://ui-avatars.com/api/?name=Tech+Nova&background=3b82f6&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'pm@technova.com' },
-  { id: 'u5', name: 'InkFlow', role: 'creator', roleName: '创作者', avatar: 'https://ui-avatars.com/api/?name=Ink+Flow&background=10b981&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'ink@studio.com' },
-  { id: 'u6', name: 'GameStudio_HR', role: 'enterprise', roleName: '企业主账号', avatar: 'https://ui-avatars.com/api/?name=Game+Studio&background=6366f1&color=fff', permissions: [], isAuthenticated: true, status: 'banned', email: 'hr@gamestudio.com' },
-  { id: 'u7', name: 'PixelArtist_99', role: 'creator', roleName: '创作者', avatar: 'https://ui-avatars.com/api/?name=Pixel+Artist&background=random&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'pixel99@art.com' },
-  { id: 'u8', name: 'Marketing_Lead', role: 'enterprise', roleName: '企业主账号', avatar: 'https://ui-avatars.com/api/?name=Marketing&background=random&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'market@brand.com' },
-  { id: 'u9', name: 'Design_Lead_A', role: 'creator', roleName: '设计总监', avatar: 'https://ui-avatars.com/api/?name=Design+Lead&background=ec4899&color=fff', permissions: [], isAuthenticated: true, status: 'inactive', email: 'design@lead.com' },
-  { id: 'u10', name: 'Finance_User', role: 'enterprise', roleName: '财务专员', avatar: 'https://ui-avatars.com/api/?name=Finance+User&background=14b8a6&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'finance@corp.com' },
+  { id: 'u1', name: 'Admin_Root', role: 'root_admin', roleName: '系统根管理员', avatar: 'https://ui-avatars.com/api/?name=Admin+Root&background=ef4444&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'root@xhs.com', membershipLevel: 'max' },
+  { id: 'u2', name: 'Ops_Sarah', role: 'content_ops', roleName: '内容审核员', avatar: 'https://ui-avatars.com/api/?name=Sarah+Ops&background=f97316&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'sarah@xhs.com', membershipLevel: 'none' },
+  { id: 'u3', name: 'NeonDreamer', role: 'creator', roleName: '认证创作者', avatar: 'https://ui-avatars.com/api/?name=Neon+Dreamer&background=8b5cf6&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'neon@gmail.com', membershipLevel: 'pro' },
+  { id: 'u4', name: 'TechNova_PM', role: 'enterprise', roleName: '企业主账号', avatar: 'https://ui-avatars.com/api/?name=Tech+Nova&background=3b82f6&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'pm@technova.com', membershipLevel: 'max' },
+  { id: 'u5', name: 'InkFlow', role: 'creator', roleName: '创作者', avatar: 'https://ui-avatars.com/api/?name=Ink+Flow&background=10b981&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'ink@studio.com', membershipLevel: 'none' },
+  { id: 'u6', name: 'GameStudio_HR', role: 'enterprise', roleName: '企业主账号', avatar: 'https://ui-avatars.com/api/?name=Game+Studio&background=6366f1&color=fff', permissions: [], isAuthenticated: true, status: 'banned', email: 'hr@gamestudio.com', membershipLevel: 'none' },
+  { id: 'u7', name: 'PixelArtist_99', role: 'creator', roleName: '创作者', avatar: 'https://ui-avatars.com/api/?name=Pixel+Artist&background=random&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'pixel99@art.com', membershipLevel: 'none' },
+  { id: 'u8', name: 'Marketing_Lead', role: 'enterprise', roleName: '企业主账号', avatar: 'https://ui-avatars.com/api/?name=Marketing&background=random&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'market@brand.com', membershipLevel: 'pro' },
+  { id: 'u9', name: 'Design_Lead_A', role: 'creator', roleName: '设计总监', avatar: 'https://ui-avatars.com/api/?name=Design+Lead&background=ec4899&color=fff', permissions: [], isAuthenticated: true, status: 'inactive', email: 'design@lead.com', membershipLevel: 'none' },
+  { id: 'u10', name: 'Finance_User', role: 'enterprise', roleName: '财务专员', avatar: 'https://ui-avatars.com/api/?name=Finance+User&background=14b8a6&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'finance@corp.com', membershipLevel: 'none' },
+];
+
+export const MEMBERSHIP_PLANS_CREATOR: MembershipPlan[] = [
+  {
+    id: 'none',
+    name: '基础版',
+    price: 0,
+    roleType: 'creator',
+    color: 'slate',
+    features: ['无限上传作品', '接单权限 (5% 服务费)', '标准作品展示', '基础社区支持']
+  },
+  {
+    id: 'pro',
+    name: '专业版 Pro',
+    price: 29,
+    roleType: 'creator',
+    recommended: true,
+    color: 'indigo',
+    features: ['接单服务费降至 3%', '作品优先展示权限', '个人主页高级装扮', '专属身份标识徽章', '无限次 AI 辅助创作']
+  },
+  {
+    id: 'max',
+    name: '旗舰版 Max',
+    price: 99,
+    roleType: 'creator',
+    color: 'amber',
+    features: ['0 服务费接单', '首页 Banner 推荐位', '官方合作渠道优先内推', '1对1 专属客服经理', '法律合同审核服务', '作品版权保护']
+  }
+];
+
+export const MEMBERSHIP_PLANS_ENTERPRISE: MembershipPlan[] = [
+  {
+    id: 'none',
+    name: '企业基础版',
+    price: 0,
+    roleType: 'enterprise',
+    color: 'slate',
+    features: ['发布无限需求', '标准人才匹配', '基础 DAM 存储 (50GB)', '资金托管服务']
+  },
+  {
+    id: 'pro',
+    name: '企业专业版',
+    price: 199,
+    roleType: 'enterprise',
+    recommended: true,
+    color: 'blue',
+    features: ['AI 智能人才推荐', 'DAM 存储扩容至 1TB', '企业子账号管理 (5个)', '增值税专用发票', '需求优先审核']
+  },
+  {
+    id: 'max',
+    name: '集团旗舰版',
+    price: 999,
+    roleType: 'enterprise',
+    color: 'rose',
+    features: ['无限 DAM 存储空间', '专属项目经理全案服务', 'API 接口对接能力', '私有化部署支持', '无限子账号', '年度财务报表审计']
+  }
 ];
 
 export const MOCK_SYSTEM_LOGS: SystemLog[] = [
@@ -476,7 +532,8 @@ export const MOCK_PROFILES: UserProfile[] = [
     stats: { followers: 1250, following: 45, likes: 3200, views: 15000 },
     joinedDate: '2022年3月',
     isVerified: true,
-    preferences: { themeColor: 'pink', layoutMode: 'grid' }
+    preferences: { themeColor: 'pink', layoutMode: 'grid' },
+    membershipLevel: 'none'
   },
   {
     id: 'p_neon',
@@ -490,7 +547,8 @@ export const MOCK_PROFILES: UserProfile[] = [
     stats: { followers: 85000, following: 120, likes: 240000, views: 1200000 },
     joinedDate: '2021年5月',
     isVerified: true,
-    preferences: { themeColor: 'purple', layoutMode: 'grid' }
+    preferences: { themeColor: 'purple', layoutMode: 'grid' },
+    membershipLevel: 'pro'
   },
   {
     id: 'p_ink',
@@ -504,7 +562,8 @@ export const MOCK_PROFILES: UserProfile[] = [
     stats: { followers: 45000, following: 20, likes: 98000, views: 340000 },
     joinedDate: '2022年1月',
     isVerified: true,
-    preferences: { themeColor: 'emerald', layoutMode: 'list' }
+    preferences: { themeColor: 'emerald', layoutMode: 'list' },
+    membershipLevel: 'none'
   }
 ];
 
