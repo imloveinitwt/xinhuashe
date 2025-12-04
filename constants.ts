@@ -1,5 +1,5 @@
 
-import { Artwork, Asset, Project, Task, Transaction, Invoice, Creator, Event, RoleDefinition, User, UserProfile, Article, SavingsGoal, DepartmentBudget, EnterpriseProfile, ProjectCase, Notification, SystemLog } from './types';
+import { Artwork, Asset, Project, Task, Transaction, Invoice, Creator, Event, RoleDefinition, User, UserProfile, Article, SavingsGoal, DepartmentBudget, EnterpriseProfile, ProjectCase, Notification, SystemLog, VerificationRequest } from './types';
 import { Laptop, Plane, Home, Briefcase, Car } from 'lucide-react';
 
 // === RBAC CONFIGURATION ===
@@ -664,4 +664,48 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     linkTo: 'profile'
   },
   // ...
+];
+
+export const MOCK_VERIFICATION_REQUESTS: VerificationRequest[] = [
+  {
+    id: 'req_1',
+    userId: 'u_101',
+    userName: 'ArtMaster',
+    userAvatar: 'https://ui-avatars.com/api/?name=Art+Master&background=ec4899&color=fff',
+    type: 'personal',
+    status: 'pending',
+    submitTime: '2023-10-26 10:00:00',
+    realName: '张三',
+    idCardNumber: '310101199001011234',
+    idCardFront: 'https://placehold.co/400x250/e2e8f0/64748b?text=ID+Front',
+    idCardBack: 'https://placehold.co/400x250/e2e8f0/64748b?text=ID+Back'
+  },
+  {
+    id: 'req_2',
+    userId: 'u_105',
+    userName: 'TechNova',
+    userAvatar: 'https://ui-avatars.com/api/?name=Tech+Nova&background=3b82f6&color=fff',
+    type: 'enterprise',
+    status: 'pending',
+    submitTime: '2023-10-25 14:30:00',
+    companyName: 'TechNova 科技有限公司',
+    creditCode: '91310000MA1FL43210',
+    legalRep: '李四',
+    businessLicense: 'https://placehold.co/300x400/e2e8f0/64748b?text=License'
+  },
+  {
+    id: 'req_3',
+    userId: 'u_102',
+    userName: 'PixelRetro',
+    userAvatar: 'https://ui-avatars.com/api/?name=Pixel+Retro&background=f59e0b&color=fff',
+    type: 'personal',
+    status: 'approved',
+    submitTime: '2023-10-20 09:15:00',
+    reviewTime: '2023-10-20 11:00:00',
+    reviewer: 'Ops_Sarah',
+    realName: '王五',
+    idCardNumber: '310101199505055678',
+    idCardFront: 'https://placehold.co/400x250/e2e8f0/64748b?text=ID+Front',
+    idCardBack: 'https://placehold.co/400x250/e2e8f0/64748b?text=ID+Back'
+  }
 ];

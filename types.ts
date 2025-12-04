@@ -287,3 +287,27 @@ export interface Notification {
   actionLabel?: string;
   linkTo?: ViewMode; // Simplified navigation link
 }
+
+// === VERIFICATION TYPES ===
+export interface VerificationRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  type: 'personal' | 'enterprise';
+  status: 'pending' | 'approved' | 'rejected';
+  submitTime: string;
+  reviewTime?: string;
+  reviewer?: string;
+  rejectReason?: string;
+  // Personal fields
+  realName?: string;
+  idCardNumber?: string;
+  idCardFront?: string;
+  idCardBack?: string;
+  // Enterprise fields
+  companyName?: string;
+  creditCode?: string;
+  legalRep?: string;
+  businessLicense?: string;
+}

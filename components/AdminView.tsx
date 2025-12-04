@@ -4,16 +4,17 @@ import {
   Users, Shield, Settings, Search, Edit2, Trash2, CheckCircle, XCircle, 
   MoreVertical, Lock, Key, AlertTriangle, Activity, BarChart2, FileText, 
   Eye, Layout, Code, Server, Database, RefreshCw, Filter, List, Power,
-  ChevronRight, Terminal
+  ChevronRight, Terminal, UserCheck, Briefcase, CreditCard, Building, Image as ImageIcon,
+  FileCheck, IdCard, MessageSquare, Bell
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line
 } from 'recharts';
-import { MOCK_USERS_ADMIN_VIEW, ROLE_DEFINITIONS, MOCK_SYSTEM_LOGS, MOCK_ARTWORKS } from '../constants';
-import { User, RoleDefinition, SystemLog, SystemConfig, Artwork } from '../types';
+import { MOCK_USERS_ADMIN_VIEW, ROLE_DEFINITIONS, MOCK_SYSTEM_LOGS, MOCK_ARTWORKS, MOCK_VERIFICATION_REQUESTS, MOCK_NOTIFICATIONS } from '../constants';
+import { User, RoleDefinition, SystemLog, SystemConfig, Artwork, VerificationRequest } from '../types';
 
-type AdminTab = 'monitor' | 'users' | 'content' | 'settings' | 'dev';
+type AdminTab = 'monitor' | 'users' | 'content' | 'settings' | 'dev' | 'auth_audit';
 
 // --- SUB-COMPONENT: SYSTEM MONITOR ---
 const SystemMonitor = () => {
@@ -128,17 +129,60 @@ const ContentCMS = () => {
   const [artworks, setArtworks] = useState<Artwork[]>(MOCK_ARTWORKS);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  
+  // Interaction State
+  const [rejectReason, setRejectReason] = useState('');
+  const [showRejectInput, setShowRejectInput] = useState(false);
+  const [toast, setToast] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
 
   const filteredArtworks = artworks.filter(a => {
-    // Default status to approved if undefined for mock data
     const status = a.status || 'approved';
     return filter === 'all' || status === filter;
   });
 
   const handleAction = (action: 'approve' | 'reject' | 'delete') => {
     if (selectedIds.size === 0) return;
+
+    // Handle Rejection Flow
+    if (action === 'reject' && !showRejectInput) {
+      setShowRejectInput(true);
+      return;
+    }
+    if (action === 'reject' && !rejectReason.trim()) {
+      alert('请填写驳回原因');
+      return;
+    }
+
+    const timestamp = new Date().toLocaleString();
+    const adminName = 'Admin_Root'; // Mock Admin
+
     const newArtworks = artworks.map(a => {
       if (selectedIds.has(a.id)) {
+        // Mock sending notification
+        MOCK_NOTIFICATIONS.unshift({
+          id: `n_${Date.now()}_${a.id}`,
+          type: 'system',
+          title: action === 'approve' ? '作品审核通过' : action === 'reject' ? '作品被驳回' : '作品已被移除',
+          content: `您的作品《${a.title}》${
+            action === 'approve' ? '已通过平台审核，现已公开展示。' : 
+            action === 'reject' ? `审核未通过。原因：${rejectReason}` : 
+            '因违规已被平台移除。'
+          }`,
+          time: '刚刚',
+          isRead: false
+        });
+
+        // Add System Log
+        MOCK_SYSTEM_LOGS.unshift({
+          id: `log_${Date.now()}_${a.id}`,
+          action: action === 'approve' ? '审核通过' : action === 'reject' ? '审核驳回' : '删除作品',
+          operator: adminName,
+          target: `Artwork #${a.id} (${a.title})`,
+          timestamp: timestamp,
+          ip: '192.168.1.1',
+          status: 'success'
+        });
+
         if (action === 'delete') return null;
         return { ...a, status: action === 'approve' ? 'approved' : 'rejected' };
       }
@@ -147,6 +191,15 @@ const ContentCMS = () => {
     
     setArtworks(newArtworks);
     setSelectedIds(new Set());
+    setRejectReason('');
+    setShowRejectInput(false);
+    
+    // Show Toast
+    setToast({ 
+      msg: `成功${action === 'approve' ? '通过' : action === 'reject' ? '驳回' : '删除'}了 ${selectedIds.size} 个作品，并已发送通知。`, 
+      type: 'success' 
+    });
+    setTimeout(() => setToast(null), 3000);
   };
 
   const toggleSelect = (id: string) => {
@@ -157,14 +210,21 @@ const ContentCMS = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <div className="flex gap-2">
+    <div className="space-y-6 animate-fade-in relative">
+      {toast && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-800 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-2 animate-fade-in-up">
+          <CheckCircle className="w-5 h-5 text-green-400" />
+          {toast.msg}
+        </div>
+      )}
+
+      <div className="flex flex-col md:flex-row md:items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm gap-4">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar">
           {['all', 'pending', 'approved', 'rejected'].map(f => (
             <button
               key={f}
-              onClick={() => setFilter(f as any)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
+              onClick={() => { setFilter(f as any); setSelectedIds(new Set()); setShowRejectInput(false); }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-colors whitespace-nowrap ${
                 filter === f ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
               }`}
             >
@@ -172,86 +232,135 @@ const ContentCMS = () => {
             </button>
           ))}
         </div>
-        <div className="flex gap-2">
-          <button 
-            onClick={() => handleAction('approve')}
-            disabled={selectedIds.size === 0}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            <CheckCircle className="w-4 h-4" /> 通过
-          </button>
-          <button 
-            onClick={() => handleAction('reject')}
-            disabled={selectedIds.size === 0}
-            className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-bold hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            <XCircle className="w-4 h-4" /> 驳回
-          </button>
-          <button 
-            onClick={() => handleAction('delete')}
-            disabled={selectedIds.size === 0}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            <Trash2 className="w-4 h-4" /> 删除
-          </button>
+        
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          {showRejectInput ? (
+            <div className="flex-1 flex gap-2 animate-scale-in">
+              <input 
+                type="text" 
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="请输入驳回原因..."
+                className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                autoFocus
+              />
+              <button 
+                onClick={() => handleAction('reject')}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 whitespace-nowrap"
+              >
+                确认驳回
+              </button>
+              <button 
+                onClick={() => { setShowRejectInput(false); setRejectReason(''); }}
+                className="px-3 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm hover:bg-slate-50"
+              >
+                取消
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2 w-full md:w-auto justify-end">
+              <button 
+                onClick={() => handleAction('approve')}
+                disabled={selectedIds.size === 0}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <CheckCircle className="w-4 h-4" /> 通过
+              </button>
+              <button 
+                onClick={() => handleAction('reject')}
+                disabled={selectedIds.size === 0}
+                className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-bold hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <XCircle className="w-4 h-4" /> 驳回
+              </button>
+              <button 
+                onClick={() => handleAction('delete')}
+                disabled={selectedIds.size === 0}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" /> 删除
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 uppercase">
-            <tr>
-              <th className="px-6 py-4 w-10">
-                <input type="checkbox" onChange={(e) => {
-                  if (e.target.checked) setSelectedIds(new Set(filteredArtworks.map(a => a.id)));
-                  else setSelectedIds(new Set());
-                }} checked={selectedIds.size === filteredArtworks.length && filteredArtworks.length > 0} />
-              </th>
-              <th className="px-6 py-4">作品预览</th>
-              <th className="px-6 py-4">标题 / ID</th>
-              <th className="px-6 py-4">创作者</th>
-              <th className="px-6 py-4">状态</th>
-              <th className="px-6 py-4">数据</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-50">
-            {filteredArtworks.map(art => (
-              <tr key={art.id} className="hover:bg-slate-50">
-                <td className="px-6 py-4">
-                  <input type="checkbox" checked={selectedIds.has(art.id)} onChange={() => toggleSelect(art.id)} />
-                </td>
-                <td className="px-6 py-4">
-                  <div className="w-16 h-12 bg-slate-100 rounded overflow-hidden">
-                    <img src={art.imageUrl} className="w-full h-full object-cover" alt="" />
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="font-bold text-slate-800">{art.title}</div>
-                  <div className="text-xs text-slate-400">ID: {art.id}</div>
-                </td>
-                <td className="px-6 py-4 flex items-center gap-2">
-                  <img src={art.artistAvatar} className="w-6 h-6 rounded-full" alt="" />
-                  <span>{art.artist}</span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
-                    (art.status || 'approved') === 'approved' ? 'bg-green-100 text-green-700' :
-                    (art.status || 'approved') === 'pending' ? 'bg-blue-100 text-blue-700' :
-                    'bg-red-100 text-red-700'
-                  }`}>
-                    {art.status || 'approved'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-xs text-slate-500">
-                  <div>Likes: {art.likes}</div>
-                  <div>Views: {art.views}</div>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 uppercase">
+              <tr>
+                <th className="px-6 py-4 w-10">
+                  <input type="checkbox" onChange={(e) => {
+                    if (e.target.checked) setSelectedIds(new Set(filteredArtworks.map(a => a.id)));
+                    else setSelectedIds(new Set());
+                  }} checked={selectedIds.size === filteredArtworks.length && filteredArtworks.length > 0} />
+                </th>
+                <th className="px-6 py-4">作品预览</th>
+                <th className="px-6 py-4">标题 / ID</th>
+                <th className="px-6 py-4">创作者</th>
+                <th className="px-6 py-4">AI 检测</th>
+                <th className="px-6 py-4">状态</th>
+                <th className="px-6 py-4">数据</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {filteredArtworks.map(art => (
+                <tr key={art.id} className={`hover:bg-slate-50 transition-colors ${selectedIds.has(art.id) ? 'bg-indigo-50/30' : ''}`}>
+                  <td className="px-6 py-4">
+                    <input type="checkbox" checked={selectedIds.has(art.id)} onChange={() => toggleSelect(art.id)} />
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="w-20 h-14 bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
+                      <img src={art.imageUrl} className="w-full h-full object-cover" alt="" loading="lazy" />
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="font-bold text-slate-800 line-clamp-1">{art.title}</div>
+                    <div className="text-xs text-slate-400 font-mono mt-0.5">ID: {art.id}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <img src={art.artistAvatar} className="w-6 h-6 rounded-full border border-slate-100" alt="" />
+                      <span className="truncate max-w-[100px]">{art.artist}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {art.isAiGenerated ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">
+                        AIGC
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-500">
+                        原创
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase ${
+                      (art.status || 'approved') === 'approved' ? 'bg-green-100 text-green-700' :
+                      (art.status || 'approved') === 'pending' ? 'bg-blue-100 text-blue-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      {art.status === 'pending' ? '待审核' : art.status === 'rejected' ? '已驳回' : '已发布'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-xs text-slate-500">
+                    <div className="flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Likes: {art.likes}</div>
+                    <div className="flex items-center gap-1 mt-1"><Eye className="w-3 h-3" /> Views: {art.views}</div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {filteredArtworks.length === 0 && (
-          <div className="p-12 text-center text-slate-400">暂无相关数据</div>
+          <div className="p-16 text-center">
+            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FileCheck className="w-8 h-8 text-slate-300" />
+            </div>
+            <p className="text-slate-400 font-medium">暂无符合条件的作品</p>
+          </div>
         )}
       </div>
     </div>
@@ -361,7 +470,7 @@ const SystemSettings = () => {
                   <td className="px-4 py-3 font-mono text-slate-500 text-xs">{log.timestamp}</td>
                   <td className="px-4 py-3 font-medium text-slate-800">{log.operator}</td>
                   <td className="px-4 py-3">{log.action}</td>
-                  <td className="px-4 py-3 text-slate-600">{log.target}</td>
+                  <td className="px-4 py-3 text-slate-600 truncate max-w-[200px]">{log.target}</td>
                   <td className="px-4 py-3 text-slate-400 text-xs">{log.ip}</td>
                   <td className="px-4 py-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -374,6 +483,277 @@ const SystemSettings = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- SUB-COMPONENT: AUTH AUDIT ---
+const AuthAuditModule = () => {
+  const [requests, setRequests] = useState<VerificationRequest[]>(MOCK_VERIFICATION_REQUESTS);
+  const [filterType, setFilterType] = useState<'all' | 'personal' | 'enterprise'>('all');
+  const [selectedRequest, setSelectedRequest] = useState<VerificationRequest | null>(null);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+
+  const filteredRequests = requests.filter(req => 
+    (filterType === 'all' || req.type === filterType)
+  );
+
+  const pendingRequests = filteredRequests.filter(r => r.status === 'pending');
+  const processedRequests = filteredRequests.filter(r => r.status !== 'pending');
+
+  const openReview = (req: VerificationRequest) => {
+    setSelectedRequest(req);
+    setReviewModalOpen(true);
+    setRejectReason('');
+  };
+
+  const handleReview = (status: 'approved' | 'rejected') => {
+    if (!selectedRequest) return;
+    
+    setRequests(prev => prev.map(r => {
+      if (r.id === selectedRequest.id) {
+        return {
+          ...r,
+          status,
+          reviewTime: new Date().toLocaleString(),
+          reviewer: 'Admin_Root', // Mock current admin
+          rejectReason: status === 'rejected' ? rejectReason : undefined
+        };
+      }
+      return r;
+    }));
+    setReviewModalOpen(false);
+  };
+
+  const ReviewModal = () => {
+    if (!selectedRequest) return null;
+    const isPersonal = selectedRequest.type === 'personal';
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <h3 className="font-bold text-slate-800 flex items-center gap-2">
+              {isPersonal ? <UserCheck className="w-5 h-5 text-pink-500" /> : <Briefcase className="w-5 h-5 text-indigo-500" />}
+              {isPersonal ? '个人实名认证审核' : '企业资质认证审核'}
+            </h3>
+            <button onClick={() => setReviewModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+              <XCircle className="w-6 h-6" />
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+            <div className="flex items-center gap-4 mb-6 p-4 bg-slate-50 rounded-lg border border-slate-100">
+               <img src={selectedRequest.userAvatar} className="w-12 h-12 rounded-full border border-slate-200" alt="" />
+               <div>
+                 <div className="font-bold text-slate-800">{selectedRequest.userName}</div>
+                 <div className="text-xs text-slate-500">ID: {selectedRequest.userId}</div>
+               </div>
+               <div className="ml-auto text-xs text-slate-400">
+                 提交时间: {selectedRequest.submitTime}
+               </div>
+            </div>
+
+            <div className="space-y-6">
+              {isPersonal ? (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase">真实姓名</label>
+                      <div className="mt-1 font-medium text-slate-800">{selectedRequest.realName}</div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase">身份证号</label>
+                      <div className="mt-1 font-medium text-slate-800 font-mono">{selectedRequest.idCardNumber}</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase mb-2 block">身份证正面</label>
+                      <div className="bg-slate-100 rounded-lg aspect-[8/5] overflow-hidden border border-slate-200">
+                        <img src={selectedRequest.idCardFront} className="w-full h-full object-cover" alt="Front" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase mb-2 block">身份证反面</label>
+                      <div className="bg-slate-100 rounded-lg aspect-[8/5] overflow-hidden border border-slate-200">
+                        <img src={selectedRequest.idCardBack} className="w-full h-full object-cover" alt="Back" />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <label className="text-xs font-bold text-slate-400 uppercase">企业全称</label>
+                      <div className="mt-1 font-medium text-slate-800">{selectedRequest.companyName}</div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase">统一社会信用代码</label>
+                      <div className="mt-1 font-medium text-slate-800 font-mono">{selectedRequest.creditCode}</div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase">法人代表</label>
+                      <div className="mt-1 font-medium text-slate-800">{selectedRequest.legalRep}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-400 uppercase mb-2 block">营业执照扫描件</label>
+                    <div className="bg-slate-100 rounded-lg aspect-[3/4] max-w-sm overflow-hidden border border-slate-200">
+                      <img src={selectedRequest.businessLicense} className="w-full h-full object-cover" alt="License" />
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="p-6 border-t border-slate-100 bg-slate-50">
+             {selectedRequest.status === 'pending' ? (
+               <div className="space-y-4">
+                 <div className="flex gap-4">
+                    <button 
+                      onClick={() => handleReview('approved')}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2"
+                    >
+                      <CheckCircle className="w-5 h-5" /> 通过认证
+                    </button>
+                    <div className="flex-1 flex gap-2">
+                       <input 
+                         type="text" 
+                         placeholder="若驳回，请填写原因"
+                         value={rejectReason}
+                         onChange={e => setRejectReason(e.target.value)}
+                         className="flex-1 border border-slate-200 rounded-xl px-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                       />
+                       <button 
+                         onClick={() => handleReview('rejected')}
+                         disabled={!rejectReason}
+                         className="bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold px-4 rounded-xl transition-colors shadow-sm whitespace-nowrap"
+                       >
+                         驳回
+                       </button>
+                    </div>
+                 </div>
+               </div>
+             ) : (
+               <div className={`p-3 rounded-lg text-center font-bold ${selectedRequest.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                 该申请已{selectedRequest.status === 'approved' ? '通过' : '驳回'} 
+                 {selectedRequest.status === 'rejected' && ` (原因: ${selectedRequest.rejectReason})`}
+               </div>
+             )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {reviewModalOpen && <ReviewModal />}
+
+      {/* Filter Tabs */}
+      <div className="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm w-fit">
+        <button 
+          onClick={() => setFilterType('all')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filterType === 'all' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
+        >
+          全部申请
+        </button>
+        <button 
+          onClick={() => setFilterType('personal')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${filterType === 'personal' ? 'bg-pink-50 text-pink-600' : 'text-slate-500 hover:text-slate-700'}`}
+        >
+          <UserCheck className="w-4 h-4" /> 个人认证
+        </button>
+        <button 
+          onClick={() => setFilterType('enterprise')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${filterType === 'enterprise' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
+        >
+          <Building className="w-4 h-4" /> 企业认证
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Pending List */}
+        <div className="space-y-4">
+           <h3 className="font-bold text-slate-800 flex items-center gap-2">
+             <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+             待审核 ({pendingRequests.length})
+           </h3>
+           {pendingRequests.length > 0 ? pendingRequests.map(req => (
+             <div key={req.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all">
+                <div className="flex justify-between items-start mb-3">
+                   <div className="flex items-center gap-3">
+                      <img src={req.userAvatar} className="w-10 h-10 rounded-full bg-slate-100" alt="" />
+                      <div>
+                         <div className="font-bold text-slate-800 text-sm">{req.userName}</div>
+                         <div className="text-xs text-slate-500">{req.submitTime}</div>
+                      </div>
+                   </div>
+                   <span className={`text-[10px] px-2 py-1 rounded font-bold uppercase ${req.type === 'personal' ? 'bg-pink-100 text-pink-600' : 'bg-indigo-100 text-indigo-600'}`}>
+                      {req.type === 'personal' ? '个人' : '企业'}
+                   </span>
+                </div>
+                <div className="bg-slate-50 rounded-lg p-3 text-xs text-slate-600 space-y-1 mb-3">
+                   {req.type === 'personal' ? (
+                     <>
+                        <div className="flex items-center gap-2"><UserCheck className="w-3 h-3" /> 真实姓名: {req.realName}</div>
+                        <div className="flex items-center gap-2"><IdCard className="w-3 h-3" /> 身份证: {req.idCardNumber}</div>
+                     </>
+                   ) : (
+                     <>
+                        <div className="flex items-center gap-2"><Building className="w-3 h-3" /> 企业: {req.companyName}</div>
+                        <div className="flex items-center gap-2"><FileCheck className="w-3 h-3" /> 信用代码: {req.creditCode}</div>
+                     </>
+                   )}
+                </div>
+                <button 
+                  onClick={() => openReview(req)}
+                  className="w-full py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-indigo-600 transition-colors"
+                >
+                  开始审核
+                </button>
+             </div>
+           )) : (
+             <div className="p-8 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">暂无待审核申请</div>
+           )}
+        </div>
+
+        {/* History List */}
+        <div className="space-y-4">
+           <h3 className="font-bold text-slate-800 flex items-center gap-2">
+             <div className="w-2 h-2 rounded-full bg-slate-300"></div>
+             已处理历史
+           </h3>
+           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+              {processedRequests.length > 0 ? (
+                <div className="divide-y divide-slate-100">
+                   {processedRequests.map(req => (
+                     <div key={req.id} className="p-4 hover:bg-slate-50 transition-colors flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                           <div className={`p-2 rounded-full ${req.status === 'approved' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                              {req.status === 'approved' ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                           </div>
+                           <div>
+                              <div className="font-bold text-sm text-slate-800">{req.userName}</div>
+                              <div className="text-xs text-slate-500">
+                                 {req.reviewTime} • 由 {req.reviewer} 处理
+                              </div>
+                           </div>
+                        </div>
+                        <button onClick={() => openReview(req)} className="text-xs text-indigo-600 hover:underline">查看详情</button>
+                     </div>
+                   ))}
+                </div>
+              ) : (
+                <div className="p-8 text-center text-slate-400">暂无历史记录</div>
+              )}
+           </div>
         </div>
       </div>
     </div>
@@ -474,6 +854,7 @@ const AdminView: React.FC = () => {
   // Navigation Items
   const navItems: { id: AdminTab; label: string; icon: any }[] = [
     { id: 'monitor', label: '系统监控', icon: Activity },
+    { id: 'auth_audit', label: '认证审核', icon: UserCheck },
     { id: 'content', label: '内容管理', icon: Layout },
     { id: 'users', label: '用户与权限', icon: Users },
     { id: 'settings', label: '系统设置', icon: Settings },
@@ -484,6 +865,7 @@ const AdminView: React.FC = () => {
     switch (activeTab) {
       case 'monitor': return <SystemMonitor />;
       case 'content': return <ContentCMS />;
+      case 'auth_audit': return <AuthAuditModule />; 
       case 'settings': return <SystemSettings />;
       case 'dev': return <DevDocs />;
       case 'users': 
