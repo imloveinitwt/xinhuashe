@@ -21,66 +21,49 @@ import PainterGuidePage from './components/PainterGuidePage';
 import EmployerGuidePage from './components/EmployerGuidePage'; 
 import TermsServicePage from './components/TermsServicePage'; 
 import EnterprisePage from './components/EnterprisePage';
+import EnterpriseProfilePage from './components/EnterpriseProfilePage';
 import MessagesPage from './components/MessagesPage'; 
-import MembershipPage from './components/MembershipPage'; // Import new page
+import MembershipPage from './components/MembershipPage'; 
+import CreditScorePage from './components/CreditScorePage';
 import Footer from './components/Footer';
 import { ViewMode, WorkspaceTab, UserRole, User, MembershipLevel } from './types';
 import { getProfileById } from './constants';
-import { AuthService } from './services/AuthService';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 
-const App: React.FC = () => {
-  // Authentication State
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(true); // New loading state
-  const [showSplash, setShowSplash] = useState(false); // Changed default to false, handle in useEffect
+// Separate inner component to use the context
+const AppContent: React.FC = () => {
+  const { user, isAuthenticated, isLoading: isAuthLoading, login, logout, updateUser } = useAuth();
   
-  // Navigation State
+  // UI State
+  const [showSplash, setShowSplash] = useState(true); 
   const [viewMode, setViewMode] = useState<ViewMode>('discovery');
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<WorkspaceTab>('dashboard');
-  
-  // Profile State
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
-
+  
   // Modal State
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-
-  // Smooth Transition State
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // === INITIALIZATION: Check Session ===
+  // Sync Splash State with Auth
   useEffect(() => {
-    const initSession = async () => {
-      try {
-        const currentUser = await AuthService.getCurrentUser();
-        if (currentUser) {
-          setUser(currentUser);
-          // If user exists, stay on current logic or default
-          setShowSplash(false);
-        } else {
-          setShowSplash(true);
-        }
-      } catch (error) {
-        console.error("Session restore failed", error);
-        setShowSplash(true);
-      } finally {
-        setIsAuthLoading(false);
+    if (!isAuthLoading) {
+      if (isAuthenticated) {
+        setShowSplash(false);
       }
-    };
-    initSession();
-  }, []);
+    }
+  }, [isAuthLoading, isAuthenticated]);
 
-  const handleLoginSuccess = (loggedInUser: User) => {
-    setUser(loggedInUser);
+  const handleLoginSuccess = () => {
     setShowSplash(false);
     setIsLoginModalOpen(false);
 
     // Set default view based on role
-    if (loggedInUser.role === 'root_admin' || loggedInUser.role === 'platform_admin') {
+    if (user?.role === 'root_admin' || user?.role === 'platform_admin') {
        changeViewMode('workspace');
        setActiveWorkspaceTab('admin_users'); 
-    } else if (loggedInUser.role === 'enterprise') {
+    } else if (user?.role === 'enterprise') {
       changeViewMode('workspace');
       setActiveWorkspaceTab('dashboard');
     } else {
@@ -89,21 +72,16 @@ const App: React.FC = () => {
   };
 
   const handleSetUserRole = async (role: UserRole) => {
-     // Switch role simulation (In real app, this might be switching organizations)
-     const tempUser = AuthService.createMockUser(role, user?.name || 'User');
-     // Keep membership level when switching for demo purposes, or reset
-     tempUser.membershipLevel = user?.membershipLevel || 'none';
-     setUser(tempUser);
-     // Update session in storage (optional for demo)
-     // StorageService.setSession(tempUser); 
+     // In real app, this would be switching org context or similar
+     // For demo, we just update the user object locally via context
+     updateUser({ 
+       role, 
+       roleName: role === 'creator' ? '创作者' : role === 'enterprise' ? '企业主' : '管理员' 
+     });
   };
 
   const handleUpgradeMembership = (level: MembershipLevel) => {
-    if (user) {
-      const updatedUser = { ...user, membershipLevel: level };
-      setUser(updatedUser);
-      // In real app, persist to DB via AuthService/StorageService
-    }
+    updateUser({ membershipLevel: level });
   };
 
   const changeViewMode = (mode: ViewMode) => {
@@ -113,7 +91,7 @@ const App: React.FC = () => {
       setViewMode(mode);
       setIsTransitioning(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 200); // Wait for fade out
+    }, 200);
   };
 
   const handleNavigateToProfile = (profileId: string) => {
@@ -125,22 +103,15 @@ const App: React.FC = () => {
     setIsLoginModalOpen(true);
   };
 
-  const handleLogout = async () => {
-    await AuthService.logout();
-    setUser(null);
-    setShowSplash(true);
-    changeViewMode('discovery');
-  };
-
   const handleFooterNavigation = (mode: ViewMode) => {
-    if (mode === 'workspace' && !user) {
+    if (mode === 'workspace' && !isAuthenticated) {
       handleTriggerLogin();
     } else {
       changeViewMode(mode);
     }
   };
 
-  // Render current view content
+  // Render Content Logic
   const renderContent = () => {
     if (viewMode === 'discovery') {
       return (
@@ -164,6 +135,21 @@ const App: React.FC = () => {
       );
     }
 
+    if (viewMode === 'credit_score') {
+      return (
+        <CreditScorePage 
+          onBack={() => {
+            if (activeWorkspaceTab === 'dashboard') {
+              changeViewMode('workspace');
+            } else {
+              changeViewMode('discovery');
+            }
+          }}
+          user={user}
+        />
+      );
+    }
+
     if (viewMode === 'messages') {
       return (
         <MessagesPage 
@@ -176,6 +162,17 @@ const App: React.FC = () => {
     if (viewMode === 'enterprise_showcase') {
       return (
         <EnterprisePage 
+          onBack={() => changeViewMode('discovery')}
+          onTriggerLogin={handleTriggerLogin}
+          user={user}
+          onNavigate={changeViewMode}
+        />
+      );
+    }
+
+    if (viewMode === 'enterprise_profile') {
+      return (
+        <EnterpriseProfilePage 
           onBack={() => changeViewMode('discovery')}
           onTriggerLogin={handleTriggerLogin}
           user={user}
@@ -227,35 +224,19 @@ const App: React.FC = () => {
     }
 
     if (viewMode === 'help_center') {
-      return (
-        <HelpCenterPage 
-          onBack={() => changeViewMode('discovery')}
-        />
-      );
+      return <HelpCenterPage onBack={() => changeViewMode('discovery')} />;
     }
 
     if (viewMode === 'painter_guide_full') {
-      return (
-        <PainterGuidePage 
-          onBack={() => changeViewMode('discovery')}
-        />
-      );
+      return <PainterGuidePage onBack={() => changeViewMode('discovery')} />;
     }
 
     if (viewMode === 'employer_guide_full') {
-      return (
-        <EmployerGuidePage 
-          onBack={() => changeViewMode('discovery')}
-        />
-      );
+      return <EmployerGuidePage onBack={() => changeViewMode('discovery')} />;
     }
 
     if (viewMode === 'terms_service_full') {
-      return (
-        <TermsServicePage 
-          onBack={() => changeViewMode('discovery')}
-        />
-      );
+      return <TermsServicePage onBack={() => changeViewMode('discovery')} />;
     }
     
     if (viewMode === 'profile' && selectedProfileId) {
@@ -267,20 +248,35 @@ const App: React.FC = () => {
       );
     } 
     
-    if (user) {
-      // Workspace Views
+    if (isAuthenticated && user) {
       return (
         <div className="h-full p-6 md:p-8 overflow-y-auto custom-scrollbar animate-fade-in">
-           {activeWorkspaceTab === 'dashboard' && <DashboardView user={user} />}
+           {activeWorkspaceTab === 'dashboard' && (
+             <DashboardView 
+               user={user} 
+               onNavigate={changeViewMode}
+             />
+           )}
            {activeWorkspaceTab === 'dam' && <DAMView />}
            {activeWorkspaceTab === 'projects' && <ProjectsView />}
            {activeWorkspaceTab === 'finance' && <FinanceView user={user} />}
            {(activeWorkspaceTab === 'admin_users' || activeWorkspaceTab === 'admin_roles') && <AdminView />}
+           {activeWorkspaceTab === 'membership' && (
+             <div className="-m-6 md:-m-8">
+               <MembershipPage 
+                 user={user} 
+                 onUpgrade={handleUpgradeMembership} 
+                 onTriggerLogin={() => {}} 
+                 onBack={() => setActiveWorkspaceTab('dashboard')} 
+                 isEmbedded={true}
+               />
+             </div>
+           )}
         </div>
       );
     } 
     
-    // Fallback
+    // Fallback for unauthenticated access to workspace
     return (
       <div className="flex h-full items-center justify-center flex-col animate-fade-in">
          <h2 className="text-xl font-bold mb-4">请先登录</h2>
@@ -289,7 +285,7 @@ const App: React.FC = () => {
     );
   };
 
-  // Global Loading State
+  // Loading State
   if (isAuthLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -301,13 +297,12 @@ const App: React.FC = () => {
     );
   }
 
-  // Show Splash Screen for guests initially
-  if (!user && showSplash) {
+  // Splash Screen
+  if (!isAuthenticated && showSplash) {
     return (
       <LoginScreen 
         onLogin={(role) => {
-          // Quick login for splash screen demo
-          AuthService.login(`${role}_demo@xinhuashe.com`, role).then(handleLoginSuccess);
+          login(`${role}_demo@xinhuashe.com`, role).then(handleLoginSuccess);
         }} 
         onGuestEnter={() => setShowSplash(false)}
       />
@@ -316,21 +311,18 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
-      
-      {/* Top Header */}
       <Header 
         viewMode={viewMode} 
         setViewMode={changeViewMode} 
         userRole={user?.role || 'general'} 
-        onUploadClick={() => user ? setIsUploadModalOpen(true) : setIsLoginModalOpen(true)}
+        onUploadClick={() => isAuthenticated ? setIsUploadModalOpen(true) : setIsLoginModalOpen(true)}
         currentUser={user}
         onNavigateToProfile={handleNavigateToProfile}
         onLoginClick={handleTriggerLogin}
-        onLogout={handleLogout}
+        onLogout={logout}
       />
 
-      {/* Workspace Sidebar */}
-      {viewMode === 'workspace' && user && (
+      {viewMode === 'workspace' && isAuthenticated && user && (
         <Sidebar 
           activeTab={activeWorkspaceTab} 
           setActiveTab={setActiveWorkspaceTab} 
@@ -339,24 +331,21 @@ const App: React.FC = () => {
         />
       )}
 
-      {/* Main Content Wrapper */}
       <main className={`flex-1 transition-all duration-300 ${
-        viewMode === 'workspace' && user ? 'ml-64 pt-16 h-screen overflow-hidden' : 'pt-0'
+        viewMode === 'workspace' && isAuthenticated ? 'ml-64 pt-16 h-screen overflow-hidden' : 'pt-0'
       }`}>
         <div className={`h-full w-full transition-opacity duration-200 ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
            {renderContent()}
         </div>
       </main>
 
-      {/* Global Footer (Visible in Discovery/Profile/Pages) */}
-      {(viewMode === 'discovery' || viewMode === 'profile' || viewMode === 'artworks' || viewMode === 'projects_hub' || viewMode === 'rising_creators' || viewMode === 'rankings' || viewMode === 'help_center' || viewMode === 'painter_guide_full' || viewMode === 'employer_guide_full' || viewMode === 'terms_service_full' || viewMode === 'enterprise_showcase' || viewMode === 'messages' || viewMode === 'membership') && !isTransitioning && (
+      {(viewMode !== 'workspace') && !isTransitioning && (
         <Footer 
           onNavigate={handleFooterNavigation}
-          onTriggerUpload={() => user ? setIsUploadModalOpen(true) : setIsLoginModalOpen(true)}
+          onTriggerUpload={() => isAuthenticated ? setIsUploadModalOpen(true) : setIsLoginModalOpen(true)}
         />
       )}
 
-      {/* Global Modals */}
       <UploadModal 
         isOpen={isUploadModalOpen} 
         onClose={() => setIsUploadModalOpen(false)} 
@@ -366,10 +355,21 @@ const App: React.FC = () => {
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
-        onLogin={(user) => handleLoginSuccess(user as any)} // Callback adapter
+        onLogin={(loggedInUser) => {
+           // We already called login via context inside the modal or trigger, 
+           // here we just handle the UI transition
+           handleLoginSuccess();
+        }} 
       />
-
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 

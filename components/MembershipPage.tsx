@@ -11,9 +11,10 @@ interface MembershipPageProps {
   user: User | null;
   onUpgrade: (level: MembershipLevel) => void;
   onTriggerLogin: () => void;
+  isEmbedded?: boolean; // New prop to control layout
 }
 
-const MembershipPage: React.FC<MembershipPageProps> = ({ onBack, user, onUpgrade, onTriggerLogin }) => {
+const MembershipPage: React.FC<MembershipPageProps> = ({ onBack, user, onUpgrade, onTriggerLogin, isEmbedded = false }) => {
   const [activeTab, setActiveTab] = useState<'creator' | 'enterprise'>(
     user?.role === 'enterprise' ? 'enterprise' : 'creator'
   );
@@ -42,7 +43,7 @@ const MembershipPage: React.FC<MembershipPageProps> = ({ onBack, user, onUpgrade
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans pt-20 pb-20 relative">
+    <div className={`bg-slate-50 font-sans pb-20 relative ${isEmbedded ? 'min-h-full' : 'min-h-screen pt-20'}`}>
       
       {/* Success Modal */}
       {showSuccessModal && (
@@ -65,17 +66,19 @@ const MembershipPage: React.FC<MembershipPageProps> = ({ onBack, user, onUpgrade
       )}
 
       {/* Header */}
-      <div className="bg-slate-900 text-white pt-16 pb-24 relative overflow-hidden">
+      <div className={`bg-slate-900 text-white relative overflow-hidden ${isEmbedded ? 'rounded-b-3xl pt-10 pb-20' : 'pt-16 pb-24'}`}>
          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-indigo-600/30 rounded-full blur-[100px] -mr-40 -mt-40 pointer-events-none"></div>
          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[80px] -ml-20 -mb-20 pointer-events-none"></div>
          
          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <button 
-              onClick={onBack}
-              className="absolute top-0 left-4 md:left-8 flex items-center gap-2 text-white/60 hover:text-white transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" /> 返回
-            </button>
+            {!isEmbedded && (
+              <button 
+                onClick={onBack}
+                className="absolute top-0 left-4 md:left-8 flex items-center gap-2 text-white/60 hover:text-white transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" /> 返回
+              </button>
+            )}
             
             <div className="text-center max-w-3xl mx-auto mt-4">
                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-yellow-400 text-xs font-bold mb-6 backdrop-blur-md">

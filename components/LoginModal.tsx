@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Eye, EyeOff, Mail, Lock, User as UserIcon, CheckCircle2, Loader2, Hexagon, AlertCircle, Smartphone, MessageSquare } from 'lucide-react';
 import { UserRole, User } from '../types';
-import { AuthService } from '../services/AuthService';
+import { useAuth } from '../contexts/AuthContext';
+import { AuthService } from '../services/AuthService'; // Keep for mock SMS
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -11,8 +13,10 @@ interface LoginModalProps {
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => {
+  const { login, register } = useAuth(); // Use Global Auth
+  
   const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [regMethod, setRegMethod] = useState<'email' | 'phone'>('email'); // New state for registration method
+  const [regMethod, setRegMethod] = useState<'email' | 'phone'>('email');
   
   const [formData, setFormData] = useState({
     email: '',
@@ -29,11 +33,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
   const [isLoading, setIsLoading] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
-  
-  // Timer for verification code
   const [countdown, setCountdown] = useState(0);
 
-  // Reset state when opening/closing
   useEffect(() => {
     if (isOpen) {
       setMode('login');
@@ -50,7 +51,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
     return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
 
-  // Handle Timer
   useEffect(() => {
     let timer: any;
     if (countdown > 0) {
@@ -64,7 +64,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
   if (!isOpen) return null;
 
   const handleSendCode = async () => {
-    // Validate Phone first
     if (!formData.phone) {
       setErrors(prev => ({...prev, phone: '请输入手机号'}));
       return;
@@ -73,8 +72,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
       setErrors(prev => ({...prev, phone: '手机号格式不正确'}));
       return;
     }
-    
-    // Clear phone error if any
     setErrors(prev => {
       const newErrors = {...prev};
       delete newErrors.phone;
@@ -84,7 +81,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
     try {
       await AuthService.sendSmsCode(formData.phone);
       setCountdown(60);
-      setFormData(prev => ({ ...prev, verifyCode: '123456' })); // Demo auto-fill
+      setFormData(prev => ({ ...prev, verifyCode: '123456' }));
     } catch (err: any) {
       setGeneralError(err.message || '验证码发送失败');
     }
@@ -92,48 +89,24 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
     if (mode === 'login') {
-       // Login validation (simplified)
        if (!formData.email) newErrors.email = '请输入账号（邮箱/手机）';
        if (!formData.password) newErrors.password = '请输入密码';
     } else {
-       // Register Validation
        if (!formData.username) newErrors.username = '请输入用户名';
-       
        if (regMethod === 'email') {
-          if (!formData.email) {
-            newErrors.email = '请输入电子邮箱';
-          } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = '邮箱格式不正确';
-          }
+          if (!formData.email) newErrors.email = '请输入电子邮箱';
+          else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = '邮箱格式不正确';
        } else {
-          if (!formData.phone) {
-            newErrors.phone = '请输入手机号';
-          } else if (!/^1[3-9]\d{9}$/.test(formData.phone)) {
-            newErrors.phone = '手机号格式不正确';
-          }
-          
-          if (!formData.verifyCode) {
-            newErrors.verifyCode = '请输入验证码';
-          }
+          if (!formData.phone) newErrors.phone = '请输入手机号';
+          else if (!/^1[3-9]\d{9}$/.test(formData.phone)) newErrors.phone = '手机号格式不正确';
+          if (!formData.verifyCode) newErrors.verifyCode = '请输入验证码';
        }
-
-       if (!formData.password) {
-         newErrors.password = '请输入密码';
-       } else if (formData.password.length < 6) {
-         newErrors.password = '密码长度至少需6位';
-       }
-
-       if (formData.password !== formData.confirmPassword) {
-         newErrors.confirmPassword = '两次输入的密码不一致';
-       }
-
-       if (!formData.agreeTerms) {
-         newErrors.terms = '请同意服务条款与隐私政策';
-       }
+       if (!formData.password) newErrors.password = '请输入密码';
+       else if (formData.password.length < 6) newErrors.password = '密码长度至少需6位';
+       if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = '两次输入的密码不一致';
+       if (!formData.agreeTerms) newErrors.terms = '请同意服务条款与隐私政策';
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -147,25 +120,19 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
 
     try {
       if (mode === 'login') {
-        // Login Logic
         let role: UserRole = 'creator';
         if (formData.email.includes('admin')) role = 'root_admin';
         else if (formData.email.includes('enter') || formData.email.includes('corp')) role = 'enterprise';
         
-        // Use email field as generic identifier input for login
-        const user = await AuthService.login(formData.email, role);
-        onLogin(user);
+        await login(formData.email, role);
+        onLogin({} as User); // Trigger callback to close modal
       } else {
-        // Register Logic
         const contact = regMethod === 'email' ? formData.email : formData.phone;
-        await AuthService.register(formData.username, contact, regMethod, 'creator');
+        await register(formData.username, contact, regMethod, 'creator');
         
-        // Register Success UI Flow
         setSubmitSuccess(true);
         setTimeout(async () => {
-           // Auto login after register
-           const user = await AuthService.login(contact);
-           onLogin(user);
+           onLogin({} as User);
         }, 1500);
       }
     } catch (error: any) {
@@ -178,10 +145,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
   const handleQuickLogin = async (role: UserRole) => {
     setIsLoading(true);
     try {
-      // 快速生成一个演示账号
       const demoEmail = `${role}_demo@xinhuashe.com`;
-      const user = await AuthService.login(demoEmail, role);
-      onLogin(user);
+      await login(demoEmail, role);
+      onLogin({} as User);
     } catch (error) {
       console.error(error);
     } finally {
@@ -192,8 +158,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative animate-scale-in flex flex-col max-h-[90vh]">
-        
-        {/* Close Button */}
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 z-10 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
@@ -201,7 +165,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
           <X className="w-5 h-5" />
         </button>
 
-        {/* Header */}
         <div className="px-8 pt-8 pb-6 text-center">
           <div className="inline-flex items-center justify-center bg-indigo-600 p-2 rounded-xl mb-4 shadow-lg shadow-indigo-200">
             <Hexagon className="w-8 h-8 text-white fill-current" />
@@ -214,7 +177,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
           </p>
         </div>
 
-        {/* Form Content */}
         <div className="px-8 pb-8 overflow-y-auto custom-scrollbar">
           {submitSuccess ? (
             <div className="flex flex-col items-center justify-center py-8">
@@ -222,7 +184,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              
               {generalError && (
                  <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg flex items-center gap-2">
                    <AlertCircle className="w-4 h-4" />
@@ -230,7 +191,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                  </div>
               )}
 
-              {/* Registration Method Tabs */}
               {mode === 'register' && (
                 <div className="flex p-1 bg-slate-100 rounded-lg mb-2">
                    <button
@@ -254,7 +214,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                 </div>
               )}
 
-              {/* Username Field (Register Only) */}
               {mode === 'register' && (
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">用户名</label>
@@ -272,7 +231,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                 </div>
               )}
 
-              {/* Account Input (Email or Phone or Generic for Login) */}
               {(mode === 'login' || regMethod === 'email') && (
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
@@ -292,7 +250,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                 </div>
               )}
 
-              {/* Phone Registration Fields */}
               {mode === 'register' && regMethod === 'phone' && (
                 <>
                   <div>
@@ -341,7 +298,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                 </>
               )}
 
-              {/* Password Fields */}
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs font-bold text-slate-500 uppercase">密码</label>
@@ -386,7 +342,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                 </div>
               )}
 
-              {/* Login Options */}
               {mode === 'login' && (
                 <div className="flex items-center">
                   <input id="remember-me" type="checkbox" className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" />
@@ -396,7 +351,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                 </div>
               )}
 
-              {/* Register Terms */}
               {mode === 'register' && (
                 <div className="flex items-start">
                   <input 
@@ -425,7 +379,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
             </form>
           )}
 
-          {/* Mode Switcher */}
           {!submitSuccess && (
             <div className="mt-6 text-center">
               <p className="text-sm text-slate-600">
@@ -440,7 +393,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
             </div>
           )}
 
-          {/* Quick Login Demo (Prototype Only) */}
           {!submitSuccess && mode === 'login' && !isLoading && (
              <div className="mt-8 pt-6 border-t border-slate-100">
                 <p className="text-[10px] font-bold text-slate-400 uppercase text-center mb-3">原型演示 · 快速通道</p>

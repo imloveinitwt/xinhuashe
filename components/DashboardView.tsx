@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import { CHART_DATA_ARTIST, CHART_DATA_CLIENT, MOCK_PROJECTS, MOCK_ENTERPRISE_PROFILE } from '../constants';
 import { DollarSign, Clock, Briefcase, TrendingUp, Eye, Users, Layers, Award, Building, Globe, Flag, GitFork, Calendar, PieChart as PieChartIcon, ShieldCheck, Zap, Crown } from 'lucide-react';
-import { UserRole, User } from '../types';
+import { UserRole, User, ViewMode } from '../types';
 
 const StatCard: React.FC<{ title: string; value: string; trend?: string; icon: any; color: string }> = ({ title, value, trend, icon: Icon, color }) => (
   <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
@@ -40,6 +40,7 @@ const BUDGET_DISTRIBUTION = [
 
 interface DashboardProps {
   user: User;
+  onNavigate?: (mode: ViewMode) => void;
 }
 
 const getCreditLevel = (score: number) => {
@@ -57,7 +58,7 @@ const getEnterpriseRating = (score: number) => {
   return 'B';
 };
 
-const DashboardView: React.FC<DashboardProps> = ({ user }) => {
+const DashboardView: React.FC<DashboardProps> = ({ user, onNavigate }) => {
   const userRole = user.role;
   const isClient = userRole === 'enterprise';
   const [viewMode, setViewMode] = useState<'overview' | 'profile'>('overview');
@@ -93,6 +94,12 @@ const DashboardView: React.FC<DashboardProps> = ({ user }) => {
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = 'https://placehold.co/100x100/e2e8f0/64748b?text=Project';
+  };
+
+  const handleCreditClick = () => {
+    if (onNavigate) {
+      onNavigate('credit_score');
+    }
   };
 
   const renderEnterpriseProfile = () => {
@@ -247,19 +254,22 @@ const DashboardView: React.FC<DashboardProps> = ({ user }) => {
                 <StatCard title="活跃项目" value="8" trend="3个即将交付" icon={Briefcase} color="bg-blue-500" />
                 
                 {/* Enterprise Credit Card */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
+                <div 
+                  onClick={handleCreditClick}
+                  className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow cursor-pointer group"
+                >
                   <div>
-                    <p className="text-slate-500 text-sm font-medium mb-1">{creditInfo.title}</p>
+                    <p className="text-slate-500 text-sm font-medium mb-1 group-hover:text-indigo-600 transition-colors">企业信用评级</p>
                     <h3 className="text-2xl font-bold text-slate-800">{creditInfo.label}</h3>
                     <span className="text-indigo-500 text-xs font-semibold mt-2 inline-block">{creditInfo.desc}</span>
                   </div>
-                  <div className={`p-3 rounded-lg ${creditInfo.color} bg-opacity-10`}>
+                  <div className={`p-3 rounded-lg ${creditInfo.color} bg-opacity-10 group-hover:bg-opacity-20 transition-colors`}>
                     <creditInfo.icon className={`w-6 h-6 ${creditInfo.color.replace('bg-', 'text-')}`} />
                   </div>
                 </div>
 
                 {/* Membership Card */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow cursor-pointer" onClick={() => onNavigate && onNavigate('membership')}>
                   <div>
                     <p className="text-slate-500 text-sm font-medium mb-1">当前套餐</p>
                     <h3 className="text-lg font-bold text-slate-800 truncate">{membershipInfo.title}</h3>
@@ -276,22 +286,25 @@ const DashboardView: React.FC<DashboardProps> = ({ user }) => {
                 <StatCard title="主页访问" value="5.4k" trend="+240 今日新增" icon={Eye} color="bg-purple-500" />
                 
                 {/* Personal Credit Card */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
+                <div 
+                  onClick={handleCreditClick}
+                  className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow cursor-pointer group"
+                >
                   <div>
-                    <p className="text-slate-500 text-sm font-medium mb-1">{creditInfo.title}</p>
+                    <p className="text-slate-500 text-sm font-medium mb-1 group-hover:text-pink-600 transition-colors">个人信用分</p>
                     <h3 className="text-2xl font-bold text-slate-800 flex items-end gap-1">
                       {creditInfo.score}
                       <span className="text-sm font-medium text-slate-400 mb-1">/ 950</span>
                     </h3>
                     <span className="text-pink-500 text-xs font-semibold mt-2 inline-block">{creditInfo.label}</span>
                   </div>
-                  <div className={`p-3 rounded-lg ${creditInfo.color} bg-opacity-10`}>
+                  <div className={`p-3 rounded-lg ${creditInfo.color} bg-opacity-10 group-hover:bg-opacity-20 transition-colors`}>
                     <creditInfo.icon className={`w-6 h-6 ${creditInfo.color.replace('bg-', 'text-')}`} />
                   </div>
                 </div>
 
                 {/* Membership Card */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow cursor-pointer" onClick={() => onNavigate && onNavigate('membership')}>
                   <div>
                     <p className="text-slate-500 text-sm font-medium mb-1">会员等级</p>
                     <h3 className="text-lg font-bold text-slate-800 truncate">{membershipInfo.title}</h3>
@@ -345,7 +358,7 @@ const DashboardView: React.FC<DashboardProps> = ({ user }) => {
                     <div className="flex gap-3">
                       {/* Thumbnail Image */}
                       <img 
-                        src={project.coverImage || `https://placehold.co/100x100?text=${project.id}`} 
+                        src={project.coverImage || `https://placehold.co/100x100/e2e8f0/64748b?text=${project.id}`} 
                         alt={project.title}
                         className="w-12 h-12 rounded-lg object-cover flex-shrink-0 bg-slate-100"
                         onError={handleImageError}

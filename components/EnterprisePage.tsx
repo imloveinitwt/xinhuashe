@@ -5,15 +5,16 @@ import {
   Users, BarChart, FileText, CheckCircle2, ArrowRight,
   Briefcase, Globe, Cpu
 } from 'lucide-react';
-import { User } from '../types';
+import { User, ViewMode } from '../types';
 
 interface EnterprisePageProps {
   onBack: () => void;
   onTriggerLogin?: () => void;
   user?: User | null;
+  onNavigate?: (mode: ViewMode) => void;
 }
 
-const EnterprisePage: React.FC<EnterprisePageProps> = ({ onBack, onTriggerLogin, user }) => {
+const EnterprisePage: React.FC<EnterprisePageProps> = ({ onBack, onTriggerLogin, user, onNavigate }) => {
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-20 pt-16">
       
@@ -53,8 +54,11 @@ const EnterprisePage: React.FC<EnterprisePageProps> = ({ onBack, onTriggerLogin,
                 >
                   免费试用企业版 <ArrowRight className="w-4 h-4" />
                 </button>
-                <button className="bg-indigo-800/50 border border-indigo-700 text-white px-8 py-4 rounded-xl font-bold hover:bg-indigo-800 transition-colors backdrop-blur-sm">
-                  联系销售团队
+                <button 
+                  onClick={() => onNavigate && onNavigate('enterprise_profile')}
+                  className="bg-indigo-800/50 border border-indigo-700 text-white px-8 py-4 rounded-xl font-bold hover:bg-indigo-800 transition-colors backdrop-blur-sm"
+                >
+                  查看企业主页示例
                 </button>
               </div>
               <div className="flex items-center gap-6 text-sm text-indigo-300 pt-4">

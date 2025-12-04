@@ -55,16 +55,16 @@ export const ROLE_DEFINITIONS: RoleDefinition[] = [
 
 // Mock Users for Admin View
 export const MOCK_USERS_ADMIN_VIEW: User[] = [
-  { id: 'u1', name: 'Admin_Root', role: 'root_admin', roleName: '系统根管理员', avatar: 'https://ui-avatars.com/api/?name=Admin+Root&background=ef4444&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'root@xhs.com', membershipLevel: 'max' },
-  { id: 'u2', name: 'Ops_Sarah', role: 'content_ops', roleName: '内容审核员', avatar: 'https://ui-avatars.com/api/?name=Sarah+Ops&background=f97316&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'sarah@xhs.com', membershipLevel: 'none' },
-  { id: 'u3', name: 'NeonDreamer', role: 'creator', roleName: '认证创作者', avatar: 'https://ui-avatars.com/api/?name=Neon+Dreamer&background=8b5cf6&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'neon@gmail.com', membershipLevel: 'pro' },
-  { id: 'u4', name: 'TechNova_PM', role: 'enterprise', roleName: '企业主账号', avatar: 'https://ui-avatars.com/api/?name=Tech+Nova&background=3b82f6&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'pm@technova.com', membershipLevel: 'max' },
-  { id: 'u5', name: 'InkFlow', role: 'creator', roleName: '创作者', avatar: 'https://ui-avatars.com/api/?name=Ink+Flow&background=10b981&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'ink@studio.com', membershipLevel: 'none' },
-  { id: 'u6', name: 'GameStudio_HR', role: 'enterprise', roleName: '企业主账号', avatar: 'https://ui-avatars.com/api/?name=Game+Studio&background=6366f1&color=fff', permissions: [], isAuthenticated: true, status: 'banned', email: 'hr@gamestudio.com', membershipLevel: 'none' },
-  { id: 'u7', name: 'PixelArtist_99', role: 'creator', roleName: '创作者', avatar: 'https://ui-avatars.com/api/?name=Pixel+Artist&background=random&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'pixel99@art.com', membershipLevel: 'none' },
-  { id: 'u8', name: 'Marketing_Lead', role: 'enterprise', roleName: '企业主账号', avatar: 'https://ui-avatars.com/api/?name=Marketing&background=random&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'market@brand.com', membershipLevel: 'pro' },
-  { id: 'u9', name: 'Design_Lead_A', role: 'creator', roleName: '设计总监', avatar: 'https://ui-avatars.com/api/?name=Design+Lead&background=ec4899&color=fff', permissions: [], isAuthenticated: true, status: 'inactive', email: 'design@lead.com', membershipLevel: 'none' },
-  { id: 'u10', name: 'Finance_User', role: 'enterprise', roleName: '财务专员', avatar: 'https://ui-avatars.com/api/?name=Finance+User&background=14b8a6&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'finance@corp.com', membershipLevel: 'none' },
+  { id: 'u1', name: 'Admin_Root', role: 'root_admin', roleName: '系统根管理员', avatar: 'https://ui-avatars.com/api/?name=Admin+Root&background=ef4444&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'root@xhs.com', membershipLevel: 'max', creditScore: 950 },
+  { id: 'u2', name: 'Ops_Sarah', role: 'content_ops', roleName: '内容审核员', avatar: 'https://ui-avatars.com/api/?name=Sarah+Ops&background=f97316&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'sarah@xhs.com', membershipLevel: 'none', creditScore: 800 },
+  { id: 'u3', name: 'NeonDreamer', role: 'creator', roleName: '认证创作者', avatar: 'https://ui-avatars.com/api/?name=Neon+Dreamer&background=8b5cf6&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'neon@gmail.com', membershipLevel: 'pro', creditScore: 880 },
+  { id: 'u4', name: 'TechNova_PM', role: 'enterprise', roleName: '企业主账号', avatar: 'https://ui-avatars.com/api/?name=Tech+Nova&background=3b82f6&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'pm@technova.com', membershipLevel: 'max', creditScore: 920 },
+  { id: 'u5', name: 'InkFlow', role: 'creator', roleName: '创作者', avatar: 'https://ui-avatars.com/api/?name=Ink+Flow&background=10b981&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'ink@studio.com', membershipLevel: 'none', creditScore: 750 },
+  { id: 'u6', name: 'GameStudio_HR', role: 'enterprise', roleName: '企业主账号', avatar: 'https://ui-avatars.com/api/?name=Game+Studio&background=6366f1&color=fff', permissions: [], isAuthenticated: true, status: 'banned', email: 'hr@gamestudio.com', membershipLevel: 'none', creditScore: 400 },
+  { id: 'u7', name: 'PixelArtist_99', role: 'creator', roleName: '创作者', avatar: 'https://ui-avatars.com/api/?name=Pixel+Artist&background=random&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'pixel99@art.com', membershipLevel: 'none', creditScore: 680 },
+  { id: 'u8', name: 'Marketing_Lead', role: 'enterprise', roleName: '企业主账号', avatar: 'https://ui-avatars.com/api/?name=Marketing&background=random&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'market@brand.com', membershipLevel: 'pro', creditScore: 790 },
+  { id: 'u9', name: 'Design_Lead_A', role: 'creator', roleName: '设计总监', avatar: 'https://ui-avatars.com/api/?name=Design+Lead&background=ec4899&color=fff', permissions: [], isAuthenticated: true, status: 'inactive', email: 'design@lead.com', membershipLevel: 'none', creditScore: 720 },
+  { id: 'u10', name: 'Finance_User', role: 'enterprise', roleName: '财务专员', avatar: 'https://ui-avatars.com/api/?name=Finance+User&background=14b8a6&color=fff', permissions: [], isAuthenticated: true, status: 'active', email: 'finance@corp.com', membershipLevel: 'none', creditScore: 700 },
 ];
 
 export const MEMBERSHIP_PLANS_CREATOR: MembershipPlan[] = [
@@ -502,82 +502,6 @@ export const MOCK_ARTWORKS: Artwork[] = [
   }
 ];
 
-export const MOCK_CREATORS: Creator[] = [
-  { id: 'c1', name: 'WLOP', avatar: 'https://ui-avatars.com/api/?name=WLOP&background=1e293b&color=fff', tags: ['插画', '古风'], followers: 850000, isVerified: true },
-  { id: 'c2', name: 'RuanJia', avatar: 'https://ui-avatars.com/api/?name=Ruan+Jia&background=1e293b&color=fff', tags: ['概念', '厚涂'], followers: 620000, isVerified: true },
-  { id: 'c3', name: 'TechDesign', avatar: 'https://ui-avatars.com/api/?name=Tech+Design&background=1e293b&color=fff', tags: ['UI', 'B端'], followers: 150000, isVerified: false },
-  { id: 'c4', name: 'LowPolyGod', avatar: 'https://ui-avatars.com/api/?name=Low+Poly&background=8b5cf6&color=fff', tags: ['3D', 'Blender'], followers: 98000, isVerified: true },
-  { id: 'c5', name: 'InkFlow', avatar: 'https://ui-avatars.com/api/?name=Ink+Flow&background=10b981&color=fff', tags: ['水墨', '国风'], followers: 45000, isVerified: true },
-  { id: 'c6', name: 'MotionMaster', avatar: 'https://ui-avatars.com/api/?name=Motion+Master&background=ec4899&color=fff', tags: ['动画', 'VFX'], followers: 210000, isVerified: true },
-  { id: 'c7', name: 'PixelRetro', avatar: 'https://ui-avatars.com/api/?name=Pixel+Retro&background=f59e0b&color=fff', tags: ['像素', '独立游戏'], followers: 32000, isVerified: false },
-  { id: 'c8', name: 'NeonDreamer', avatar: 'https://ui-avatars.com/api/?name=Neon+Dreamer&background=8b5cf6&color=fff', tags: ['赛博朋克', '场景'], followers: 120000, isVerified: true },
-  { id: 'c9', name: 'VoxelBuilder', avatar: 'https://ui-avatars.com/api/?name=Voxel+Builder&background=10b981&color=fff', tags: ['体素', '3D'], followers: 15000, isVerified: false },
-  { id: 'c10', name: 'OceanBlue', avatar: 'https://ui-avatars.com/api/?name=Ocean+Blue&background=0ea5e9&color=fff', tags: ['场景', '概念'], followers: 8900, isVerified: false },
-  { id: 'c11', name: 'DarkFantasy', avatar: 'https://ui-avatars.com/api/?name=Dark+Fantasy&background=1f2937&color=fff', tags: ['奇幻', '插画'], followers: 23000, isVerified: true },
-  { id: 'c12', name: 'FoodieArt', avatar: 'https://ui-avatars.com/api/?name=Foodie+Art&background=f97316&color=fff', tags: ['美食', '生活'], followers: 12000, isVerified: true },
-];
-
-// === PROFILE DATA ===
-export const MOCK_PROFILES: UserProfile[] = [
-  {
-    id: 'p_artmaster',
-    userId: 'u_101', 
-    displayName: 'ArtMaster',
-    avatar: 'https://ui-avatars.com/api/?name=Art+Master&background=ec4899&color=fff',
-    coverImage: 'https://image.pollinations.ai/prompt/art%20studio%20workspace%20cozy%20creative?width=1200&height=400&nologo=true',
-    bio: '专注概念设计与插画绘制，接商稿中。',
-    location: '上海, 中国',
-    website: 'artmaster.design',
-    skills: ['Photoshop', 'Blender', '概念设计', '角色原画'],
-    stats: { followers: 1250, following: 45, likes: 3200, views: 15000 },
-    joinedDate: '2022年3月',
-    isVerified: true,
-    preferences: { themeColor: 'pink', layoutMode: 'grid' },
-    membershipLevel: 'none'
-  },
-  {
-    id: 'p_neon',
-    userId: 'u3',
-    displayName: 'NeonDreamer',
-    avatar: 'https://ui-avatars.com/api/?name=Neon+Dreamer&background=8b5cf6&color=fff',
-    coverImage: 'https://image.pollinations.ai/prompt/cyberpunk%20city%20skyline%20neon%20lights%20panorama?width=1200&height=400&nologo=true',
-    bio: '赛博朋克美学爱好者。构建未来的视觉语言。',
-    location: '深圳, 中国',
-    skills: ['Cyberpunk', 'Environment Art', 'Unreal Engine 5'],
-    stats: { followers: 85000, following: 120, likes: 240000, views: 1200000 },
-    joinedDate: '2021年5月',
-    isVerified: true,
-    preferences: { themeColor: 'purple', layoutMode: 'grid' },
-    membershipLevel: 'pro'
-  },
-  {
-    id: 'p_ink',
-    userId: 'u5',
-    displayName: 'InkFlow',
-    avatar: 'https://ui-avatars.com/api/?name=Ink+Flow&background=10b981&color=fff',
-    coverImage: 'https://image.pollinations.ai/prompt/chinese%20traditional%20ink%20painting%20landscape%20mountains?width=1200&height=400&nologo=true',
-    bio: '传统水墨与现代数字艺术的结合探索者。',
-    location: '杭州, 中国',
-    skills: ['水墨', '插画', 'Procreate'],
-    stats: { followers: 45000, following: 20, likes: 98000, views: 340000 },
-    joinedDate: '2022年1月',
-    isVerified: true,
-    preferences: { themeColor: 'emerald', layoutMode: 'list' },
-    membershipLevel: 'none'
-  }
-];
-
-export const getProfileById = (id: string) => {
-  return MOCK_PROFILES.find(p => p.id === id) || MOCK_PROFILES[0];
-};
-
-export const MOCK_EVENTS: Event[] = [
-  { id: 'e1', title: '2023 全球机甲设计大赛', coverUrl: 'https://image.pollinations.ai/prompt/mecha%20robot%20design%20contest%20banner%20sci-fi?width=400&height=200&nologo=true', deadline: '剩余 12 天', prize: '¥100,000', status: 'active' },
-  { id: 'e2', title: '王者荣耀皮肤设计征集', coverUrl: 'https://image.pollinations.ai/prompt/moba%20game%20character%20skin%20design%20fantasy?width=400&height=200&nologo=true', deadline: '剩余 25 天', prize: '签约机会', status: 'active' },
-  { id: 'e3', title: 'Indie Game Jam 2023', coverUrl: 'https://image.pollinations.ai/prompt/indie%20game%20jam%20pixel%20art%20banner?width=400&height=200&nologo=true', deadline: '11月1日开启', prize: '孵化基金', status: 'upcoming' },
-  { id: 'e4', title: '角色设计挑战：反派', coverUrl: 'https://image.pollinations.ai/prompt/villain%20character%20design%20dark%20fantasy%20art?width=400&height=200&nologo=true', deadline: '剩余 5 天', prize: '¥20,000', status: 'active' },
-];
-
 export const MOCK_PROJECTS: Project[] = [
   {
     id: 'p1',
@@ -591,7 +515,30 @@ export const MOCK_PROJECTS: Project[] = [
     description: '针对夏季促销活动的二次元风格主视觉海报，包含3个角色和海滩背景。',
     coverImage: 'https://image.pollinations.ai/prompt/summer%20beach%20anime%20game%20poster%20key%20visual?width=800&height=400&nologo=true'
   },
-  // ... (keeping other projects)
+  {
+    id: 'p2',
+    title: 'TechNova 品牌形象升级',
+    client: 'TechNova 科技',
+    status: '招募中',
+    budget: 35000,
+    deadline: '2023-12-01',
+    progress: 0,
+    phase: '选人',
+    description: '科技公司 VI 系统全案升级，包含 Logo 优化、辅助图形、办公应用系统。',
+    coverImage: 'https://image.pollinations.ai/prompt/tech%20brand%20identity%20modern%20minimalist%20blue?width=800&height=400&nologo=true'
+  },
+  {
+    id: 'p3',
+    title: '国风卡牌手游立绘',
+    client: '山海游戏',
+    status: '招募中',
+    budget: 8000,
+    deadline: '2023-11-20',
+    progress: 0,
+    phase: '选人',
+    description: '急需高精度国风角色立绘，厚涂风格，需包含表情差分。',
+    coverImage: 'https://image.pollinations.ai/prompt/chinese%20fantasy%20game%20character%20design?width=800&height=400&nologo=true'
+  },
   {
     id: 'p15',
     title: 'Web3 社区 NFT 系列生成',
@@ -688,7 +635,8 @@ export const MOCK_ENTERPRISE_PROFILE: EnterpriseProfile = {
     id: 'root', name: 'CEO Office', role: 'CEO', children: [
       // ...
     ]
-  }
+  },
+  creditScore: 920
 };
 
 export const MOCK_PROJECT_CASES: ProjectCase[] = [
@@ -768,3 +716,88 @@ export const MOCK_VERIFICATION_REQUESTS: VerificationRequest[] = [
     idCardBack: 'https://placehold.co/400x250/e2e8f0/64748b?text=ID+Back'
   }
 ];
+
+// === ADDED MOCK DATA FOR CREATORS & PROFILES ===
+
+export const MOCK_CREATORS: Creator[] = [
+  { id: 'c1', name: 'NeonDreamer', avatar: 'https://ui-avatars.com/api/?name=Neon+Dreamer&background=8b5cf6&color=fff', tags: ['科幻', '赛博朋克', '概念设计'], followers: 12500, isVerified: true, trend: 'up', weeklyGrowth: 450, hotScore: 98 },
+  { id: 'c2', name: 'InkFlow', avatar: 'https://ui-avatars.com/api/?name=Ink+Flow&background=10b981&color=fff', tags: ['国风', '水墨', '插画'], followers: 8900, isVerified: true, trend: 'stable', weeklyGrowth: 120, hotScore: 85 },
+  { id: 'c3', name: 'PixelMaster', avatar: 'https://ui-avatars.com/api/?name=Pixel+Master&background=3b82f6&color=fff', tags: ['像素画', '游戏', '复古'], followers: 15600, isVerified: true, trend: 'up', weeklyGrowth: 600, hotScore: 92 },
+  { id: 'c4', name: 'LowPolyGod', avatar: 'https://ui-avatars.com/api/?name=Low+Poly&background=8b5cf6&color=fff', tags: ['3D', 'LowPoly', 'Blender'], followers: 6700, isVerified: true, trend: 'down', weeklyGrowth: 50, hotScore: 78 },
+  { id: 'c5', name: 'AnimePro', avatar: 'https://ui-avatars.com/api/?name=Anime+Pro&background=ec4899&color=fff', tags: ['二次元', '日系', '立绘'], followers: 23000, isVerified: true, trend: 'up', weeklyGrowth: 1200, hotScore: 99 },
+  { id: 'c6', name: 'ArtMaster', avatar: 'https://ui-avatars.com/api/?name=Art+Master&background=ec4899&color=fff', tags: ['UI设计', '平面', '排版'], followers: 5400, isVerified: true, trend: 'stable', weeklyGrowth: 80, hotScore: 75 },
+  { id: 'c7', name: 'NatureStroke', avatar: 'https://ui-avatars.com/api/?name=Nature+Stroke&background=10b981&color=fff', tags: ['风景', '厚涂', '治愈'], followers: 9200, isVerified: true, trend: 'up', weeklyGrowth: 300, hotScore: 88 },
+  { id: 'c8', name: 'RoboArt', avatar: 'https://ui-avatars.com/api/?name=Robo+Art&background=64748b&color=fff', tags: ['机甲', '硬表面', '概念'], followers: 4500, isVerified: false, trend: 'stable', weeklyGrowth: 100, hotScore: 72 },
+  { id: 'c9', name: 'VoxelBuilder', avatar: 'https://ui-avatars.com/api/?name=Voxel+Builder&background=10b981&color=fff', tags: ['体素', '3D', '场景'], followers: 3200, isVerified: false, trend: 'up', weeklyGrowth: 150, hotScore: 65 },
+  { id: 'c10', name: 'OceanBlue', avatar: 'https://ui-avatars.com/api/?name=Ocean+Blue&background=0ea5e9&color=fff', tags: ['海洋', '概念', '环境'], followers: 4100, isVerified: false, trend: 'down', weeklyGrowth: 20, hotScore: 60 }
+];
+
+export const MOCK_PROFILES: UserProfile[] = [
+  {
+    id: 'p_neon',
+    userId: 'u_neon',
+    displayName: 'NeonDreamer',
+    avatar: 'https://ui-avatars.com/api/?name=Neon+Dreamer&background=8b5cf6&color=fff',
+    coverImage: 'https://image.pollinations.ai/prompt/cyberpunk%20city%20panorama%20neon%20lights?width=1200&height=400&nologo=true',
+    bio: '专注赛博朋克与科幻题材的概念设计师。曾参与多款3A大作的场景概念设计。承接商稿，不接急单。',
+    location: '上海',
+    website: 'artstation.com/neondreamer',
+    skills: ['Photoshop', 'Blender', 'Concept Art', 'Sci-Fi'],
+    stats: { followers: 12500, following: 120, likes: 45000, views: 120000 },
+    joinedDate: '2021-05-20',
+    isVerified: true,
+    creditScore: 880,
+    membershipLevel: 'pro'
+  },
+  {
+    id: 'p_ink',
+    userId: 'u_ink',
+    displayName: 'InkFlow',
+    avatar: 'https://ui-avatars.com/api/?name=Ink+Flow&background=10b981&color=fff',
+    coverImage: 'https://image.pollinations.ai/prompt/chinese%20ink%20mountains%20landscape%20panorama?width=1200&height=400&nologo=true',
+    bio: '致力于将传统水墨与现代数字绘画结合。擅长国风插画、游戏立绘。',
+    location: '杭州',
+    skills: ['Procreate', 'SAI', 'Traditional Art'],
+    stats: { followers: 8900, following: 50, likes: 28000, views: 89000 },
+    joinedDate: '2022-03-15',
+    isVerified: true,
+    creditScore: 750,
+    membershipLevel: 'none'
+  },
+  {
+    id: 'p_artmaster',
+    userId: 'u3', 
+    displayName: 'ArtMaster',
+    avatar: 'https://ui-avatars.com/api/?name=Art+Master&background=ec4899&color=fff',
+    coverImage: 'https://image.pollinations.ai/prompt/abstract%20colorful%20art%20studio?width=1200&height=400&nologo=true',
+    bio: '资深UI/UX设计师，拥有10年行业经验。',
+    location: '深圳',
+    skills: ['Figma', 'Sketch', 'UI/UX'],
+    stats: { followers: 5400, following: 200, likes: 12000, views: 45000 },
+    joinedDate: '2020-11-11',
+    isVerified: true,
+    creditScore: 900,
+    membershipLevel: 'max'
+  }
+];
+
+export const getProfileById = (id: string): UserProfile => {
+  const profile = MOCK_PROFILES.find(p => p.id === id);
+  if (profile) return profile;
+  
+  // Return a generic profile if not found
+  return {
+    id: id,
+    userId: 'u_unknown',
+    displayName: 'Unknown User',
+    avatar: 'https://ui-avatars.com/api/?name=Unknown&background=cbd5e1&color=fff',
+    coverImage: 'https://placehold.co/1200x400/1e293b/64748b?text=Cover+Image',
+    bio: '这个人很懒，什么都没写。',
+    location: '未知',
+    skills: [],
+    stats: { followers: 0, following: 0, likes: 0, views: 0 },
+    joinedDate: '2023-01-01',
+    isVerified: false,
+    creditScore: 600
+  };
+};

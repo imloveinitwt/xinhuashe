@@ -2,7 +2,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   LayoutDashboard, FolderOpen, Briefcase, Wallet, Settings, LogOut, 
-  Hexagon, Palette, Users, PieChart, Shield, ChevronsUpDown, Check, CheckCircle2
+  Hexagon, Palette, Users, PieChart, Shield, ChevronsUpDown, Check, CheckCircle2,
+  Crown, Globe
 } from 'lucide-react';
 import { WorkspaceTab, User, UserRole } from '../types';
 import { ROLE_DEFINITIONS } from '../constants';
@@ -75,6 +76,12 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onRole
       label: '财务与发票', 
       icon: user.role === 'creator' ? Wallet : PieChart,
       visible: hasPermission('TRANSACTION_VIEW')
+    },
+    {
+      id: 'membership',
+      label: '会员权益',
+      icon: Crown,
+      visible: user.role !== 'root_admin' // Admins don't need membership plans usually
     },
     // Admin Sections
     {
@@ -179,6 +186,20 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onRole
             <span className="font-medium text-sm">{item.label}</span>
           </button>
         ))}
+        
+        {/* Enterprise Profile Link in Sidebar */}
+        {user.role === 'enterprise' && (
+           <a 
+             href="#" 
+             // We can't easily use router here without context, but in a real app this would be a Link or useNavigation hook
+             // For this demo, this is a placeholder to show structure
+             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800/50 hover:text-white transition-all duration-200 group"
+             onClick={(e) => { e.preventDefault(); /* Logic to open profile view handled via App state if integrated */ }}
+           >
+             <Globe className="w-5 h-5 text-slate-500 group-hover:text-white transition-colors" />
+             <span className="font-medium text-sm">企业主页预览</span>
+           </a>
+        )}
       </nav>
 
       {/* Team Context (Enterprise Only) */}

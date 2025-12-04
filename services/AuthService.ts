@@ -79,7 +79,8 @@ export const AuthService = {
       roleName: roleDef?.name || '用户',
       permissions: roleDef?.defaultPermissions || [],
       isAuthenticated: true,
-      [contactType]: contact // Dynamically set email or phone
+      [contactType]: contact, // Dynamically set email or phone
+      creditScore: 600 // Default credit score
     };
 
     // 保存到“数据库”
@@ -121,7 +122,8 @@ export const AuthService = {
       roleName: roleDef?.name || '',
       permissions: roleDef?.defaultPermissions || [],
       isAuthenticated: true,
-      email: `${nameBase}@demo.com`
+      email: `${nameBase}@demo.com`,
+      creditScore: 750 // Default mock credit score
     };
   }
 };

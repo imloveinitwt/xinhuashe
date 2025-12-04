@@ -1,6 +1,6 @@
 
-export type ViewMode = 'discovery' | 'workspace' | 'profile' | 'artworks' | 'projects_hub' | 'rising_creators' | 'rankings' | 'help_center' | 'painter_guide_full' | 'employer_guide_full' | 'terms_service_full' | 'enterprise_showcase' | 'messages' | 'membership';
-export type WorkspaceTab = 'dashboard' | 'projects' | 'dam' | 'finance' | 'admin_users' | 'admin_roles';
+export type ViewMode = 'discovery' | 'workspace' | 'profile' | 'artworks' | 'projects_hub' | 'rising_creators' | 'rankings' | 'help_center' | 'painter_guide_full' | 'employer_guide_full' | 'terms_service_full' | 'enterprise_showcase' | 'messages' | 'membership' | 'enterprise_profile' | 'credit_score';
+export type WorkspaceTab = 'dashboard' | 'projects' | 'dam' | 'finance' | 'admin_users' | 'admin_roles' | 'membership';
 
 // 2.2 角色定义
 export type UserRole = 
@@ -38,6 +38,7 @@ export interface User {
   phone?: string; // Added for phone registration
   status?: 'active' | 'banned' | 'inactive'; // Added for admin view
   membershipLevel?: MembershipLevel; // Added membership
+  creditScore: number; // Added: 350-950
 }
 
 export type ThemeColor = 'indigo' | 'pink' | 'blue' | 'purple' | 'emerald';
@@ -67,6 +68,7 @@ export interface UserProfile {
   isVerified: boolean;
   preferences?: UserProfilePreferences;
   membershipLevel?: MembershipLevel; // Display on profile
+  creditScore: number;
 }
 
 // For Membership Plans
@@ -124,6 +126,7 @@ export interface Artwork {
   resolution?: string;
   // Admin fields
   status?: 'approved' | 'pending' | 'rejected';
+  projectId?: string;
 }
 
 export interface Creator {
@@ -273,6 +276,7 @@ export interface EnterpriseProfile {
   coreBusiness: string[];
   history: HistoryMilestone[];
   structure: OrgNode;
+  creditScore: number;
 }
 
 export interface ProjectCase {
