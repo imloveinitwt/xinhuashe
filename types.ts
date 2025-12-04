@@ -1,6 +1,6 @@
 
 
-export type ViewMode = 'discovery' | 'workspace' | 'profile';
+export type ViewMode = 'discovery' | 'workspace' | 'profile' | 'artworks' | 'projects_hub' | 'rising_creators' | 'rankings' | 'help_center' | 'painter_guide_full' | 'employer_guide_full' | 'terms_service_full' | 'enterprise_showcase' | 'messages';
 export type WorkspaceTab = 'dashboard' | 'projects' | 'dam' | 'finance' | 'admin_users' | 'admin_roles';
 
 // 2.2 角色定义
@@ -82,6 +82,11 @@ export interface Artwork {
   tags: string[];
   isAiGenerated?: boolean;
   isVerified?: boolean;
+  // Details for modal
+  description?: string;
+  publishDate?: string;
+  tools?: string[];
+  resolution?: string;
 }
 
 export interface Creator {
@@ -91,6 +96,11 @@ export interface Creator {
   tags: string[];
   followers: number;
   isVerified: boolean;
+  // Trending fields
+  trend?: 'up' | 'down' | 'stable';
+  weeklyGrowth?: number;
+  hotScore?: number;
+  rank?: number;
 }
 
 export interface Event {
@@ -240,4 +250,19 @@ export interface ProjectCase {
     text: string;
     author: string;
   };
+}
+
+// === NOTIFICATION TYPES ===
+export type NotificationType = 'system' | 'project' | 'social' | 'finance';
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  content: string;
+  time: string;
+  isRead: boolean;
+  avatar?: string; // For social interactions
+  actionLabel?: string;
+  linkTo?: ViewMode; // Simplified navigation link
 }

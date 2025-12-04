@@ -1,6 +1,6 @@
 
 
-import { Artwork, Asset, Project, Task, Transaction, Invoice, Creator, Event, RoleDefinition, User, UserProfile, Article, SavingsGoal, DepartmentBudget, EnterpriseProfile, ProjectCase } from './types';
+import { Artwork, Asset, Project, Task, Transaction, Invoice, Creator, Event, RoleDefinition, User, UserProfile, Article, SavingsGoal, DepartmentBudget, EnterpriseProfile, ProjectCase, Notification } from './types';
 import { Laptop, Plane, Home, Briefcase, Car } from 'lucide-react';
 
 // === RBAC CONFIGURATION ===
@@ -64,6 +64,8 @@ export const MOCK_USERS_ADMIN_VIEW: Partial<User>[] = [
   { id: 'u6', name: 'GameStudio_HR', role: 'enterprise', roleName: '企业主账号', avatar: 'https://ui-avatars.com/api/?name=Game+Studio&background=6366f1&color=fff' },
   { id: 'u7', name: 'PixelArtist_99', role: 'creator', roleName: '创作者', avatar: 'https://ui-avatars.com/api/?name=Pixel+Artist&background=random&color=fff' },
   { id: 'u8', name: 'Marketing_Lead', role: 'enterprise', roleName: '企业主账号', avatar: 'https://ui-avatars.com/api/?name=Marketing&background=random&color=fff' },
+  { id: 'u9', name: 'Design_Lead_A', role: 'creator', roleName: '设计总监', avatar: 'https://ui-avatars.com/api/?name=Design+Lead&background=ec4899&color=fff' },
+  { id: 'u10', name: 'Finance_User', role: 'enterprise', roleName: '财务专员', avatar: 'https://ui-avatars.com/api/?name=Finance+User&background=14b8a6&color=fff' },
 ];
 
 // === EXISTING MOCK DATA ===
@@ -302,6 +304,106 @@ export const MOCK_ARTWORKS: Artwork[] = [
     views: 18000,
     tags: ['二次元', '角色', '插画'],
     isVerified: true
+  },
+  // --- New Additions ---
+  {
+    id: '22',
+    title: '赛博武士：赤红之刃',
+    artist: 'NeonDreamer',
+    artistAvatar: 'https://ui-avatars.com/api/?name=Neon+Dreamer&background=8b5cf6&color=fff',
+    imageUrl: 'https://image.pollinations.ai/prompt/cyberpunk%20samurai%20red%20laser%20katana%20rain%20night?width=600&height=800&nologo=true',
+    likes: 3420,
+    views: 12000,
+    tags: ['科幻', '角色', '赛博朋克'],
+    isVerified: true
+  },
+  {
+    id: '23',
+    title: '深海探险队',
+    artist: 'OceanBlue',
+    artistAvatar: 'https://ui-avatars.com/api/?name=Ocean+Blue&background=0ea5e9&color=fff',
+    imageUrl: 'https://image.pollinations.ai/prompt/deep%20sea%20exploration%20submarine%20bioluminescence?width=600&height=400&nologo=true',
+    likes: 1890,
+    views: 5600,
+    tags: ['科幻', '场景', '深海'],
+    isVerified: false
+  },
+  {
+    id: '24',
+    title: '古风建筑：空中楼阁',
+    artist: 'InkFlow',
+    artistAvatar: 'https://ui-avatars.com/api/?name=Ink+Flow&background=10b981&color=fff',
+    imageUrl: 'https://image.pollinations.ai/prompt/chinese%20ancient%20floating%20palace%20clouds%20fantasy?width=600&height=800&nologo=true',
+    likes: 5670,
+    views: 18900,
+    tags: ['国风', '建筑', '场景'],
+    isVerified: true
+  },
+  {
+    id: '25',
+    title: '超现实主义梦境',
+    artist: 'DreamWeaver',
+    artistAvatar: 'https://ui-avatars.com/api/?name=Dream+Weaver&background=a855f7&color=fff',
+    imageUrl: 'https://image.pollinations.ai/prompt/surrealism%20dream%20landscape%20clocks%20melting%20salvador%20dali%20style?width=600&height=600&nologo=true',
+    likes: 2300,
+    views: 7800,
+    tags: ['超现实', '艺术', '插画'],
+    isVerified: false
+  },
+  {
+    id: '26',
+    title: '美食插画：日式拉面',
+    artist: 'FoodieArt',
+    artistAvatar: 'https://ui-avatars.com/api/?name=Foodie+Art&background=f97316&color=fff',
+    imageUrl: 'https://image.pollinations.ai/prompt/delicious%20japanese%20ramen%20illustration%20anime%20style%20steam?width=600&height=600&nologo=true',
+    likes: 4100,
+    views: 10500,
+    tags: ['插画', '美食', '治愈'],
+    isVerified: true
+  },
+  {
+    id: '27',
+    title: '低多边形动物园',
+    artist: 'LowPolyGod',
+    artistAvatar: 'https://ui-avatars.com/api/?name=Low+Poly&background=8b5cf6&color=fff',
+    imageUrl: 'https://image.pollinations.ai/prompt/low%20poly%20zoo%20animals%20elephant%20giraffe%20lion%203d?width=600&height=400&nologo=true',
+    likes: 1560,
+    views: 4200,
+    tags: ['3D', 'LowPoly', '动物'],
+    isVerified: true
+  },
+  {
+    id: '28',
+    title: 'APP 启动页设计：旅行',
+    artist: 'UIDesignPro',
+    artistAvatar: 'https://ui-avatars.com/api/?name=UI+Pro&background=3b82f6&color=fff',
+    imageUrl: 'https://image.pollinations.ai/prompt/travel%20app%20splash%20screen%20ui%20design%20mobile%20modern?width=600&height=900&nologo=true',
+    likes: 2890,
+    views: 9100,
+    tags: ['UI', '移动端', '界面'],
+    isVerified: true
+  },
+  {
+    id: '29',
+    title: '暗黑幻想：龙之巢穴',
+    artist: 'DarkFantasy',
+    artistAvatar: 'https://ui-avatars.com/api/?name=Dark+Fantasy&background=1f2937&color=fff',
+    imageUrl: 'https://image.pollinations.ai/prompt/dark%20fantasy%20dragon%20lair%20treasure%20epic%20lighting?width=600&height=400&nologo=true',
+    likes: 6700,
+    views: 21000,
+    tags: ['奇幻', '概念', '龙'],
+    isVerified: true
+  },
+  {
+    id: '30',
+    title: '时尚杂志封面概念',
+    artist: 'VogueArt',
+    artistAvatar: 'https://ui-avatars.com/api/?name=Vogue+Art&background=ec4899&color=fff',
+    imageUrl: 'https://image.pollinations.ai/prompt/fashion%20magazine%20cover%20design%20high%20fashion%20model?width=600&height=800&nologo=true',
+    likes: 1200,
+    views: 3400,
+    tags: ['时尚', '排版', '平面设计'],
+    isVerified: false
   }
 ];
 
@@ -315,6 +417,9 @@ export const MOCK_CREATORS: Creator[] = [
   { id: 'c7', name: 'PixelRetro', avatar: 'https://ui-avatars.com/api/?name=Pixel+Retro&background=f59e0b&color=fff', tags: ['像素', '独立游戏'], followers: 32000, isVerified: false },
   { id: 'c8', name: 'NeonDreamer', avatar: 'https://ui-avatars.com/api/?name=Neon+Dreamer&background=8b5cf6&color=fff', tags: ['赛博朋克', '场景'], followers: 120000, isVerified: true },
   { id: 'c9', name: 'VoxelBuilder', avatar: 'https://ui-avatars.com/api/?name=Voxel+Builder&background=10b981&color=fff', tags: ['体素', '3D'], followers: 15000, isVerified: false },
+  { id: 'c10', name: 'OceanBlue', avatar: 'https://ui-avatars.com/api/?name=Ocean+Blue&background=0ea5e9&color=fff', tags: ['场景', '概念'], followers: 8900, isVerified: false },
+  { id: 'c11', name: 'DarkFantasy', avatar: 'https://ui-avatars.com/api/?name=Dark+Fantasy&background=1f2937&color=fff', tags: ['奇幻', '插画'], followers: 23000, isVerified: true },
+  { id: 'c12', name: 'FoodieArt', avatar: 'https://ui-avatars.com/api/?name=Foodie+Art&background=f97316&color=fff', tags: ['美食', '生活'], followers: 12000, isVerified: true },
 ];
 
 // === PROFILE DATA ===
@@ -495,6 +600,67 @@ export const MOCK_PROJECTS: Project[] = [
     phase: '微调',
     description: '为新款运动手表设计 5 款动态表盘，包含健康数据可视化。',
     coverImage: 'https://image.pollinations.ai/prompt/smart%20watch%20face%20ui%20design%20fitness%20health%20modern?width=800&height=400&nologo=true'
+  },
+  // --- New Additions ---
+  {
+    id: 'p11',
+    title: '独立游戏《星际迷航》美术外包',
+    client: 'StarIndie',
+    status: '招募中',
+    budget: 85000,
+    deadline: '2024-03-01',
+    progress: 0,
+    phase: '招募',
+    description: '寻找像素风格主美，负责游戏整体视觉风格把控及核心资产制作。',
+    coverImage: 'https://image.pollinations.ai/prompt/pixel%20art%20space%20adventure%20game%20screenshot?width=800&height=400&nologo=true'
+  },
+  {
+    id: 'p12',
+    title: '咖啡品牌节日限定包装',
+    client: 'CoffeeCulture',
+    status: '已完成',
+    budget: 22000,
+    deadline: '2023-08-20',
+    progress: 100,
+    phase: '交付',
+    description: '中秋节限定咖啡豆包装设计，需融合传统纹样与现代极简风格。',
+    coverImage: 'https://image.pollinations.ai/prompt/coffee%20packaging%20design%20mid-autumn%20festival%20pattern?width=800&height=400&nologo=true'
+  },
+  {
+    id: 'p13',
+    title: '医疗健康 AI 助手形象设计',
+    client: 'MediTech',
+    status: '进行中',
+    budget: 15000,
+    deadline: '2023-12-10',
+    progress: 40,
+    phase: '建模',
+    description: '设计一个亲和力强的 3D 虚拟医生助手形象，用于 APP 引导与交互。',
+    coverImage: 'https://image.pollinations.ai/prompt/cute%203d%20robot%20doctor%20mascot%20medical%20app?width=800&height=400&nologo=true'
+  },
+  {
+    id: 'p14',
+    title: '城市宣传片分镜脚本',
+    client: 'CityMedia',
+    status: '草稿',
+    budget: 30000,
+    deadline: '2024-01-05',
+    progress: 20,
+    phase: '创意',
+    description: '5分钟城市旅游宣传片的分镜绘制，需体现城市的人文气息与科技感。',
+    coverImage: 'https://image.pollinations.ai/prompt/storyboard%20sketch%20film%20city%20promotional%20video?width=800&height=400&nologo=true'
+  },
+  {
+    id: 'p15',
+    title: 'Web3 社区 NFT 系列生成',
+    client: 'CryptoWorld',
+    status: '验收中',
+    budget: 90000,
+    deadline: '2023-10-28',
+    progress: 98,
+    phase: '验收',
+    description: '设计基础元素并通过代码生成 5000 个独一无二的 PFP 头像。',
+    coverImage: 'https://image.pollinations.ai/prompt/nft%20collection%20avatar%20variations%20crypto%20punk%20style?width=800&height=400&nologo=true'
   }
 ];
 
@@ -511,6 +677,10 @@ export const MOCK_TASKS: Task[] = [
   
   { id: 't6_1', projectId: 'p6', title: '海洋生物草图 - 鲸鱼', assignee: 'Lily', assigneeAvatar: 'https://ui-avatars.com/api/?name=Lily&background=random', status: 'done', priority: 'medium', dueDate: '10月20日', comments: 2, attachments: 1 },
   { id: 't6_2', projectId: 'p6', title: '海洋生物草图 - 海豚', assignee: 'Lily', assigneeAvatar: 'https://ui-avatars.com/api/?name=Lily&background=random', status: 'todo', priority: 'low', dueDate: '11月01日', comments: 0, attachments: 0 },
+  
+  // Additional Tasks
+  { id: 't13_1', projectId: 'p13', title: '角色三视图绘制', assignee: 'NeonDreamer', assigneeAvatar: 'https://ui-avatars.com/api/?name=Neon+Dreamer&background=8b5cf6&color=fff', status: 'in-progress', priority: 'high', dueDate: '11月10日', comments: 6, attachments: 2 },
+  { id: 't13_2', projectId: 'p13', title: '表情包延展 (6个)', assignee: 'NeonDreamer', assigneeAvatar: 'https://ui-avatars.com/api/?name=Neon+Dreamer&background=8b5cf6&color=fff', status: 'todo', priority: 'medium', dueDate: '11月20日', comments: 1, attachments: 0 },
 ];
 
 export const MOCK_ASSETS: Asset[] = [
@@ -519,24 +689,29 @@ export const MOCK_ASSETS: Asset[] = [
   { id: 'f2', name: '项目 Alpha 交付', type: 'folder', modified: '5天前', version: '-', tags: [] },
   { id: 'f3', name: '合同与法务', type: 'folder', modified: '1周前', version: '-', tags: [] },
   { id: 'f4', name: '参考图库', type: 'folder', modified: '2周前', version: '-', tags: [] },
+  { id: 'f5', name: '3D 模型库', type: 'folder', modified: '1个月前', version: '-', tags: [] },
   
   // Images
   { id: 'a1', name: 'Cyberpunk_City_Final_v2.jpg', type: 'image', size: '12.5 MB', modified: '3小时前', version: 'v2.1', tags: ['High_Res', 'Sci-Fi'] },
   { id: 'a2', name: 'Character_Concept_Sketch.png', type: 'image', size: '4.2 MB', modified: '昨天', version: 'v1.0', tags: ['Draft', 'Sketch'] },
   { id: 'a3', name: 'Logo_Variant_Blue.png', type: 'image', size: '1.8 MB', modified: '3天前', version: 'v1.5', tags: ['Branding', 'Logo'] },
   { id: 'a4', name: 'Background_Texture_001.jpg', type: 'image', size: '8.5 MB', modified: '1周前', version: 'v1.0', tags: ['Asset', 'Texture'] },
+  { id: 'a5', name: 'Banner_Summer_Sale.jpg', type: 'image', size: '5.6 MB', modified: '2天前', version: 'v2.0', tags: ['Marketing', 'Banner'] },
   
   // PSDs
   { id: 'p1', name: 'Main_Poster_Layers.psd', type: 'psd', size: '245 MB', modified: '5小时前', version: 'v3.2', tags: ['Source', 'Editable'] },
   { id: 'p2', name: 'UI_Kit_Master.fig', type: 'psd', size: '56 MB', modified: '2天前', version: 'v2.0', tags: ['UI', 'Component'] },
+  { id: 'p3', name: 'Character_Rig_v4.blend', type: 'psd', size: '180 MB', modified: '1周前', version: 'v4.0', tags: ['3D', 'Rigging'] },
   
   // Videos
   { id: 'v1', name: 'Promo_Teaser_Final.mp4', type: 'video', size: '1.2 GB', modified: '1天前', version: 'v1.0', tags: ['Video', 'Marketing'] },
   { id: 'v2', name: 'Animation_Test_Render.mov', type: 'video', size: '450 MB', modified: '4天前', version: 'v0.9', tags: ['WIP', '3D'] },
+  { id: 'v3', name: 'Tutorial_Part1.mp4', type: 'video', size: '890 MB', modified: '2周前', version: 'v1.0', tags: ['Tutorial', 'Internal'] },
   
   // Docs
   { id: 'd1', name: 'Project_Brief_2023.pdf', type: 'doc', size: '2.4 MB', modified: '2周前', version: 'v1.0', tags: ['Doc', 'Brief'] },
   { id: 'd2', name: 'Contract_Signed.pdf', type: 'doc', size: '1.5 MB', modified: '1个月前', version: 'v1.0', tags: ['Legal', 'Signed'] },
+  { id: 'd3', name: 'Style_Guide_v2.pdf', type: 'doc', size: '12 MB', modified: '3天前', version: 'v2.0', tags: ['Guide', 'Design'] },
 ];
 
 export const CHART_DATA_ARTIST = [
@@ -573,6 +748,11 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
   { id: 'tr_11', type: 'income', amount: 3500, date: '2023-10-05 10:00', description: '私人约稿 - 头像绘制', status: 'completed', category: '项目收入' },
   { id: 'tr_12', type: 'payment', amount: -128, date: '2023-10-03 14:20', description: '购买笔刷素材包', status: 'completed', category: '素材购买' },
   { id: 'tr_13', type: 'escrow_frozen', amount: 28000, date: '2023-09-28 09:30', description: '项目 P4 全款托管', status: 'completed', relatedProject: 'p4', category: '项目支出' },
+  // Additional transactions
+  { id: 'tr_14', type: 'income', amount: 50000, date: '2023-09-25 15:00', description: '季度奖金发放', status: 'completed', category: '奖金' },
+  { id: 'tr_15', type: 'payment', amount: -2500, date: '2023-09-20 11:00', description: '购买新款手绘板', status: 'completed', category: '设备购买' },
+  { id: 'tr_16', type: 'withdrawal', amount: -10000, date: '2023-09-15 14:00', description: '提现至微信零钱', status: 'completed', category: '提现' },
+  { id: 'tr_17', type: 'escrow_release', amount: 15000, date: '2023-09-10 10:30', description: '项目 P8 尾款结算', status: 'completed', relatedProject: 'p8', category: '项目收入' },
 ];
 
 export const MOCK_INVOICES: Invoice[] = [
@@ -581,6 +761,7 @@ export const MOCK_INVOICES: Invoice[] = [
   { id: 'INV-2023-1003', amount: 5000, createdDate: '2023-10-28', title: '创意咨询费 - 独立工作室', status: 'processing', companyName: '独立工作室' },
   { id: 'INV-2023-1004', amount: 35000, createdDate: '2023-10-29', title: '插画制作费 - EduPress', status: 'unpaid', companyName: 'EduPress' },
   { id: 'INV-2023-0901', amount: 75000, createdDate: '2023-09-15', title: '全案设计费 - GreenEnergy', status: 'paid', companyName: 'GreenEnergy' },
+  { id: 'INV-2023-0902', amount: 22000, createdDate: '2023-08-25', title: '包装设计费 - CoffeeCulture', status: 'paid', companyName: 'CoffeeCulture' },
 ];
 
 export const MOCK_ARTICLES: Article[] = [
@@ -709,5 +890,82 @@ export const MOCK_PROJECT_CASES: ProjectCase[] = [
       { label: '通行效率', value: '+15%' },
       { label: '平均等待', value: '-20s' }
     ]
+  }
+];
+
+// === NOTIFICATIONS ===
+export const MOCK_NOTIFICATIONS: Notification[] = [
+  {
+    id: 'n1',
+    type: 'system',
+    title: '欢迎加入薪画社！',
+    content: '祝贺您成功注册。请完善您的个人资料，并完成实名认证以解锁全部功能。',
+    time: '2分钟前',
+    isRead: false,
+    actionLabel: '去认证',
+    linkTo: 'profile'
+  },
+  {
+    id: 'n2',
+    type: 'project',
+    title: '项目“夏日游戏活动主视觉 KV”有新动态',
+    content: '企划方已确认验收“线稿阶段”成果，资金已释放至您的账户。',
+    time: '3小时前',
+    isRead: false,
+    linkTo: 'workspace' // Ideally specific project tab
+  },
+  {
+    id: 'n3',
+    type: 'social',
+    title: 'NeonDreamer 关注了你',
+    content: '您的作品风格吸引了新的粉丝，快去看看吧！',
+    time: '5小时前',
+    isRead: true,
+    avatar: 'https://ui-avatars.com/api/?name=Neon+Dreamer&background=8b5cf6&color=fff',
+    linkTo: 'profile'
+  },
+  {
+    id: 'n4',
+    type: 'finance',
+    title: '提现到账通知',
+    content: '您申请的 ¥5,000 提现已成功转入尾号 9876 的支付宝账户。',
+    time: '昨天 10:30',
+    isRead: true,
+    linkTo: 'workspace'
+  },
+  {
+    id: 'n5',
+    type: 'project',
+    title: '新任务指派',
+    content: '您被指派了新任务“角色A线稿细化”，请在10月25日前完成。',
+    time: '昨天 16:00',
+    isRead: true,
+    linkTo: 'workspace'
+  },
+  {
+    id: 'n6',
+    type: 'social',
+    title: 'TechDesign 赞了你的作品',
+    content: '您的作品《赛博朋克都市夜景》获得了一个新的赞。',
+    time: '2天前',
+    isRead: true,
+    avatar: 'https://ui-avatars.com/api/?name=Tech+Design&background=1e293b&color=fff'
+  },
+  {
+    id: 'n7',
+    type: 'system',
+    title: '平台维护公告',
+    content: '为了提供更好的服务，平台将于本周日凌晨 2:00-4:00 进行系统升级，届时将暂停访问。',
+    time: '3天前',
+    isRead: true
+  },
+  {
+    id: 'n8',
+    type: 'finance',
+    title: '发票开具成功',
+    content: '您申请的 ¥45,000 技术服务费发票已开具，请在订单详情下载电子发票。',
+    time: '1周前',
+    isRead: true,
+    linkTo: 'workspace'
   }
 ];

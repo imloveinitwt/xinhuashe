@@ -1,186 +1,137 @@
+import React, { Suspense, lazy, useState } from 'react';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import { useAuth } from './contexts/AuthContext';
 
-import React, { useState, useEffect } from 'react';
+// Layout Components
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
-import DiscoveryView from './components/DiscoveryView';
-import DashboardView from './components/DashboardView';
-import DAMView from './components/DAMView';
-import ProjectsView from './components/ProjectsView';
-import FinanceView from './components/FinanceView';
-import UploadModal from './components/UploadModal';
-import LoginModal from './components/LoginModal'; 
-import LoginScreen from './components/LoginScreen';
-import AdminView from './components/AdminView';
-import PersonalSpaceView from './components/PersonalSpaceView'; 
 import Footer from './components/Footer';
-import { ViewMode, WorkspaceTab, UserRole, User } from './types';
-import { getProfileById } from './constants';
-import { AuthService } from './services/AuthService';
-import { Loader2 } from 'lucide-react';
+import LoginModal from './components/LoginModal';
+import UploadModal from './components/UploadModal';
+import LoginScreen from './components/LoginScreen';
 
-const App: React.FC = () => {
-  // Authentication State
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(true); // New loading state
-  const [showSplash, setShowSplash] = useState(false); // Changed default to false, handle in useEffect
-  
-  // Navigation State
-  const [viewMode, setViewMode] = useState<ViewMode>('discovery');
-  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<WorkspaceTab>('dashboard');
-  
-  // Profile State
-  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+// Lazy Loaded Pages for Performance
+const DiscoveryView = lazy(() => import('./components/DiscoveryView'));
+const DashboardView = lazy(() => import('./components/DashboardView'));
+const DAMView = lazy(() => import('./components/DAMView'));
+const ProjectsView = lazy(() => import('./components/ProjectsView'));
+const FinanceView = lazy(() => import('./components/FinanceView'));
+const AdminView = lazy(() => import('./components/AdminView'));
+const PersonalSpaceView = lazy(() => import('./components/PersonalSpaceView'));
+const ArtworksPage = lazy(() => import('./components/ArtworksPage'));
+const ProjectsHubPage = lazy(() => import('./components/ProjectsHubPage'));
+const RisingCreatorsPage = lazy(() => import('./components/RisingCreatorsPage'));
+const RankingsPage = lazy(() => import('./components/RankingsPage'));
+const HelpCenterPage = lazy(() => import('./components/HelpCenterPage'));
+const PainterGuidePage = lazy(() => import('./components/PainterGuidePage'));
+const EmployerGuidePage = lazy(() => import('./components/EmployerGuidePage'));
+const TermsServicePage = lazy(() => import('./components/TermsServicePage'));
+const EnterprisePage = lazy(() => import('./components/EnterprisePage'));
+const MessagesPage = lazy(() => import('./components/MessagesPage'));
 
-  // Modal State
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+// --- Layout Wrappers ---
 
-  // Smooth Transition State
-  const [isTransitioning, setIsTransitioning] = useState(false);
+const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
 
-  // === INITIALIZATION: Check Session ===
-  useEffect(() => {
-    const initSession = async () => {
-      try {
-        const currentUser = await AuthService.getCurrentUser();
-        if (currentUser) {
-          setUser(currentUser);
-          // If user exists, stay on current logic or default
-          setShowSplash(false);
-        } else {
-          setShowSplash(true);
-        }
-      } catch (error) {
-        console.error("Session restore failed", error);
-        setShowSplash(true);
-      } finally {
-        setIsAuthLoading(false);
-      }
-    };
-    initSession();
-  }, []);
+  // Check if we are in workspace mode based on URL
+  const isWorkspace = location.pathname.startsWith('/workspace') && !!user;
 
-  const handleLoginSuccess = (loggedInUser: User) => {
-    setUser(loggedInUser);
-    setShowSplash(false);
-    setIsLoginModalOpen(false);
+  // Handler for global navigation actions
+  const handleUpload = () => user ? setIsUploadOpen(true) : setIsLoginOpen(true);
 
-    // Set default view based on role
-    if (loggedInUser.role === 'root_admin' || loggedInUser.role === 'platform_admin') {
-       changeViewMode('workspace');
-       setActiveWorkspaceTab('admin_users'); 
-    } else if (loggedInUser.role === 'enterprise') {
-      changeViewMode('workspace');
-      setActiveWorkspaceTab('dashboard');
-    } else {
-      changeViewMode('discovery'); 
-    }
-  };
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
+      <Header 
+        isWorkspace={isWorkspace}
+        onLoginClick={() => setIsLoginOpen(true)}
+        onUploadClick={handleUpload}
+      />
+      
+      {isWorkspace && user && <Sidebar />}
 
-  const handleSetUserRole = async (role: UserRole) => {
-     // Switch role simulation (In real app, this might be switching organizations)
-     const tempUser = AuthService.createMockUser(role, user?.name || 'User');
-     setUser(tempUser);
-     // Update session in storage (optional for demo)
-     // StorageService.setSession(tempUser); 
-  };
+      <main className={`flex-1 transition-all duration-300 ${isWorkspace ? 'lg:ml-64 pt-16 h-[calc(100vh-64px)] overflow-hidden' : 'pt-0'}`}>
+        <Suspense fallback={
+          <div className="h-full w-full flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+          </div>
+        }>
+          {/* Inject onTriggerLogin to children if they accept it */}
+          {React.Children.map(children, child => {
+             if (React.isValidElement(child)) {
+               // @ts-ignore - Dynamic prop injection
+               return React.cloneElement(child, { onTriggerLogin: () => setIsLoginOpen(true) });
+             }
+             return child;
+          })}
+        </Suspense>
+      </main>
 
-  const changeViewMode = (mode: ViewMode) => {
-    if (mode === viewMode) return;
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setViewMode(mode);
-      setIsTransitioning(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 200); // Wait for fade out
-  };
-
-  const handleNavigateToProfile = (profileId: string) => {
-    setSelectedProfileId(profileId);
-    changeViewMode('profile');
-  };
-
-  const handleTriggerLogin = () => {
-    setIsLoginModalOpen(true);
-  };
-
-  const handleLogout = async () => {
-    await AuthService.logout();
-    setUser(null);
-    setShowSplash(true);
-    changeViewMode('discovery');
-  };
-
-  const handleFooterNavigation = (mode: ViewMode) => {
-    if (mode === 'workspace' && !user) {
-      handleTriggerLogin();
-    } else {
-      changeViewMode(mode);
-    }
-  };
-
-  // Render current view content
-  const renderContent = () => {
-    if (viewMode === 'discovery') {
-      return (
-        <DiscoveryView 
-          onNavigateToProfile={handleNavigateToProfile} 
-          onTriggerLogin={handleTriggerLogin}
-          user={user}
+      {!isWorkspace && (
+        <Footer 
+          onNavigate={(mode) => {
+             // Map legacy viewMode to routes
+             const routes: Record<string, string> = {
+               'workspace': '/workspace',
+               'help_center': '/help',
+               'painter_guide_full': '/guide/painter',
+               'employer_guide_full': '/guide/employer',
+               'terms_service_full': '/terms'
+             };
+             navigate(routes[mode] || '/');
+          }}
+          onTriggerUpload={handleUpload}
         />
-      );
-    } 
-    
-    if (viewMode === 'profile' && selectedProfileId) {
-      return (
-        <PersonalSpaceView 
-          profile={getProfileById(selectedProfileId)} 
-          currentUser={user}
-        />
-      );
-    } 
-    
-    if (user) {
-      // Workspace Views
-      return (
-        <div className="h-full p-6 md:p-8 overflow-y-auto custom-scrollbar animate-fade-in">
-           {activeWorkspaceTab === 'dashboard' && <DashboardView userRole={user.role} />}
-           {activeWorkspaceTab === 'dam' && <DAMView />}
-           {activeWorkspaceTab === 'projects' && <ProjectsView />}
-           {activeWorkspaceTab === 'finance' && <FinanceView user={user} />}
-           {(activeWorkspaceTab === 'admin_users' || activeWorkspaceTab === 'admin_roles') && <AdminView />}
-        </div>
-      );
-    } 
-    
-    // Fallback
-    return (
-      <div className="flex h-full items-center justify-center flex-col animate-fade-in">
-         <h2 className="text-xl font-bold mb-4">请先登录</h2>
-         <button onClick={handleTriggerLogin} className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">登录 / 注册</button>
-      </div>
-    );
-  };
+      )}
 
-  // Global Loading State
-  if (isAuthLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-          <p className="text-slate-500 font-medium">正在加载薪画社...</p>
-        </div>
-      </div>
-    );
+      {/* Global Modals */}
+      <LoginModal 
+        isOpen={isLoginOpen} 
+        onClose={() => setIsLoginOpen(false)} 
+        onLogin={() => setIsLoginOpen(false)} 
+      />
+      <UploadModal 
+        isOpen={isUploadOpen} 
+        onClose={() => setIsUploadOpen(false)} 
+        userRole={user?.role}
+      />
+    </div>
+  );
+};
+
+// --- Protected Route Wrapper ---
+const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) return null; // Or a spinner
+
+  if (!user) {
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
-  // Show Splash Screen for guests initially
+  return <>{children}</>;
+};
+
+// --- Main App Component ---
+const App: React.FC = () => {
+  const { user, isLoading, login } = useAuth();
+  const [showSplash, setShowSplash] = useState(true);
+
+  // Handle Splash Screen Logic
+  if (isLoading) return null;
+
   if (!user && showSplash) {
     return (
       <LoginScreen 
-        onLogin={(role) => {
-          // Quick login for splash screen demo
-          AuthService.login(`${role}_demo@xinhuashe.com`, role).then(handleLoginSuccess);
+        onLogin={async (role) => {
+          await login(`${role}_demo@xinhuashe.com`, role);
+          setShowSplash(false);
         }} 
         onGuestEnter={() => setShowSplash(false)}
       />
@@ -188,61 +139,35 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
-      
-      {/* Top Header */}
-      <Header 
-        viewMode={viewMode} 
-        setViewMode={changeViewMode} 
-        userRole={user?.role || 'general'} 
-        onUploadClick={() => user ? setIsUploadModalOpen(true) : setIsLoginModalOpen(true)}
-        currentUser={user}
-        onNavigateToProfile={handleNavigateToProfile}
-        onLoginClick={handleTriggerLogin}
-        onLogout={handleLogout}
-      />
+    <MainLayout>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<DiscoveryView />} />
+        <Route path="/artworks" element={<ArtworksPage onBack={() => window.history.back()} />} />
+        <Route path="/projects" element={<ProjectsHubPage onBack={() => window.history.back()} />} />
+        <Route path="/creators" element={<RisingCreatorsPage onBack={() => window.history.back()} />} />
+        <Route path="/rankings" element={<RankingsPage onBack={() => window.history.back()} />} />
+        <Route path="/enterprise" element={<EnterprisePage onBack={() => window.history.back()} />} />
+        <Route path="/help" element={<HelpCenterPage onBack={() => window.history.back()} />} />
+        <Route path="/guide/painter" element={<PainterGuidePage onBack={() => window.history.back()} />} />
+        <Route path="/guide/employer" element={<EmployerGuidePage onBack={() => window.history.back()} />} />
+        <Route path="/terms" element={<TermsServicePage onBack={() => window.history.back()} />} />
+        <Route path="/profile/:id" element={<PersonalSpaceView profile={user ? { ...user, displayName: user.name, userId: user.id } as any : {} as any} currentUser={user} />} />
 
-      {/* Workspace Sidebar */}
-      {viewMode === 'workspace' && user && (
-        <Sidebar 
-          activeTab={activeWorkspaceTab} 
-          setActiveTab={setActiveWorkspaceTab} 
-          user={user}
-          onRoleChange={handleSetUserRole}
-        />
-      )}
+        {/* Protected Routes (Workspace) */}
+        <Route path="/messages" element={<ProtectedRoute><MessagesPage onBack={() => window.history.back()} /></ProtectedRoute>} />
+        
+        <Route path="/workspace" element={<ProtectedRoute><DashboardView userRole={user?.role || 'creator'} /></ProtectedRoute>} />
+        <Route path="/workspace/projects" element={<ProtectedRoute><ProjectsView /></ProtectedRoute>} />
+        <Route path="/workspace/dam" element={<ProtectedRoute><DAMView /></ProtectedRoute>} />
+        <Route path="/workspace/finance" element={<ProtectedRoute><FinanceView user={user!} /></ProtectedRoute>} />
+        <Route path="/workspace/admin/users" element={<ProtectedRoute><AdminView /></ProtectedRoute>} />
+        <Route path="/workspace/admin/roles" element={<ProtectedRoute><AdminView /></ProtectedRoute>} />
 
-      {/* Main Content Wrapper */}
-      <main className={`flex-1 transition-all duration-300 ${
-        viewMode === 'workspace' && user ? 'ml-64 pt-16 h-screen overflow-hidden' : 'pt-0'
-      }`}>
-        <div className={`h-full w-full transition-opacity duration-200 ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
-           {renderContent()}
-        </div>
-      </main>
-
-      {/* Global Footer (Visible in Discovery/Profile) */}
-      {(viewMode === 'discovery' || viewMode === 'profile') && !isTransitioning && (
-        <Footer 
-          onNavigate={handleFooterNavigation}
-          onTriggerUpload={() => user ? setIsUploadModalOpen(true) : setIsLoginModalOpen(true)}
-        />
-      )}
-
-      {/* Global Modals */}
-      <UploadModal 
-        isOpen={isUploadModalOpen} 
-        onClose={() => setIsUploadModalOpen(false)} 
-        userRole={user?.role}
-      />
-      
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        onLogin={(user) => handleLoginSuccess(user as any)} // Callback adapter
-      />
-
-    </div>
+        {/* Catch All */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </MainLayout>
   );
 };
 

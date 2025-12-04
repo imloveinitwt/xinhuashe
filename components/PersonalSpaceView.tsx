@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   MapPin, Link as LinkIcon, Calendar, BadgeCheck, Settings, 
   UserPlus, Mail, Eye, Heart, Share2, PenTool, Image as ImageIcon,
@@ -7,6 +8,7 @@ import {
 } from 'lucide-react';
 import { User, UserProfile, UserProfilePreferences, ThemeColor } from '../types';
 import { MOCK_ARTWORKS, MOCK_CREATORS, MOCK_USERS_ADMIN_VIEW } from '../constants';
+import ArtworkDetailModal from './ArtworkDetailModal';
 
 interface PersonalSpaceViewProps {
   profile: UserProfile;
@@ -22,12 +24,24 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
     profile.preferences || { themeColor: 'indigo', layoutMode: 'grid' }
   );
 
+  // Modal State
+  const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
+
   // Sync preferences if profile changes (e.g. navigation)
   useEffect(() => {
     if (profile.preferences) {
       setPreferences(profile.preferences);
     }
   }, [profile]);
+
+  useEffect(() => {
+    if (isCustomizeOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isCustomizeOpen]);
   
   // Logic to determine if the viewer is the owner of this profile
   const isOwner = currentUser?.id && (profile.userId === currentUser.id || profile.displayName === currentUser.name);
@@ -85,9 +99,16 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
   return (
     <div className="min-h-screen bg-slate-50 pb-20 relative">
       
+      {/* Artwork Modal */}
+      <ArtworkDetailModal 
+        artworkId={selectedArtworkId}
+        onClose={() => setSelectedArtworkId(null)}
+        currentUser={currentUser}
+      />
+
       {/* Customization Modal */}
-      {isCustomizeOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+      {isCustomizeOpen && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-scale-in">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
               <h3 className="font-bold text-slate-800 flex items-center gap-2">
@@ -162,7 +183,8 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* 1. Cover Image */}
@@ -335,6 +357,7 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
                         className={`group bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-lg transition-all cursor-pointer ${
                           preferences.layoutMode === 'list' ? 'flex flex-row h-48' : ''
                         }`}
+                        onClick={() => setSelectedArtworkId(art.id)}
                       >
                          <div className={`relative overflow-hidden ${
                            preferences.layoutMode === 'list' ? 'w-64 flex-shrink-0' : 'aspect-[4/3]'
@@ -388,7 +411,11 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
                {activeTab === 'likes' && (
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {likedArtworks.map(art => (
-                       <div key={`like-${art.id}`} className="bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 opacity-80 hover:opacity-100 transition-opacity">
+                       <div 
+                         key={`like-${art.id}`} 
+                         onClick={() => setSelectedArtworkId(art.id)}
+                         className="bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 opacity-80 hover:opacity-100 transition-opacity cursor-pointer"
+                       >
                           <img 
                             src={art.imageUrl} 
                             className="w-full h-48 object-cover grayscale hover:grayscale-0 transition-all" 

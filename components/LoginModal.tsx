@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Eye, EyeOff, Mail, Lock, User as UserIcon, CheckCircle2, Loader2, Hexagon, AlertCircle } from 'lucide-react';
 import { UserRole, User } from '../types';
 import { AuthService } from '../services/AuthService';
@@ -33,7 +34,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
       setErrors({});
       setGeneralError(null);
       setSubmitSuccess(false);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
     }
+    return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -124,8 +129,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative animate-scale-in flex flex-col max-h-[90vh]">
         
         {/* Close Button */}
@@ -322,7 +327,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
 
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Plus, MoreHorizontal, Calendar, MessageSquare, Paperclip, 
   CheckCircle2, Circle, Clock, AlertCircle, Search, Filter,
@@ -88,13 +89,25 @@ const ColumnHeader = ({ title, count, status }: { title: string, count: number, 
 
 // --- Task Detail Modal ---
 const TaskDetailModal = ({ task, onClose }: { task: Task | null; onClose: () => void }) => {
+  useEffect(() => {
+    if (task) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [task]);
+
   if (!task) return null;
 
   const project = MOCK_PROJECTS.find(p => p.id === task.projectId);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh] animate-scale-in overflow-hidden">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+      <div 
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh] animate-scale-in overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
         
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-start bg-slate-50">
@@ -256,12 +269,20 @@ const TaskDetailModal = ({ task, onClose }: { task: Task | null; onClose: () => 
            </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
 // Filter Button Component
-const FilterButton = ({ label, value, activeValue, onClick }: { label: string, value: string, activeValue: string, onClick: (val: string) => void }) => {
+interface FilterButtonProps {
+  label: string;
+  value: string;
+  activeValue: string;
+  onClick: (val: string) => void;
+}
+
+const FilterButton: React.FC<FilterButtonProps> = ({ label, value, activeValue, onClick }) => {
   const isActive = value === activeValue;
   return (
     <button

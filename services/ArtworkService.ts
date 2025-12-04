@@ -33,5 +33,24 @@ export const ArtworkService = {
 
       return matchCategory && matchSearch && matchAi;
     });
+  },
+
+  /**
+   * Fetch single artwork details by ID
+   */
+  getArtworkById: async (id: string): Promise<Artwork | undefined> => {
+    await delay(400); // Simulate fetch latency
+    const artwork = MOCK_ARTWORKS.find(a => a.id === id);
+    if (artwork) {
+      // Enrich with mock details if missing
+      return {
+        ...artwork,
+        description: artwork.description || "这是一幅令人惊叹的数字艺术作品，探索了光影与构图的极致。创作灵感来源于日常生活中的瞬间，结合了现代数字绘画技术与传统美学理念。作品旨在传达一种独特的情感氛围，让观众在视觉的冲击下产生深刻的共鸣。",
+        publishDate: artwork.publishDate || "2023-10-24",
+        tools: artwork.tools || ["Photoshop", "Blender", "Procreate"],
+        resolution: artwork.resolution || "4096 x 2160 px"
+      };
+    }
+    return undefined;
   }
 };

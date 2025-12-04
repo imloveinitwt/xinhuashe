@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, UploadCloud, Image as ImageIcon, Sparkles, Wand2, CheckCircle2, Loader2, Briefcase, Calendar, DollarSign, FileText, Layers } from 'lucide-react';
 import { UserRole } from '../types';
 
@@ -21,6 +23,15 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
     description: '',
     deliverables: ['源文件', 'JPG导出']
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -272,8 +283,8 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
     </div>
   );
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* Header */}
@@ -318,7 +329,8 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
