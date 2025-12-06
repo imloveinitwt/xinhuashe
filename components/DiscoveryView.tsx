@@ -4,13 +4,14 @@ import {
   Search, Sparkles, TrendingUp, ArrowRight, Zap, 
   Briefcase, Clock, 
   Crown, ChevronRight, SlidersHorizontal, CheckCircle2, Monitor,
-  Heart, Eye, User as UserIcon
+  Heart, Eye, User as UserIcon, Building
 } from 'lucide-react';
 import { MOCK_PROJECTS, MOCK_ARTWORKS } from '../constants';
-import { User, Artwork, ViewMode } from '../types';
+import { User, Artwork, ViewMode, Project } from '../types';
 import { ArtworkService } from '../services/ArtworkService';
 import ArtworkCard from './ArtworkCard';
 import ArtworkDetailModal from './ArtworkDetailModal';
+import ProjectDrawer from './ProjectDrawer';
 
 interface DiscoveryViewProps {
   onNavigateToProfile?: (profileId: string) => void;
@@ -86,6 +87,8 @@ const FeaturedItem = ({
   onLike?: (id: string, e: React.MouseEvent) => void,
   isLiked?: boolean
 }) => {
+  if (!artwork) return null;
+
   return (
     <div 
       onClick={() => onClick(artwork.id)}
@@ -181,6 +184,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [likedArtworks, setLikedArtworks] = useState<Set<string>>(new Set());
   const [isScrolled, setIsScrolled] = useState(false);
   const [heroIndex, setHeroIndex] = useState(0);
@@ -188,22 +192,40 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
   // Constants
   const CATEGORIES = ['全部', 'UI/UX', '插画', '3D模型', '概念设计', '二次元', '场景', '科幻', '像素画', '国风', '素材'];
   
+  // Safe Accessor for Artworks to prevent crashes if MOCK data is limited
+  const getSafeArtwork = (index: number): Artwork => {
+    const art = MOCK_ARTWORKS[index] || MOCK_ARTWORKS[0];
+    if (art) return art;
+    
+    // Ultimate fallback if MOCK_ARTWORKS is empty
+    return {
+      id: `fallback_${index}`,
+      title: '暂无作品',
+      artist: '官方',
+      artistAvatar: 'https://ui-avatars.com/api/?name=System',
+      imageUrl: 'https://placehold.co/800x600/e2e8f0/64748b?text=No+Image',
+      likes: 0,
+      views: 0,
+      tags: ['示例']
+    } as Artwork;
+  };
+
   // Hero Slides Data
   const HERO_SLIDES = [
     {
-      image: MOCK_ARTWORKS[0].imageUrl, // Cyberpunk
+      image: getSafeArtwork(0).imageUrl, // Cyberpunk
       title: "连接无限创意",
       subtitle: "汇聚全球 10w+ 顶尖创作者",
       color: "from-blue-600 to-purple-600"
     },
     {
-      image: MOCK_ARTWORKS[5].imageUrl, // Ink
+      image: getSafeArtwork(5).imageUrl, // Ink
       title: "驱动商业价值",
       subtitle: "为企业打造智能化的创意供应链",
       color: "from-emerald-600 to-teal-600"
     },
     {
-      image: MOCK_ARTWORKS[12].imageUrl, // 3D
+      image: getSafeArtwork(12).imageUrl, // 3D
       title: "管理数字资产",
       subtitle: "AI 赋能的 DAM 系统，让资产复用更简单",
       color: "from-orange-600 to-rose-600"
@@ -224,7 +246,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
       setHeroIndex((prev) => (prev + 1) % HERO_SLIDES.length);
     }, 6000);
     return () => clearInterval(interval);
-  }, []);
+  }, [HERO_SLIDES.length]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -264,6 +286,17 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
     }
   };
 
+  const handleApply = () => {
+    if (!user && onTriggerLogin) {
+      onTriggerLogin();
+    } else {
+      alert("申请已发送！");
+      setSelectedProject(null);
+    }
+  };
+
+  const currentHeroArtwork = getSafeArtwork(heroIndex);
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-20 pt-16">
       
@@ -274,6 +307,15 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
         onTriggerLogin={onTriggerLogin}
         currentUser={user}
       />
+
+      {selectedProject && (
+        <ProjectDrawer 
+          project={selectedProject} 
+          onClose={() => setSelectedProject(null)} 
+          onApply={handleApply} 
+          user={user}
+        />
+      )}
 
       {/* 1. Immersive Hero Section (New Design) */}
       <div className="relative bg-slate-900 overflow-hidden h-[600px] lg:h-[680px]">
@@ -297,7 +339,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
           </div>
         ))}
 
-        <div className="relative z-10 max-w-[1600px] mx-auto px-6 md:px-12 h-full flex flex-col justify-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             
             {/* Left Content */}
@@ -378,18 +420,18 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
                      </div>
 
                      {/* Featured Image */}
-                     <div className="flex-1 rounded-2xl overflow-hidden relative group mb-4 cursor-pointer" onClick={() => setSelectedArtworkId(MOCK_ARTWORKS[heroIndex].id)}>
+                     <div className="flex-1 rounded-2xl overflow-hidden relative group mb-4 cursor-pointer" onClick={() => setSelectedArtworkId(currentHeroArtwork.id)}>
                         <img 
-                          src={MOCK_ARTWORKS[heroIndex].imageUrl} 
+                          src={currentHeroArtwork.imageUrl} 
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                           alt="Featured" 
                         />
                         <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>
                         <div className="absolute bottom-4 left-4 right-4">
                            <div className="bg-black/60 backdrop-blur-md p-3 rounded-xl border border-white/10">
-                              <h3 className="text-white font-bold text-sm truncate">{MOCK_ARTWORKS[heroIndex].title}</h3>
+                              <h3 className="text-white font-bold text-sm truncate">{currentHeroArtwork.title}</h3>
                               <p className="text-white/70 text-xs mt-1 flex items-center gap-1">
-                                 <UserIcon className="w-3 h-3" /> {MOCK_ARTWORKS[heroIndex].artist}
+                                 <UserIcon className="w-3 h-3" /> {currentHeroArtwork.artist}
                               </p>
                            </div>
                         </div>
@@ -398,11 +440,11 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
                      {/* Mini Stats */}
                      <div className="grid grid-cols-3 gap-2">
                         <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
-                           <div className="text-indigo-400 font-bold text-lg">{MOCK_ARTWORKS[heroIndex].likes}</div>
+                           <div className="text-indigo-400 font-bold text-lg">{currentHeroArtwork.likes}</div>
                            <div className="text-white/40 text-[10px]">Likes</div>
                         </div>
                         <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
-                           <div className="text-pink-400 font-bold text-lg">{(MOCK_ARTWORKS[heroIndex].views / 1000).toFixed(1)}k</div>
+                           <div className="text-pink-400 font-bold text-lg">{(currentHeroArtwork.views / 1000).toFixed(1)}k</div>
                            <div className="text-white/40 text-[10px]">Views</div>
                         </div>
                         <div className="bg-indigo-600 rounded-lg p-2 flex items-center justify-center cursor-pointer hover:bg-indigo-700 transition-colors">
@@ -422,7 +464,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
 
         {/* Integrated Stats Bar (Glassmorphism) */}
         <div className="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-slate-900/60 backdrop-blur-md z-20">
-           <div className="max-w-[1600px] mx-auto px-6 md:px-12 py-6">
+           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <div className="flex flex-wrap justify-center md:justify-between items-center gap-6 md:gap-12">
                  <div className="flex items-center gap-3 group cursor-pointer hover:scale-105 transition-transform">
                     <div className="p-2 bg-indigo-500/20 rounded-lg text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-colors"><Monitor className="w-5 h-5" /></div>
@@ -458,7 +500,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
       </div>
 
       {/* 3. Main Content Container */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
         
         {/* SECTION: Featured This Week (Refined) */}
         <section>
@@ -478,13 +520,13 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
               {/* Primary Feature (Left, 2/3 width) */}
               <div key={heroIndex} className="md:col-span-2 md:h-full animate-fade-in">
                  <FeaturedItem 
-                   artwork={MOCK_ARTWORKS[21]} // Example: Cyberpunk girl
+                   artwork={getSafeArtwork(21)} 
                    size="large"
                    badge="Editor's Choice"
                    badgeColor="bg-gradient-to-r from-yellow-500 to-amber-600 border-yellow-400/30"
                    onClick={setSelectedArtworkId}
                    onLike={toggleLike}
-                   isLiked={likedArtworks.has(MOCK_ARTWORKS[21].id)}
+                   isLiked={likedArtworks.has(getSafeArtwork(21).id)}
                  />
               </div>
 
@@ -492,22 +534,22 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
               <div className="flex flex-col gap-6 md:h-full">
                  <div className="flex-1">
                     <FeaturedItem 
-                      artwork={MOCK_ARTWORKS[5]} // Example: Ink wash
+                      artwork={getSafeArtwork(5)} // Example: Ink wash
                       badge="Trending"
                       badgeColor="bg-rose-500/80 border-rose-400/30"
                       onClick={setSelectedArtworkId}
                       onLike={toggleLike}
-                      isLiked={likedArtworks.has(MOCK_ARTWORKS[5].id)}
+                      isLiked={likedArtworks.has(getSafeArtwork(5).id)}
                     />
                  </div>
                  <div className="flex-1">
                     <FeaturedItem 
-                      artwork={MOCK_ARTWORKS[12]} // Example: 3D assets
+                      artwork={getSafeArtwork(12)} // Example: 3D assets
                       badge="New Rising"
                       badgeColor="bg-blue-500/80 border-blue-400/30"
                       onClick={setSelectedArtworkId}
                       onLike={toggleLike}
-                      isLiked={likedArtworks.has(MOCK_ARTWORKS[12].id)}
+                      isLiked={likedArtworks.has(getSafeArtwork(12).id)}
                     />
                  </div>
               </div>
@@ -515,7 +557,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
            </div>
         </section>
 
-        {/* SECTION: Projects Horizontal Scroll */}
+        {/* SECTION: Projects Horizontal Scroll (UPDATED DESIGN & INTERACTION) */}
         <section>
            <SectionHeader 
              title="急需人才的企划" 
@@ -525,32 +567,68 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
              onAction={() => onNavigate?.('projects_hub')}
            />
            <div className="relative group/scroll">
-              <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar snap-x snap-mandatory">
-                 {MOCK_PROJECTS.slice(0, 6).map((project) => (
+              <div className="flex gap-6 overflow-x-auto pb-6 pt-1 no-scrollbar snap-x snap-mandatory px-1">
+                 {MOCK_PROJECTS.slice(0, 6).map((project, idx) => (
                     <div 
                       key={project.id} 
-                      className="min-w-[280px] md:min-w-[320px] bg-white rounded-2xl border border-slate-200 p-5 snap-start hover:shadow-lg hover:border-indigo-200 transition-all cursor-pointer flex flex-col"
+                      onClick={() => setSelectedProject(project)}
+                      className="min-w-[300px] md:min-w-[340px] h-[320px] bg-white rounded-2xl relative overflow-hidden group cursor-pointer snap-start shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ring-1 ring-slate-100"
                     >
-                       <div className="flex justify-between items-start mb-3">
-                          <span className={`text-[10px] px-2 py-1 rounded font-bold ${project.status === '招募中' ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-600'}`}>
+                       {/* Card Cover Image */}
+                       <div className="absolute inset-0 bg-slate-200">
+                          <img 
+                            src={project.coverImage || `https://placehold.co/600x400/e2e8f0/64748b?text=${project.title}`} 
+                            alt={project.title}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent"></div>
+                       </div>
+
+                       {/* Status Badge (Top Right) */}
+                       <div className="absolute top-4 right-4">
+                          <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold backdrop-blur-md border border-white/10 flex items-center gap-1 ${
+                             project.status === '招募中' 
+                               ? 'bg-rose-500/90 text-white shadow-lg shadow-rose-500/20' 
+                               : 'bg-black/40 text-white'
+                          }`}>
+                             {project.status === '招募中' && <Zap className="w-3 h-3 fill-current" />}
                              {project.status}
                           </span>
-                          <span className="text-xs text-slate-400 flex items-center gap-1">
-                             <Clock className="w-3 h-3" /> {project.deadline}
-                          </span>
                        </div>
-                       <h3 className="font-bold text-slate-800 mb-1 line-clamp-1 group-hover:text-indigo-600 transition-colors text-base">{project.title}</h3>
-                       <p className="text-xs text-slate-500 mb-4 flex items-center gap-1">
-                          <Briefcase className="w-3 h-3" /> {project.client}
-                       </p>
-                       
-                       <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-                          <div className="font-bold text-indigo-600 flex items-center gap-0.5">
-                             <span className="text-xs">¥</span>{project.budget.toLocaleString()}
+
+                       {/* Content Content (Bottom) */}
+                       <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                          <div className="flex items-center gap-2 mb-2">
+                             <span className="text-[10px] bg-white/20 backdrop-blur-sm border border-white/10 px-2 py-0.5 rounded font-medium flex items-center gap-1">
+                                <Building className="w-3 h-3" /> {project.client}
+                             </span>
+                             {project.category && (
+                                <span className="text-[10px] bg-indigo-500/80 backdrop-blur-sm px-2 py-0.5 rounded font-bold">
+                                   {project.category}
+                                </span>
+                             )}
                           </div>
-                          <span className="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded">
-                             {project.phase}
-                          </span>
+                          
+                          <h3 className="font-bold text-lg mb-1 leading-tight group-hover:text-indigo-300 transition-colors line-clamp-2">
+                             {project.title}
+                          </h3>
+                          
+                          <p className="text-xs text-slate-300 line-clamp-1 mb-4 opacity-80">
+                             {project.description || "暂无详细描述，点击查看详情..."}
+                          </p>
+
+                          <div className="flex items-end justify-between border-t border-white/10 pt-3">
+                             <div>
+                                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">项目预算</p>
+                                <div className="text-xl font-bold font-mono text-emerald-400">¥{project.budget.toLocaleString()}</div>
+                             </div>
+                             <div className="text-right">
+                                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">截止日期</p>
+                                <div className="text-sm font-bold flex items-center gap-1">
+                                   <Clock className="w-3.5 h-3.5 text-slate-300" /> {project.deadline}
+                                </div>
+                             </div>
+                          </div>
                        </div>
                     </div>
                  ))}
@@ -558,16 +636,16 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
                  {/* View All Card */}
                  <div 
                    onClick={() => onNavigate?.('projects_hub')}
-                   className="min-w-[150px] bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition-colors snap-start"
+                   className="min-w-[150px] bg-white rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-all snap-start group"
                  >
-                    <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm mb-3 text-indigo-600 group-hover:scale-110 transition-transform">
-                       <ChevronRight className="w-6 h-6" />
+                    <div className="w-14 h-14 rounded-full bg-slate-50 flex items-center justify-center shadow-sm mb-3 text-slate-400 group-hover:scale-110 group-hover:bg-white group-hover:text-indigo-600 transition-all">
+                       <ChevronRight className="w-7 h-7" />
                     </div>
-                    <span className="text-sm font-bold text-slate-600 group-hover:text-indigo-600">查看全部</span>
+                    <span className="text-sm font-bold text-slate-500 group-hover:text-indigo-700">查看全部企划</span>
                  </div>
               </div>
               {/* Fade masks */}
-              <div className="absolute top-0 right-0 bottom-4 w-24 bg-gradient-to-l from-slate-50 to-transparent pointer-events-none md:block hidden"></div>
+              <div className="absolute top-0 right-0 bottom-6 w-24 bg-gradient-to-l from-slate-50 to-transparent pointer-events-none md:block hidden"></div>
            </div>
         </section>
 
@@ -604,14 +682,16 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
            </div>
 
            {/* Waterfall Grid */}
-           <div className="mt-6 columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+           <div className="mt-6 columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
               {isLoading ? (
                  Array.from({ length: 8 }).map((_, i) => (
-                    <ArtworkCard key={i} isLoading={true} className="break-inside-avoid" />
+                    <div key={i} className="break-inside-avoid mb-4">
+                        <ArtworkCard isLoading={true} />
+                    </div>
                  ))
               ) : (
                  artworks.map((artwork, idx) => (
-                    <div key={artwork.id} className="break-inside-avoid animate-fade-in-up" style={{ animationDelay: `${idx * 50}ms` }}>
+                    <div key={artwork.id} className="break-inside-avoid mb-4 animate-fade-in-up" style={{ animationDelay: `${idx * 50}ms` }}>
                        <ArtworkCard 
                           artwork={artwork}
                           isLiked={likedArtworks.has(artwork.id)}

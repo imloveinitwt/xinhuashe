@@ -1,14 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { 
   MapPin, Link as LinkIcon, Calendar, BadgeCheck, Settings, 
   UserPlus, Mail, Eye, Heart, Share2, PenTool, Image as ImageIcon,
-  Grid, List, Check, X, Palette, Layout, Users, Crown, Zap
+  Grid, List, Check, X, Palette, Layout, Users, Crown, Zap, Loader2,
+  Briefcase, Sparkles, MessageCircle
 } from 'lucide-react';
 import { User, UserProfile, UserProfilePreferences, ThemeColor } from '../types';
 import { MOCK_ARTWORKS, MOCK_CREATORS, MOCK_USERS_ADMIN_VIEW } from '../constants';
 import ArtworkDetailModal from './ArtworkDetailModal';
+import ArtworkCard from './ArtworkCard';
 
 interface PersonalSpaceViewProps {
   profile: UserProfile;
@@ -20,9 +22,13 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
   
   // Customization State
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+  const [isEditLoading, setIsEditLoading] = useState(false);
   const [preferences, setPreferences] = useState<UserProfilePreferences>(
     profile.preferences || { themeColor: 'indigo', layoutMode: 'grid' }
   );
+
+  // Portfolio Filter State
+  const [workFilter, setWorkFilter] = useState('全部');
 
   // Modal State
   const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
@@ -47,7 +53,22 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
   const isOwner = currentUser?.id && (profile.userId === currentUser.id || profile.displayName === currentUser.name);
 
   // Filter artworks for this profile
-  const userArtworks = MOCK_ARTWORKS.filter(art => art.artist === profile.displayName);
+  const userArtworks = useMemo(() => MOCK_ARTWORKS.filter(art => art.artist === profile.displayName), [profile.displayName]);
+  
+  // Compute available tags for filtering
+  const portfolioTags = useMemo(() => {
+    const tags = new Set<string>(['全部']);
+    userArtworks.forEach(art => {
+      art.tags?.forEach(tag => tags.add(tag));
+    });
+    return Array.from(tags).slice(0, 8); // Top 8 tags
+  }, [userArtworks]);
+
+  // Apply filter
+  const filteredWorks = userArtworks.filter(art => 
+    workFilter === '全部' || art.tags?.includes(workFilter)
+  );
+
   const likedArtworks = MOCK_ARTWORKS.slice(0, 4); 
 
   // Mock Followers Data (Mix of creators and admin users for demo)
@@ -58,6 +79,15 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
     isVerified: 'isVerified' in u ? u.isVerified : false,
     role: 'roleName' in u ? u.roleName : 'Creator'
   }));
+
+  const handleEditClick = () => {
+    setIsEditLoading(true);
+    // Simulate loading delay for better UX
+    setTimeout(() => {
+      setIsEditLoading(false);
+      setIsCustomizeOpen(true);
+    }, 800);
+  };
 
   // Helpers for Dynamic Styling
   const getThemeColorClass = (type: 'text' | 'bg' | 'border' | 'ring') => {
@@ -190,17 +220,17 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
       )}
 
       {/* 1. Cover Image */}
-      <div className="h-64 md:h-80 w-full relative group">
+      <div className="h-64 md:h-80 w-full relative group overflow-hidden">
         <img 
           src={profile.coverImage} 
           alt="Cover" 
-          className="w-full h-full object-cover bg-slate-900"
+          className="w-full h-full object-cover bg-slate-900 transition-transform duration-700 group-hover:scale-105"
           onError={handleCoverError}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/10 to-transparent"></div>
         
         {isOwner && (
-          <button className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm transition-colors flex items-center gap-2 opacity-0 group-hover:opacity-100">
+          <button className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm transition-colors flex items-center gap-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 duration-300">
             <ImageIcon className="w-4 h-4" />
             更换封面
           </button>
@@ -212,41 +242,43 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
           
           {/* 2. Sidebar / Info Card */}
           <div className="lg:w-80 flex-shrink-0">
-             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col items-center lg:items-start text-center lg:text-left relative">
+             <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-6 flex flex-col items-center lg:items-start text-center lg:text-left relative overflow-hidden">
                 {/* Avatar */}
-                <div className={`w-32 h-32 rounded-full border-4 border-white shadow-md overflow-hidden mb-4 bg-white relative`}>
-                  <img 
-                    src={profile.avatar} 
-                    alt={profile.displayName} 
-                    className="w-full h-full object-cover bg-slate-200" 
-                    onError={handleAvatarError}
-                  />
+                <div className="relative group/avatar cursor-pointer">
+                  <div className={`w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden mb-4 bg-white relative z-10`}>
+                    <img 
+                      src={profile.avatar} 
+                      alt={profile.displayName} 
+                      className="w-full h-full object-cover bg-slate-200 group-hover/avatar:scale-110 transition-transform duration-500" 
+                      onError={handleAvatarError}
+                    />
+                  </div>
                   {hasMembership && (
-                    <div className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm">
-                       <Crown className={`w-5 h-5 ${profile.membershipLevel === 'max' ? 'text-amber-500 fill-amber-500' : 'text-indigo-500 fill-indigo-500'}`} />
+                    <div className="absolute bottom-4 right-0 z-20 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md border-2 border-slate-50">
+                       <Crown className={`w-4 h-4 ${profile.membershipLevel === 'max' ? 'text-amber-500 fill-amber-500' : 'text-indigo-500 fill-indigo-500'}`} />
                     </div>
                   )}
                 </div>
                 
                 {/* Name & Verify */}
-                <div className="mb-2">
+                <div className="mb-2 w-full">
                   <h1 className="text-2xl font-bold text-slate-900 flex items-center justify-center lg:justify-start gap-2">
                     {profile.displayName}
-                    {profile.isVerified && <BadgeCheck className={`w-5 h-5 ${getThemeColorClass('text')}`} />}
+                    {profile.isVerified && <BadgeCheck className={`w-5 h-5 ${getThemeColorClass('text')} fill-current text-white`} />}
                   </h1>
-                  <p className="text-slate-500 text-sm mt-1">@{profile.id.split('_')[1]}</p>
+                  <p className="text-slate-500 text-sm mt-1">@{profile.id.split('_')[1] || 'user'}</p>
                 </div>
 
                 {/* Badges Row (Credit + Membership) */}
-                <div className="flex flex-wrap justify-center lg:justify-start gap-2 mb-4">
+                <div className="flex flex-wrap justify-center lg:justify-start gap-2 mb-6">
                   {profile.creditScore && (
-                    <div className="bg-slate-50 px-3 py-1 rounded-full border border-slate-200 flex items-center gap-1.5">
+                    <div className="bg-slate-50 px-3 py-1 rounded-full border border-slate-200 flex items-center gap-1.5 shadow-sm">
                       <Zap className="w-3.5 h-3.5 text-yellow-500 fill-current" />
                       <span className="text-xs font-bold text-slate-700">信用 {profile.creditScore}</span>
                     </div>
                   )}
                   {hasMembership && (
-                    <div className={`px-3 py-1 rounded-full border flex items-center gap-1.5 ${
+                    <div className={`px-3 py-1 rounded-full border flex items-center gap-1.5 shadow-sm ${
                       profile.membershipLevel === 'max' 
                         ? 'bg-amber-50 border-amber-200 text-amber-700' 
                         : 'bg-indigo-50 border-indigo-200 text-indigo-700'
@@ -257,37 +289,40 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
                   )}
                 </div>
 
-                {/* Bio */}
-                <p className="text-slate-600 text-sm leading-relaxed mb-6 w-full">
-                  {profile.bio}
-                </p>
-
                 {/* Stats Row */}
-                <div className="flex items-center justify-center lg:justify-between w-full border-b border-slate-100 pb-6 mb-6 gap-6 lg:gap-0">
-                   <div className="text-center lg:text-left">
-                     <div className="font-bold text-slate-900">{profile.stats.followers}</div>
-                     <div className="text-xs text-slate-500">粉丝</div>
+                <div className="flex items-center justify-between w-full border-y border-slate-100 py-4 mb-6">
+                   <div className="text-center flex-1 border-r border-slate-100 last:border-0">
+                     <div className="font-bold text-slate-900 text-lg">{profile.stats.followers}</div>
+                     <div className="text-xs text-slate-500 font-medium">粉丝</div>
                    </div>
-                   <div className="text-center lg:text-left">
-                     <div className="font-bold text-slate-900">{profile.stats.following}</div>
-                     <div className="text-xs text-slate-500">关注</div>
+                   <div className="text-center flex-1 border-r border-slate-100 last:border-0">
+                     <div className="font-bold text-slate-900 text-lg">{profile.stats.following}</div>
+                     <div className="text-xs text-slate-500 font-medium">关注</div>
                    </div>
-                   <div className="text-center lg:text-left">
-                     <div className="font-bold text-slate-900">{profile.stats.likes}</div>
-                     <div className="text-xs text-slate-500">获赞</div>
+                   <div className="text-center flex-1">
+                     <div className="font-bold text-slate-900 text-lg">{profile.stats.likes > 1000 ? (profile.stats.likes/1000).toFixed(1)+'k' : profile.stats.likes}</div>
+                     <div className="text-xs text-slate-500 font-medium">获赞</div>
                    </div>
                 </div>
 
+                {/* Bio */}
+                <div className="w-full mb-6 text-left">
+                   <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">关于我</h4>
+                   <p className="text-slate-600 text-sm leading-relaxed line-clamp-4">
+                     {profile.bio || "这位创作者很懒，还没有填写简介。"}
+                   </p>
+                </div>
+
                 {/* Meta Info */}
-                <div className="w-full space-y-3 text-sm text-slate-600 mb-6">
+                <div className="w-full space-y-3 text-sm text-slate-600 mb-6 text-left">
                    <div className="flex items-center gap-3">
                      <MapPin className="w-4 h-4 text-slate-400" />
                      {profile.location}
                    </div>
                    {profile.website && (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 group">
                       <LinkIcon className="w-4 h-4 text-slate-400" />
-                      <a href={`https://${profile.website}`} className={`${getThemeColorClass('text')} hover:underline truncate`}>{profile.website}</a>
+                      <a href={`https://${profile.website}`} target="_blank" rel="noreferrer" className={`${getThemeColorClass('text')} hover:underline truncate group-hover:opacity-80`}>{profile.website}</a>
                     </div>
                    )}
                    <div className="flex items-center gap-3">
@@ -297,25 +332,36 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
                 </div>
 
                 {/* Skills Tags */}
-                <div className="w-full flex flex-wrap gap-2 mb-8">
-                  {profile.skills.map(skill => (
-                    <span key={skill} className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-md">
-                      {skill}
-                    </span>
-                  ))}
+                <div className="w-full mb-8 text-left">
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">技能标签</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.skills.map(skill => (
+                      <span key={skill} className="bg-slate-50 border border-slate-200 text-slate-600 text-xs px-2.5 py-1 rounded-md hover:border-indigo-300 transition-colors cursor-default">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Actions */}
-                <div className="w-full flex gap-3">
+                <div className="w-full flex gap-3 mt-auto">
                   {isOwner ? (
                     <>
-                      <button className="flex-1 bg-white border border-slate-300 text-slate-700 font-medium py-2 rounded-lg hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
-                        <PenTool className="w-4 h-4" />
-                        编辑
+                      <button 
+                        onClick={handleEditClick}
+                        disabled={isEditLoading}
+                        className={`flex-1 border font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm ${
+                          isEditLoading 
+                            ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-wait' 
+                            : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400'
+                        }`}
+                      >
+                        {isEditLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <PenTool className="w-4 h-4" />}
+                        {isEditLoading ? '加载中...' : '编辑资料'}
                       </button>
                       <button 
                         onClick={() => setIsCustomizeOpen(true)}
-                        className="flex-none p-2 border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-600"
+                        className="flex-none p-2.5 border border-slate-300 rounded-xl hover:bg-slate-50 text-slate-600 transition-colors shadow-sm"
                         title="自定义空间"
                       >
                         <Settings className="w-5 h-5" />
@@ -323,136 +369,173 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
                     </>
                   ) : (
                     <>
-                      <button className={`flex-1 ${getThemeColorClass('bg')} text-white font-medium py-2 rounded-lg ${getHoverBgClass()} transition-colors flex items-center justify-center gap-2`}>
+                      <button className={`flex-1 ${getThemeColorClass('bg')} text-white font-bold py-2.5 rounded-xl ${getHoverBgClass()} transition-all shadow-md shadow-indigo-200 flex items-center justify-center gap-2 hover:-translate-y-0.5`}>
                         <UserPlus className="w-4 h-4" />
                         关注
                       </button>
-                      <button className="flex-none p-2 border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-600">
-                        <Mail className="w-5 h-5" />
+                      <button className="flex-1 bg-white border border-slate-300 text-slate-700 font-bold py-2.5 rounded-xl hover:bg-slate-50 hover:text-indigo-600 transition-all shadow-sm flex items-center justify-center gap-2">
+                        <MessageCircle className="w-4 h-4" /> 私信
+                      </button>
+                      <button className="flex-none p-2.5 border border-slate-300 rounded-xl hover:bg-slate-50 text-slate-600 transition-colors shadow-sm">
+                        <Share2 className="w-5 h-5" />
                       </button>
                     </>
                   )}
-                  <button className="flex-none p-2 border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-600">
-                    <Share2 className="w-5 h-5" />
-                  </button>
                 </div>
              </div>
           </div>
 
           {/* 3. Main Content Tabs */}
           <div className="flex-1 min-w-0 pt-0 lg:pt-20">
-             {/* Tabs Header */}
-             <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-6 mb-6">
-                <div className="flex gap-8 overflow-x-auto no-scrollbar">
-                  {[
-                    { id: 'works', label: '作品集', count: userArtworks.length },
-                    { id: 'likes', label: '收藏夹', count: profile.stats.likes },
-                    { id: 'followers', label: '粉丝', count: profile.stats.followers },
-                    { id: 'about', label: '关于' }
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id as any)}
-                      className={`relative py-4 text-sm font-medium transition-colors whitespace-nowrap ${
-                        activeTab === tab.id 
-                          ? getThemeColorClass('text') 
-                          : 'text-slate-500 hover:text-slate-700'
-                      }`}
-                    >
-                      {tab.label}
-                      {tab.count !== undefined && <span className="ml-1 text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">{tab.count}</span>}
-                      {activeTab === tab.id && (
-                        <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${getThemeColorClass('bg')} rounded-t-full`}></div>
-                      )}
-                    </button>
-                  ))}
-                </div>
+             {/* Sticky Tabs Header */}
+             <div className="sticky top-16 z-30 bg-slate-50/95 backdrop-blur-md pt-2 pb-4 -mx-4 px-4 md:mx-0 md:px-0">
+               <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-2 md:px-6">
+                  <div className="flex gap-6 overflow-x-auto no-scrollbar">
+                    {[
+                      { id: 'works', label: '作品集', count: userArtworks.length },
+                      { id: 'likes', label: '收藏夹', count: profile.stats.likes },
+                      { id: 'followers', label: '粉丝', count: profile.stats.followers },
+                      { id: 'about', label: '关于' }
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id as any)}
+                        className={`relative py-4 text-sm font-bold transition-colors whitespace-nowrap flex items-center gap-2 ${
+                          activeTab === tab.id 
+                            ? getThemeColorClass('text') 
+                            : 'text-slate-500 hover:text-slate-700'
+                        }`}
+                      >
+                        {tab.label}
+                        {tab.count !== undefined && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            activeTab === tab.id 
+                              ? `bg-${preferences.themeColor}-50 text-${preferences.themeColor}-600` 
+                              : 'bg-slate-100 text-slate-500'
+                          }`}>
+                            {tab.count}
+                          </span>
+                        )}
+                        {activeTab === tab.id && (
+                          <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${getThemeColorClass('bg')} rounded-t-full`}></div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+               </div>
              </div>
 
              {/* Tab Content */}
-             <div className="animate-fade-in">
+             <div className="animate-fade-in min-h-[500px]">
                
                {activeTab === 'works' && (
-                 <div className={`grid gap-6 ${
-                   preferences.layoutMode === 'grid' 
-                     ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
-                     : 'grid-cols-1' // List view is single column
-                 }`}>
-                    {userArtworks.length > 0 ? userArtworks.map(art => (
-                      <div 
-                        key={art.id} 
-                        className={`group bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-lg transition-all cursor-pointer ${
-                          preferences.layoutMode === 'list' ? 'flex flex-row h-48' : ''
-                        }`}
-                        onClick={() => setSelectedArtworkId(art.id)}
-                      >
-                         <div className={`relative overflow-hidden ${
-                           preferences.layoutMode === 'list' ? 'w-64 flex-shrink-0' : 'aspect-[4/3]'
-                         }`}>
-                           <img 
-                            src={art.imageUrl} 
-                            alt={art.title} 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                            onError={handleArtworkError}
-                           />
-                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"></div>
-                         </div>
-                         <div className="p-4 flex flex-col justify-center flex-1">
-                            <h3 className="font-semibold text-slate-800 text-lg truncate">{art.title}</h3>
-                            <div className="flex items-center justify-between mt-4 text-xs text-slate-500">
-                               <div className="flex items-center gap-4">
-                                 <span className="flex items-center gap-1"><Eye className="w-4 h-4" /> {art.views}</span>
-                                 <span className="flex items-center gap-1"><Heart className="w-4 h-4" /> {art.likes}</span>
-                               </div>
-                               {preferences.layoutMode === 'list' && (
-                                 <div className="flex gap-2">
-                                   {art.tags.slice(0, 3).map(tag => (
-                                     <span key={tag} className="bg-slate-100 px-2 py-1 rounded-md">{tag}</span>
-                                   ))}
-                                 </div>
+                 <>
+                   {/* Portfolio Filter Bar */}
+                   <div className="flex items-center justify-between mb-6">
+                      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 mask-linear-fade">
+                         {portfolioTags.map(tag => (
+                            <button
+                              key={tag}
+                              onClick={() => setWorkFilter(tag)}
+                              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap border ${
+                                workFilter === tag 
+                                  ? `${getThemeColorClass('bg')} text-white border-transparent shadow-md`
+                                  : 'bg-white text-slate-500 hover:bg-slate-50 border-slate-200 hover:text-slate-700'
+                              }`}
+                            >
+                              {tag}
+                            </button>
+                         ))}
+                      </div>
+                   </div>
+
+                   {/* Artwork Grid */}
+                   <div className={`grid gap-6 ${
+                     preferences.layoutMode === 'grid' 
+                       ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' 
+                       : 'grid-cols-1' // List view is single column
+                   }`}>
+                      {filteredWorks.length > 0 ? filteredWorks.map(art => (
+                        preferences.layoutMode === 'grid' ? (
+                          <ArtworkCard 
+                            key={art.id} 
+                            artwork={art}
+                            onClick={() => setSelectedArtworkId(art.id)}
+                            showAvatar={false}
+                            className="h-full"
+                          />
+                        ) : (
+                          // Custom List View Item
+                          <div 
+                            key={art.id} 
+                            className="group bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-lg transition-all cursor-pointer flex flex-row h-48"
+                            onClick={() => setSelectedArtworkId(art.id)}
+                          >
+                             <div className="w-64 flex-shrink-0 relative overflow-hidden">
+                               <img 
+                                src={art.imageUrl} 
+                                alt={art.title} 
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                onError={handleArtworkError}
+                               />
+                               {/* AI Badge for Images */}
+                               {art.isAiGenerated && (
+                                  <div className="absolute top-2 left-2 bg-purple-600/80 backdrop-blur-md text-white text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                                     <Sparkles className="w-3 h-3 fill-current" /> AI
+                                  </div>
                                )}
-                            </div>
-                         </div>
-                      </div>
-                    )) : (
-                      <div className="col-span-full py-12 text-center text-slate-400">
-                        <ImageIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                        <p>暂无发布作品</p>
-                      </div>
-                    )}
-                    
-                    {/* Upload Placeholder for Owner */}
-                    {isOwner && (
-                      <div className={`border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer ${
-                        preferences.layoutMode === 'list' ? 'h-48' : 'min-h-[240px]'
-                      }`}
-                        style={{ borderColor: preferences.themeColor === 'indigo' ? undefined : 'var(--slate-200)' }} // Just a demo of inline style override
-                      >
-                         <PenTool className="w-8 h-8 mb-2" />
-                         <span className="font-medium">上传新作品</span>
-                      </div>
-                    )}
-                 </div>
+                             </div>
+                             <div className="p-5 flex flex-col justify-center flex-1">
+                                <h3 className="font-bold text-slate-900 text-lg truncate mb-2 group-hover:text-indigo-600 transition-colors">{art.title}</h3>
+                                <p className="text-sm text-slate-500 line-clamp-2 mb-4">{art.description || "暂无描述"}</p>
+                                
+                                <div className="flex gap-2 mb-auto">
+                                   {art.tags.slice(0, 3).map(tag => (
+                                     <span key={tag} className="bg-slate-50 text-slate-600 text-xs px-2 py-1 rounded-md border border-slate-100">{tag}</span>
+                                   ))}
+                                </div>
+
+                                <div className="flex items-center gap-4 text-xs text-slate-400 font-medium pt-4 border-t border-slate-50 mt-auto">
+                                   <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> {art.views}</span>
+                                   <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5" /> {art.likes}</span>
+                                   <span className="flex items-center gap-1 ml-auto"><Calendar className="w-3.5 h-3.5" /> {art.publishDate}</span>
+                                </div>
+                             </div>
+                          </div>
+                        )
+                      )) : (
+                        <div className="col-span-full py-20 text-center text-slate-400 bg-white rounded-xl border border-dashed border-slate-200">
+                          <ImageIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                          <p>暂无相关作品</p>
+                        </div>
+                      )}
+                      
+                      {/* Upload Placeholder for Owner */}
+                      {isOwner && workFilter === '全部' && (
+                        <div className={`border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-slate-50/50 hover:border-indigo-300 transition-all cursor-pointer group ${
+                          preferences.layoutMode === 'list' ? 'h-48' : 'min-h-[280px]'
+                        }`}
+                        >
+                           <div className={`p-4 rounded-full bg-slate-50 group-hover:${getThemeColorClass('bg')} group-hover:text-white transition-colors mb-3`}>
+                              <PenTool className="w-6 h-6" />
+                           </div>
+                           <span className="font-bold text-sm">上传新作品</span>
+                        </div>
+                      )}
+                   </div>
+                 </>
                )}
 
                {activeTab === 'likes' && (
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {likedArtworks.map(art => (
-                       <div 
-                         key={`like-${art.id}`} 
+                       <ArtworkCard 
+                         key={`like-${art.id}`}
+                         artwork={art}
                          onClick={() => setSelectedArtworkId(art.id)}
-                         className="bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 opacity-80 hover:opacity-100 transition-opacity cursor-pointer"
-                       >
-                          <img 
-                            src={art.imageUrl} 
-                            className="w-full h-48 object-cover grayscale hover:grayscale-0 transition-all" 
-                            onError={handleArtworkError}
-                          />
-                          <div className="p-3">
-                             <p className="font-medium text-slate-700 truncate">{art.title}</p>
-                             <p className="text-xs text-slate-500 mt-1">by {art.artist}</p>
-                          </div>
-                       </div>
+                         showAvatar={true}
+                         className="opacity-90 hover:opacity-100 transition-opacity"
+                       />
                     ))}
                  </div>
                )}
@@ -460,7 +543,7 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
                {activeTab === 'followers' && (
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                    {mockFollowers.map((follower, idx) => (
-                     <div key={idx} className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 flex items-center justify-between">
+                     <div key={idx} className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 flex items-center justify-between hover:shadow-md transition-shadow hover:border-indigo-200 group">
                        <div className="flex items-center gap-3">
                          <img 
                            src={follower.avatar} 
@@ -470,16 +553,16 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
                          />
                          <div>
                            <div className="flex items-center gap-1">
-                             <h4 className="font-bold text-slate-800 text-sm">{follower.name}</h4>
-                             {follower.isVerified && <BadgeCheck className="w-3 h-3 text-blue-500" />}
+                             <h4 className="font-bold text-slate-800 text-sm group-hover:text-indigo-600 transition-colors">{follower.name}</h4>
+                             {follower.isVerified && <BadgeCheck className="w-3 h-3 text-blue-500 fill-current text-white" />}
                            </div>
                            <p className="text-xs text-slate-500">{follower.role}</p>
                          </div>
                        </div>
-                       <button className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors ${
-                         preferences.themeColor === 'indigo' ? 'border-indigo-600 text-indigo-600 hover:bg-indigo-50' : 
-                         preferences.themeColor === 'pink' ? 'border-pink-500 text-pink-500 hover:bg-pink-50' :
-                         'border-slate-300 text-slate-600 hover:bg-slate-50'
+                       <button className={`px-4 py-1.5 text-xs font-bold rounded-full border transition-all ${
+                         preferences.themeColor === 'indigo' ? 'border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white' : 
+                         preferences.themeColor === 'pink' ? 'border-pink-500 text-pink-500 hover:bg-pink-500 hover:text-white' :
+                         'border-slate-300 text-slate-600 hover:bg-slate-800 hover:text-white hover:border-slate-800'
                        }`}>
                          关注
                        </button>
@@ -487,8 +570,8 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
                    ))}
                    
                    {/* Load More Placeholder */}
-                   <div className="col-span-full text-center py-4">
-                     <button className="text-sm text-slate-400 hover:text-slate-600 font-medium">
+                   <div className="col-span-full text-center py-8">
+                     <button className="text-sm text-slate-400 hover:text-slate-600 font-bold px-6 py-2 rounded-full hover:bg-slate-100 transition-colors">
                        加载更多...
                      </button>
                    </div>
@@ -497,31 +580,57 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
 
                {activeTab === 'about' && (
                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
-                    <h3 className="text-lg font-bold text-slate-800 mb-4">关于我</h3>
-                    <p className="text-slate-600 leading-relaxed mb-8">
-                      {profile.bio}
-                      <br /><br />
-                      作为一名数字艺术家，我致力于探索色彩与光影的极限。我有5年的行业经验，曾服务于多家知名游戏公司。
-                      欢迎各类商业合作与交流。
-                    </p>
+                    <div className="mb-12">
+                        <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2 pb-2 border-b border-slate-100">
+                           <div className={`w-1 h-5 rounded-full ${getThemeColorClass('bg')}`}></div>
+                           个人简介
+                        </h3>
+                        <p className="text-slate-600 leading-relaxed text-sm whitespace-pre-line">
+                          {profile.bio}
+                          {"\n\n"}
+                          作为一名数字艺术家，我致力于探索色彩与光影的极限。我有5年的行业经验，曾服务于多家知名游戏公司。
+                          欢迎各类商业合作与交流。
+                        </p>
+                    </div>
                     
-                    <h3 className="text-lg font-bold text-slate-800 mb-4">工作经历</h3>
-                    <div className="space-y-6">
-                       <div className={`flex gap-4`}>
-                          <div className={`w-12 h-12 rounded-lg ${getThemeColorClass('bg')} bg-opacity-10 flex items-center justify-center ${getThemeColorClass('text')} font-bold text-xl`}>N</div>
-                          <div>
-                             <h4 className="font-bold text-slate-800">高级概念设计师</h4>
-                             <p className="text-sm text-slate-600">NetEase Games • 2021 - 至今</p>
-                             <p className="text-xs text-slate-500 mt-1">负责核心项目场景概念设计与风格制定。</p>
-                          </div>
-                       </div>
-                       <div className="flex gap-4">
-                          <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xl">F</div>
-                          <div>
-                             <h4 className="font-bold text-slate-800">自由插画师</h4>
-                             <p className="text-sm text-slate-600">Freelance • 2018 - 2021</p>
-                          </div>
-                       </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-900 mb-8 flex items-center gap-2 pb-2 border-b border-slate-100">
+                           <div className={`w-1 h-5 rounded-full ${getThemeColorClass('bg')}`}></div>
+                           职业经历
+                        </h3>
+                        <div className="space-y-0 relative border-l-2 border-slate-100 ml-3 pl-8 pb-4">
+                           <div className="relative mb-10 group">
+                              <div className={`absolute -left-[39px] top-0 w-5 h-5 rounded-full bg-white border-4 transition-colors ${
+                                preferences.themeColor === 'pink' ? 'border-pink-500 group-hover:border-pink-600' : 'border-indigo-500 group-hover:border-indigo-600'
+                              }`}></div>
+                              <div className="flex gap-5 items-start">
+                                  <div className={`w-14 h-14 rounded-xl ${getThemeColorClass('bg')} bg-opacity-10 flex items-center justify-center ${getThemeColorClass('text')} font-bold text-xl flex-shrink-0`}>N</div>
+                                  <div>
+                                     <h4 className="font-bold text-slate-800 text-lg">高级概念设计师</h4>
+                                     <p className="text-sm text-slate-500 font-medium mb-3">NetEase Games • 2021 - 至今</p>
+                                     <div className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100 relative">
+                                       <div className="absolute top-4 -left-1.5 w-3 h-3 bg-slate-50 border-l border-t border-slate-100 transform -rotate-45"></div>
+                                       负责核心项目场景概念设计与风格制定。参与了《代号：无限》的主视觉开发，主导了场景美术风格的落地。
+                                     </div>
+                                  </div>
+                              </div>
+                           </div>
+                           
+                           <div className="relative group">
+                              <div className="absolute -left-[39px] top-0 w-5 h-5 rounded-full bg-white border-4 border-slate-300 group-hover:border-slate-400 transition-colors"></div>
+                              <div className="flex gap-5 items-start">
+                                  <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xl flex-shrink-0">F</div>
+                                  <div>
+                                     <h4 className="font-bold text-slate-800 text-lg">自由插画师</h4>
+                                     <p className="text-sm text-slate-500 font-medium mb-3">Freelance • 2018 - 2021</p>
+                                     <div className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100 relative">
+                                       <div className="absolute top-4 -left-1.5 w-3 h-3 bg-slate-50 border-l border-t border-slate-100 transform -rotate-45"></div>
+                                       承接各类商业插画与游戏外包。服务客户包括腾讯、米哈游等，累计完成 50+ 张高质量商稿。
+                                     </div>
+                                  </div>
+                              </div>
+                           </div>
+                        </div>
                     </div>
                  </div>
                )}

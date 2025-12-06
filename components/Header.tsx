@@ -3,9 +3,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Bell, MessageSquare, Hexagon, Plus, Upload, 
   User as UserIcon, ChevronDown, LogOut, Settings, Menu,
-  Info, Briefcase, Wallet, Crown
+  Info, Briefcase, Wallet, Crown, Building
 } from 'lucide-react';
-import { ViewMode, UserRole, User } from '../types';
+import { ViewMode, UserRole, User, Notification } from '../types';
 import { MOCK_NOTIFICATIONS } from '../constants'; // Import notifications to check unread count
 
 interface HeaderProps {
@@ -79,11 +79,11 @@ const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-8">
           {isCommunityMode ? (
             <div className="flex items-center gap-8">
-                <div className="flex items-center gap-2 cursor-pointer" onClick={() => setViewMode('discovery')}>
-                  <div className="bg-indigo-600 p-1.5 rounded-lg">
-                    <Hexagon className="w-5 h-5 text-white fill-current" />
+                <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setViewMode('discovery')}>
+                  <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-2 rounded-xl shadow-lg shadow-indigo-500/20 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-indigo-500/40">
+                    <Hexagon className="w-6 h-6 text-white fill-current" />
                   </div>
-                  <span className="font-bold text-xl text-slate-900 tracking-tight hidden sm:block">薪画社</span>
+                  <span className="font-extrabold text-2xl text-slate-900 tracking-tight hidden sm:block">薪画社</span>
                 </div>
 
                 {/* Primary Navigation Links (Desktop) */}
@@ -113,10 +113,10 @@ const Header: React.FC<HeaderProps> = ({
                       企业服务
                   </button>
                   <button 
-                      onClick={() => setViewMode('membership')} 
-                      className={`text-sm font-medium transition-colors ${viewMode === 'membership' ? 'text-indigo-600 font-bold' : 'text-slate-600 hover:text-indigo-600'}`}
+                      onClick={() => setViewMode('case_studies')} 
+                      className={`text-sm font-medium transition-colors ${viewMode === 'case_studies' ? 'text-indigo-600 font-bold' : 'text-slate-600 hover:text-indigo-600'}`}
                   >
-                      会员中心
+                      成功案例
                   </button>
                 </nav>
             </div>
@@ -308,13 +308,19 @@ const Header: React.FC<HeaderProps> = ({
                     
                     <button 
                       onClick={() => {
-                        // Switch view mode if needed
-                        if (viewMode === 'workspace') setViewMode('discovery');
-                        handleProfileClick();
+                        if (currentUser.role === 'enterprise') {
+                          setViewMode('enterprise_profile');
+                        } else {
+                          // Switch view mode if needed
+                          if (viewMode === 'workspace') setViewMode('discovery');
+                          handleProfileClick();
+                        }
+                        setIsMenuOpen(false);
                       }}
                       className="w-full text-left px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 flex items-center gap-3 transition-colors"
                     >
-                      <UserIcon className="w-4 h-4" /> 个人空间
+                      {currentUser.role === 'enterprise' ? <Building className="w-4 h-4" /> : <UserIcon className="w-4 h-4" />}
+                      {currentUser.role === 'enterprise' ? '企业主页' : '个人空间'}
                     </button>
 
                     <button 
@@ -405,6 +411,12 @@ const Header: React.FC<HeaderProps> = ({
               className={`px-4 py-3 rounded-lg text-left text-sm font-medium ${viewMode === 'membership' ? 'bg-amber-50 text-amber-600' : 'text-slate-600'}`}
             >
               会员中心
+            </button>
+            <button 
+              onClick={() => { setViewMode('case_studies'); setIsMobileMenuOpen(false); }}
+              className={`px-4 py-3 rounded-lg text-left text-sm font-medium ${viewMode === 'case_studies' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600'}`}
+            >
+              成功案例
             </button>
             <button 
               onClick={() => { setViewMode('enterprise_showcase'); setIsMobileMenuOpen(false); }}

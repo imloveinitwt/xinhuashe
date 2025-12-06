@@ -3,22 +3,24 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   LayoutDashboard, FolderOpen, Briefcase, Wallet, Settings, LogOut, 
   Hexagon, Palette, Users, PieChart, Shield, ChevronsUpDown, Check, CheckCircle2,
-  Crown, Globe
+  Crown, Globe, Building
 } from 'lucide-react';
-import { WorkspaceTab, User, UserRole } from '../types';
+import { WorkspaceTab, User, UserRole, ViewMode } from '../types';
 import { ROLE_DEFINITIONS } from '../constants';
+import { useToast } from '../contexts/ToastContext';
 
 interface SidebarProps {
   activeTab: WorkspaceTab;
   setActiveTab: (tab: WorkspaceTab) => void;
   user: User;
   onRoleChange: (role: UserRole) => void;
+  onNavigate?: (mode: ViewMode) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onRoleChange }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onRoleChange, onNavigate }) => {
   const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false);
-  const [showToast, setShowToast] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { showToast } = useToast();
   
   const hasPermission = (code: string) => user.permissions.includes(code as any);
 
@@ -39,12 +41,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onRole
       return;
     }
     
-    // Trigger visual feedback
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
-    
     // Execute switch
     onRoleChange(roleCode);
+    showToast(`身份已切换为 ${ROLE_DEFINITIONS.find(r => r.code === roleCode)?.name}`, 'success');
     setIsRoleMenuOpen(false);
   };
 
@@ -101,14 +100,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onRole
   const visibleItems = menuItems.filter(item => item.visible);
 
   return (
-    <div className="w-64 h-screen bg-slate-900 text-white flex flex-col fixed left-0 top-0 z-20 shadow-xl transition-all duration-300 font-sans">
+    <div className="hidden md:flex w-64 h-screen bg-slate-900 text-white flex-col fixed left-0 top-0 z-20 shadow-xl transition-all duration-300 font-sans">
       
-      {/* Toast Feedback */}
-      <div className={`absolute top-4 left-6 right-6 bg-emerald-500 text-white px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 transition-all duration-500 z-50 ${showToast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
-         <CheckCircle2 className="w-4 h-4" />
-         <span className="text-xs font-bold">已切换至 {user.roleName}</span>
-      </div>
-
       {/* Brand & Identity Switcher */}
       <div className="p-4" ref={menuRef}>
         <button 
@@ -117,7 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onRole
         >
           <div className={`p-2 rounded-lg shadow-sm transition-colors ${
             user.role === 'root_admin' ? 'bg-red-600 group-hover:bg-red-500' :
-            user.role === 'creator' ? 'bg-pink-500 group-hover:bg-pink-400' : 
+            user.role === 'creator' ? 'bg-pink-50 group-hover:bg-pink-400' : 
             'bg-indigo-500 group-hover:bg-indigo-400'
           }`}>
             <Hexagon className="w-6 h-6 text-white fill-current" />
@@ -191,12 +184,13 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onRole
         {user.role === 'enterprise' && (
            <a 
              href="#" 
-             // We can't easily use router here without context, but in a real app this would be a Link or useNavigation hook
-             // For this demo, this is a placeholder to show structure
              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800/50 hover:text-white transition-all duration-200 group"
-             onClick={(e) => { e.preventDefault(); /* Logic to open profile view handled via App state if integrated */ }}
+             onClick={(e) => { 
+               e.preventDefault(); 
+               if (onNavigate) onNavigate('enterprise_profile');
+             }}
            >
-             <Globe className="w-5 h-5 text-slate-500 group-hover:text-white transition-colors" />
+             <Building className="w-5 h-5 text-slate-500 group-hover:text-white transition-colors" />
              <span className="font-medium text-sm">企业主页预览</span>
            </a>
         )}

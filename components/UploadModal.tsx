@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, UploadCloud, Image as ImageIcon, Sparkles, Wand2, CheckCircle2, Loader2, Briefcase, Calendar, DollarSign, FileText, Layers } from 'lucide-react';
+import { X, UploadCloud, Image as ImageIcon, Sparkles, Wand2, CheckCircle2, Loader2, Briefcase, Calendar, DollarSign, FileText, Layers, AlertCircle } from 'lucide-react';
 import { UserRole } from '../types';
+import { AIService } from '../services/AIService';
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -15,6 +16,11 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
   const [isUploading, setIsUploading] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
   
+  // AI Gen State
+  const [prompt, setPrompt] = useState('');
+  const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
+  const [generatedPrompt, setGeneratedPrompt] = useState('');
+
   // Enterprise Form State
   const [projectForm, setProjectForm] = useState({
     title: '',
@@ -46,8 +52,23 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
         // Reset state
         setProjectForm({ title: '', budget: '', deadline: '', description: '', deliverables: ['源文件', 'JPG导出'] });
         setActiveTab('upload');
+        setPrompt('');
+        setGeneratedPrompt('');
       }, 1500);
     }, 2000);
+  };
+
+  const handlePromptOptimization = async () => {
+    if (!prompt.trim()) return;
+    setIsGeneratingPrompt(true);
+    try {
+      const optimized = await AIService.expandCreativePrompt(prompt);
+      setGeneratedPrompt(optimized);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsGeneratingPrompt(false);
+    }
   };
 
   const isEnterprise = userRole === 'enterprise';
@@ -87,7 +108,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
           }`}
         >
           <Sparkles className="w-4 h-4" />
-          AI 辅助创作
+          AI 灵感创作
         </button>
       </div>
 
@@ -159,28 +180,62 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
             <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 flex items-start gap-3">
               <Wand2 className="w-5 h-5 text-purple-600 mt-0.5" />
               <div>
-                  <h4 className="font-bold text-purple-900 text-sm">AI 灵感生成</h4>
+                  <h4 className="font-bold text-purple-900 text-sm">Gemini AI 灵感扩充</h4>
                   <p className="text-xs text-purple-700 mt-1">
-                    基于 Stable Diffusion 模型，输入提示词快速生成草图或参考图。生成的作品将自动打标。
+                    输入简单的想法，AI 将自动为您丰富细节、光影和风格描述，帮助您生成更惊艳的草图或获取创作灵感。
                   </p>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">提示词 (Prompt)</label>
-              <textarea 
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none h-24 resize-none"
-                placeholder="例如：一位穿着发光盔甲的未来战士，站在雨中的霓虹城市，8k分辨率，电影质感..."
-              ></textarea>
+              <label className="block text-sm font-medium text-slate-700 mb-1">你的想法 (Prompt)</label>
+              <div className="relative">
+                <textarea 
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none h-24 resize-none pr-10"
+                  placeholder="例如：未来的机器人，下雨，霓虹灯..."
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                ></textarea>
+                <button 
+                  onClick={handlePromptOptimization}
+                  disabled={!prompt || isGeneratingPrompt}
+                  className="absolute bottom-2 right-2 p-1.5 bg-purple-100 hover:bg-purple-200 rounded-md text-purple-700 transition-colors disabled:opacity-50"
+                  title="AI 优化"
+                >
+                  {isGeneratingPrompt ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div className="aspect-square bg-slate-100 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-sm hover:border-purple-300 transition-colors cursor-pointer">
-                  点击生成预览 1
-                </div>
-                <div className="aspect-square bg-slate-100 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-sm hover:border-purple-300 transition-colors cursor-pointer">
-                  点击生成预览 2
-                </div>
+            {generatedPrompt && (
+              <div className="animate-fade-in bg-slate-50 border border-slate-200 rounded-lg p-3">
+                 <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs font-bold text-slate-500 uppercase">AI 优化建议</span>
+                    <button 
+                      onClick={() => setPrompt(generatedPrompt)}
+                      className="text-xs text-purple-600 hover:underline font-medium"
+                    >
+                      使用此描述
+                    </button>
+                 </div>
+                 <p className="text-sm text-slate-700 leading-relaxed italic">
+                    "{generatedPrompt}"
+                 </p>
+              </div>
+            )}
+
+            <div className="border-t border-slate-100 pt-4">
+               <label className="block text-sm font-medium text-slate-700 mb-2">生成预览 (Mock)</label>
+               <div className="grid grid-cols-2 gap-4">
+                  <div className="aspect-square bg-slate-100 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-sm hover:border-purple-300 transition-colors cursor-pointer group relative overflow-hidden">
+                    <span className="relative z-10 group-hover:text-purple-500 transition-colors">点击生成预览 1</span>
+                    <div className="absolute inset-0 bg-purple-50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+                  <div className="aspect-square bg-slate-100 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-sm hover:border-purple-300 transition-colors cursor-pointer group relative overflow-hidden">
+                    <span className="relative z-10 group-hover:text-purple-500 transition-colors">点击生成预览 2</span>
+                    <div className="absolute inset-0 bg-purple-50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+               </div>
             </div>
           </div>
         )}
@@ -243,9 +298,22 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
         </div>
 
         <div>
-           <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-1">
-              <FileText className="w-3.5 h-3.5 text-slate-400" /> 需求详情描述
-           </label>
+           <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-medium text-slate-700 flex items-center gap-1">
+                  <FileText className="w-3.5 h-3.5 text-slate-400" /> 需求详情描述
+              </label>
+              <button 
+                onClick={() => {
+                   if(projectForm.description) {
+                      // Mock AI refinement for enterprise
+                      setProjectForm({...projectForm, description: projectForm.description + "\n\n[AI 建议补充]: 建议明确具体的交付格式（如PSD分层文件）以及是否需要提供 mood board 参考图。"});
+                   }
+                }}
+                className="text-xs text-indigo-600 hover:underline flex items-center gap-1"
+              >
+                 <Sparkles className="w-3 h-3" /> AI 润色
+              </button>
+           </div>
            <textarea 
              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none h-32 resize-none"
              placeholder="请详细描述项目背景、设计风格要求、目标受众等..."

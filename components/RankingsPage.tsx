@@ -45,8 +45,8 @@ const RankingsPage: React.FC<RankingsPageProps> = ({ onBack, onNavigateToProfile
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20 pt-20 px-4 md:px-8 font-sans">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-slate-50 pb-20 pt-20 px-4 sm:px-6 lg:px-8 font-sans">
+      <div className="max-w-7xl mx-auto">
         
         {/* Header */}
         <div className="mb-8">
@@ -91,7 +91,7 @@ const RankingsPage: React.FC<RankingsPageProps> = ({ onBack, onNavigateToProfile
         </div>
 
         {/* Podium (Top 3) */}
-        <div className="grid grid-cols-3 gap-4 mb-8 items-end">
+        <div className="grid grid-cols-3 gap-4 mb-8 items-end max-w-3xl mx-auto">
            {/* 2nd Place */}
            <div className="order-1 flex flex-col items-center">
               <div 

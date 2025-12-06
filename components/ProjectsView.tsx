@@ -4,13 +4,15 @@ import { createPortal } from 'react-dom';
 import { 
   Plus, MoreHorizontal, Calendar, MessageSquare, Paperclip, 
   CheckCircle2, Circle, Clock, AlertCircle, Search, Filter,
-  X, AlignLeft, Send, User, Tag, ChevronDown, SlidersHorizontal, Archive, LayoutList, Loader2
+  X, AlignLeft, Send, User, Tag, ChevronDown, SlidersHorizontal, Archive, LayoutList, Loader2, Flame,
+  Download, Image as ImageIcon
 } from 'lucide-react';
 import { ProjectService } from '../services/ProjectService';
-import { MOCK_TASKS, MOCK_PROJECT_CASES } from '../constants'; // Tasks still mock for now
+import { MOCK_TASKS, MOCK_PROJECT_CASES } from '../constants'; 
 import { Project, Task, TaskStatus, TaskPriority } from '../types';
 
-// ... (Retain PriorityBadge, TaskCard, ColumnHeader, TaskDetailModal, FilterButton components as is)
+// === HELPER COMPONENTS ===
+
 const PriorityBadge = ({ priority }: { priority: Task['priority'] }) => {
   const colors = {
     high: 'bg-red-100 text-red-700',
@@ -18,15 +20,11 @@ const PriorityBadge = ({ priority }: { priority: Task['priority'] }) => {
     low: 'bg-green-100 text-green-700'
   };
   const labels = {
-    high: '高优',
-    medium: '中等',
-    low: '低优'
+    high: '高优先级',
+    medium: '中优先级',
+    low: '低优先级'
   };
-  return (
-    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${colors[priority]}`}>
-      {labels[priority]}
-    </span>
-  );
+  return <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${colors[priority]}`}>{labels[priority]}</span>;
 };
 
 const TaskCard: React.FC<{ task: Task; onClick: (task: Task) => void }> = ({ task, onClick }) => {
@@ -37,169 +35,261 @@ const TaskCard: React.FC<{ task: Task; onClick: (task: Task) => void }> = ({ tas
     'done': 'border-l-emerald-500'
   };
 
+  const isUrgent = () => {
+    // Handle mock date format "MM月DD日"
+    const match = task.dueDate.match(/(\d{1,2})月(\d{1,2})日/);
+    if (match) {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const month = parseInt(match[1], 10) - 1;
+      const day = parseInt(match[2], 10);
+      
+      const deadline = new Date(currentYear, month, day, 23, 59, 59);
+      const diff = deadline.getTime() - now.getTime();
+      // Within 24 hours (86400000ms) and strictly in the future
+      return diff > 0 && diff <= 86400000;
+    }
+    return false;
+  };
+
+  const urgent = isUrgent();
+
   return (
-    <div 
-      onClick={() => onClick(task)}
-      className={`bg-white p-3 rounded-lg shadow-sm border border-slate-200 border-l-[3px] ${statusColors[task.status]} hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer group active:scale-[0.98]`}
-    >
+    <div onClick={() => onClick(task)} className={`bg-white p-3 rounded-lg shadow-sm border border-slate-200 border-l-[3px] ${statusColors[task.status]} hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer group active:scale-[0.98] relative overflow-hidden`}>
       <div className="flex justify-between items-start mb-2">
         <PriorityBadge priority={task.priority} />
-        <button className="text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity">
-          <MoreHorizontal className="w-4 h-4" />
-        </button>
-      </div>
-      <h4 className="text-sm font-semibold text-slate-800 mb-3 leading-snug">{task.title}</h4>
-      
-      <div className="flex items-center justify-between mt-3">
-        <div className="flex items-center gap-3 text-slate-400 text-xs">
-          <div className="flex gap-2">
-            <span className={`flex items-center gap-1 ${task.comments > 0 ? 'text-slate-500 font-medium' : 'text-slate-300'}`}>
-              <MessageSquare className="w-3.5 h-3.5" /> {task.comments}
-            </span>
-            {task.attachments > 0 && (
-              <span className="flex items-center gap-1 text-slate-500 font-medium">
-                <Paperclip className="w-3.5 h-3.5" /> {task.attachments}
-              </span>
-            )}
+        {urgent && (
+          <div className="flex items-center gap-1 animate-pulse bg-red-50 px-1.5 py-0.5 rounded border border-red-100">
+             <Clock className="w-3 h-3 text-red-500" />
+             <span className="text-[10px] font-bold text-red-500">24小时内</span>
           </div>
-          <span className="flex items-center gap-1 text-slate-400"><Calendar className="w-3.5 h-3.5" /> {task.dueDate}</span>
+        )}
+      </div>
+      <h4 className="text-sm font-semibold text-slate-800 mb-3">{task.title}</h4>
+      <div className="flex items-center justify-between mt-3 text-xs text-slate-400">
+         <div className="flex gap-3">
+            <span className="flex items-center gap-1"><MessageSquare className="w-3 h-3"/> {task.comments}</span>
+            <span className="flex items-center gap-1"><Paperclip className="w-3 h-3"/> {task.attachments}</span>
+         </div>
+         <div className="flex items-center gap-2">
+            <span className={`text-[10px] ${urgent ? 'text-red-500 font-bold' : ''}`}>{task.dueDate}</span>
+            <img src={task.assigneeAvatar} className="w-6 h-6 rounded-full object-cover" alt="" />
+         </div>
+      </div>
+    </div>
+  );
+};
+
+const KanbanSkeleton = () => (
+  <div className="flex gap-6 min-w-[1000px] h-full pb-4 animate-pulse">
+    {[1, 2, 3, 4].map(i => (
+      <div key={i} className="flex-1 flex flex-col bg-slate-50 rounded-xl p-3 border border-slate-100">
+        <div className="flex justify-between mb-4">
+           <div className="h-6 bg-slate-200 rounded w-24"></div>
+           <div className="h-6 bg-slate-200 rounded w-8"></div>
         </div>
-        <img src={task.assigneeAvatar} alt={task.assignee} className="w-6 h-6 rounded-full border border-white bg-slate-200" />
+        <div className="space-y-3">
+           <div className="h-32 bg-white rounded-lg border border-slate-200"></div>
+           <div className="h-24 bg-white rounded-lg border border-slate-200"></div>
+           <div className="h-40 bg-white rounded-lg border border-slate-200"></div>
+        </div>
       </div>
-    </div>
-  );
-};
+    ))}
+  </div>
+);
 
-const ColumnHeader = ({ title, count, status }: { title: string, count: number, status: TaskStatus }) => {
-  const statusColors = {
-    'todo': 'bg-slate-200',
-    'in-progress': 'bg-blue-200',
-    'review': 'bg-amber-200',
-    'done': 'bg-green-200'
+// === TASK DETAIL MODAL ===
+
+const TaskDetailModal = ({ task, onClose }: { task: Task; onClose: () => void }) => {
+  const [activeTab, setActiveTab] = useState<'comments' | 'attachments'>('comments');
+  const [newComment, setNewComment] = useState('');
+
+  // Mock Data for the modal
+  const description = "根据项目需求文档，完成该阶段的核心设计任务。请确保遵循品牌视觉规范，并及时同步进度。建议参考项目附件中的设计指南。";
+  
+  const [mockComments, setMockComments] = useState([
+    { id: 1, user: '项目经理', avatar: 'https://ui-avatars.com/api/?name=PM&background=random', text: '请注意截止日期，客户希望周五前看到初稿。', time: '2小时前' },
+    { id: 2, user: task.assignee, avatar: task.assigneeAvatar, text: '收到，目前进度正常，预计明天提交。', time: '1小时前' }
+  ]);
+  
+  const mockAttachments = [
+    { name: '需求文档_v1.pdf', size: '2.4MB', type: 'doc' },
+    { name: '参考图_01.jpg', size: '1.8MB', type: 'image' },
+    { name: '设计规范.sketch', size: '15MB', type: 'file' }
+  ];
+
+  const statusMap: Record<string, string> = {
+    'todo': '待处理',
+    'in-progress': '进行中',
+    'review': '审核中',
+    'done': '已完成'
   };
-  return (
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2">
-        <span className={`w-2 h-2 rounded-full ${statusColors[status].replace('200', '500')}`}></span>
-        <h3 className="font-semibold text-slate-700 text-sm">{title}</h3>
-        <span className="bg-slate-100 text-slate-500 text-xs px-2 py-0.5 rounded-full">{count}</span>
-      </div>
-      <button className="text-slate-400 hover:text-slate-600"><Plus className="w-4 h-4" /></button>
-    </div>
-  );
-};
 
-const TaskDetailModal = ({ task, onClose }: { task: Task | null; onClose: () => void }) => {
-  useEffect(() => {
-    if (task) {
-      document.body.style.overflow = 'hidden';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [task]);
-
-  if (!task) return null;
+  const handleSendComment = () => {
+    if (!newComment.trim()) return;
+    setMockComments([...mockComments, {
+      id: Date.now(),
+      user: '我',
+      avatar: 'https://ui-avatars.com/api/?name=Me&background=random',
+      text: newComment,
+      time: '刚刚'
+    }]);
+    setNewComment('');
+  };
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
-      <div 
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh] animate-scale-in overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-start bg-slate-50">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-               <span className="text-xs text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded flex items-center gap-1">
-                 <Tag className="w-3 h-3" />
-                 任务详情
-               </span>
-               <span className="text-xs text-slate-400">#{task.id}</span>
-            </div>
-            <h2 className="text-xl font-bold text-slate-800 leading-snug">{task.title}</h2>
+       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-scale-in" onClick={e => e.stopPropagation()}>
+          {/* Header */}
+          <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-start bg-slate-50/50">
+             <div>
+                <div className="flex items-center gap-2 mb-2">
+                   <PriorityBadge priority={task.priority} />
+                   <span className="text-xs text-slate-400 font-mono">#{task.id}</span>
+                </div>
+                <h2 className="text-xl font-bold text-slate-800 leading-tight">{task.title}</h2>
+             </div>
+             <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500">
+               <X className="w-5 h-5" />
+             </button>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-0 flex flex-col md:flex-row">
-           <div className="flex-1 p-6 space-y-6">
-              <div>
-                 <h3 className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                   <AlignLeft className="w-4 h-4" /> 任务描述
-                 </h3>
-                 <div className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-lg border border-slate-100">
-                    <p>这是一个关于 “{task.title}” 的详细任务描述。需按照项目设计规范执行。</p>
-                 </div>
-              </div>
-           </div>
-           <div className="w-full md:w-72 bg-slate-50 border-l border-slate-100 p-6 space-y-6">
-              <div>
-                 <label className="text-xs font-bold text-slate-400 uppercase mb-2 block">状态</label>
-                 <select 
-                   defaultValue={task.status} 
-                   className="w-full bg-white border border-slate-200 text-slate-700 text-sm rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
-                 >
-                   <option value="todo">待办事项</option>
-                   <option value="in-progress">进行中</option>
-                   <option value="review">审核确认</option>
-                   <option value="done">已完成</option>
-                 </select>
-              </div>
-           </div>
-        </div>
-      </div>
+
+          <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+             {/* Meta Row */}
+             <div className="flex flex-wrap gap-6 text-sm bg-white border border-slate-100 p-4 rounded-xl shadow-sm">
+                <div>
+                   <span className="text-slate-400 block text-xs mb-1 font-bold uppercase">负责人</span>
+                   <div className="flex items-center gap-2">
+                      <img src={task.assigneeAvatar} className="w-6 h-6 rounded-full object-cover" alt="" />
+                      <span className="font-bold text-slate-700">{task.assignee}</span>
+                   </div>
+                </div>
+                <div className="w-px bg-slate-200"></div>
+                <div>
+                   <span className="text-slate-400 block text-xs mb-1 font-bold uppercase">截止日期</span>
+                   <div className="flex items-center gap-2 font-bold text-slate-700">
+                      <Calendar className="w-4 h-4 text-slate-400" />
+                      {task.dueDate}
+                   </div>
+                </div>
+                <div className="w-px bg-slate-200"></div>
+                <div>
+                   <span className="text-slate-400 block text-xs mb-1 font-bold uppercase">当前状态</span>
+                   <span className="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-xs font-bold text-slate-600">
+                      {statusMap[task.status]}
+                   </span>
+                </div>
+             </div>
+
+             {/* Description */}
+             <div>
+                <h3 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-2">
+                   <AlignLeft className="w-4 h-4 text-indigo-500" /> 任务描述
+                </h3>
+                <div className="bg-slate-50 p-4 rounded-xl text-sm text-slate-600 leading-relaxed border border-slate-100">
+                   {description}
+                </div>
+             </div>
+
+             {/* Tabs Area */}
+             <div>
+                <div className="flex gap-6 border-b border-slate-100 mb-4">
+                   <button
+                     onClick={() => setActiveTab('comments')}
+                     className={`pb-2 text-sm font-bold transition-colors border-b-2 ${activeTab === 'comments' ? 'text-indigo-600 border-indigo-600' : 'text-slate-400 border-transparent hover:text-slate-600'}`}
+                   >
+                      评论 ({mockComments.length})
+                   </button>
+                   <button
+                     onClick={() => setActiveTab('attachments')}
+                     className={`pb-2 text-sm font-bold transition-colors border-b-2 ${activeTab === 'attachments' ? 'text-indigo-600 border-indigo-600' : 'text-slate-400 border-transparent hover:text-slate-600'}`}
+                   >
+                      附件 ({mockAttachments.length})
+                   </button>
+                </div>
+
+                {activeTab === 'comments' ? (
+                   <div className="space-y-4 animate-fade-in">
+                      <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                        {mockComments.map(c => (
+                           <div key={c.id} className="flex gap-3 group">
+                              <img src={c.avatar} className="w-8 h-8 rounded-full bg-slate-200 flex-shrink-0 object-cover" alt="" />
+                              <div className="flex-1">
+                                 <div className="flex items-baseline gap-2 mb-1">
+                                    <span className="text-xs font-bold text-slate-800">{c.user}</span>
+                                    <span className="text-[10px] text-slate-400">{c.time}</span>
+                                 </div>
+                                 <div className="bg-slate-50 p-3 rounded-r-xl rounded-bl-xl text-sm text-slate-600 border border-slate-100">
+                                    {c.text}
+                                 </div>
+                              </div>
+                           </div>
+                        ))}
+                      </div>
+                      
+                      <div className="flex gap-2 pt-2 border-t border-slate-100 mt-2">
+                         <input
+                           type="text"
+                           value={newComment}
+                           onChange={e => setNewComment(e.target.value)}
+                           onKeyDown={e => e.key === 'Enter' && handleSendComment()}
+                           className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors"
+                           placeholder="写下你的评论..."
+                         />
+                         <button 
+                           onClick={handleSendComment}
+                           disabled={!newComment.trim()}
+                           className="bg-indigo-600 text-white p-2.5 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                         >
+                            <Send className="w-4 h-4" />
+                         </button>
+                      </div>
+                   </div>
+                ) : (
+                   <div className="space-y-2 animate-fade-in">
+                      {mockAttachments.map((file, i) => (
+                         <div key={i} className="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group">
+                            <div className="flex items-center gap-3">
+                               <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                                  {file.type === 'image' ? <ImageIcon className="w-4 h-4" /> : <Paperclip className="w-4 h-4" />}
+                               </div>
+                               <div>
+                                  <div className="text-sm font-bold text-slate-700 group-hover:text-indigo-700 transition-colors">{file.name}</div>
+                                  <div className="text-xs text-slate-400">{file.size}</div>
+                               </div>
+                            </div>
+                            <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors">
+                               <Download className="w-4 h-4" />
+                            </button>
+                         </div>
+                      ))}
+                      <button className="w-full py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 text-sm hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/50 transition-colors flex items-center justify-center gap-2 font-medium">
+                         <Plus className="w-4 h-4" /> 上传新附件
+                      </button>
+                   </div>
+                )}
+             </div>
+          </div>
+       </div>
     </div>,
     document.body
   );
 };
 
-const FilterButton: React.FC<{ label: string; value: string; activeValue: string; onClick: (val: string) => void }> = ({ label, value, activeValue, onClick }) => {
-  const isActive = value === activeValue;
-  return (
-    <button
-      onClick={() => onClick(value)}
-      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border whitespace-nowrap ${
-        isActive 
-          ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' 
-          : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-200 hover:text-indigo-600 hover:bg-slate-50'
-      }`}
-    >
-      {label}
-    </button>
-  );
-};
+// === MAIN VIEW ===
 
 const ProjectsView: React.FC = () => {
   const [viewMode, setViewMode] = useState<'kanban' | 'archive'>('kanban');
-  const [activeProjectId, setActiveProjectId] = useState<string>('all');
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  
-  // Data States
-  const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Filtering States
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState<TaskStatus | 'all'>('all');
-  const [filterPriority, setFilterPriority] = useState<TaskPriority | 'all'>('all');
-  const [filterAssignee, setFilterAssignee] = useState<string>('all');
-  const [archiveYear, setArchiveYear] = useState('all');
-
-  // Load Data
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const [loadedProjects, loadedTasks] = await Promise.all([
-          ProjectService.getAllProjects(),
-          ProjectService.getTasksByProject('all') // Fetch all tasks initially for demo
-        ]);
-        setProjects(loadedProjects);
+        const loadedTasks = await ProjectService.getTasksByProject('all');
         setTasks(loadedTasks);
-      } catch (err) {
-        console.error("Failed to load project data", err);
       } finally {
         setIsLoading(false);
       }
@@ -207,190 +297,56 @@ const ProjectsView: React.FC = () => {
     fetchData();
   }, []);
 
-  const uniqueAssignees = Array.from(new Set(tasks.map(t => t.assignee)));
-
-  const filteredTasks = tasks.filter(task => {
-    const matchProject = activeProjectId === 'all' || task.projectId === activeProjectId;
-    const matchSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                        task.assignee.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchStatus = filterStatus === 'all' || task.status === filterStatus;
-    const matchPriority = filterPriority === 'all' || task.priority === filterPriority;
-    const matchAssignee = filterAssignee === 'all' || task.assignee === filterAssignee;
-
-    return matchProject && matchSearch && matchStatus && matchPriority && matchAssignee;
-  });
-
-  const getTasksByStatus = (status: TaskStatus) => filteredTasks.filter(t => t.status === status);
-  const activeProject = projects.find(p => p.id === activeProjectId);
-  const hasActiveFilters = filterStatus !== 'all' || filterPriority !== 'all' || filterAssignee !== 'all';
-
-  const resetFilters = () => {
-    setFilterStatus('all');
-    setFilterPriority('all');
-    setFilterAssignee('all');
-    setSearchQuery('');
-  };
-
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = 'https://placehold.co/100x100?text=Project';
-  };
-
-  if (isLoading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-slate-400">
-          <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-          <span>正在同步项目数据...</span>
-        </div>
-      </div>
-    );
-  }
-
-  // ... (Archive View Render Logic remains the same as before)
-  const filteredCases = MOCK_PROJECT_CASES.filter(c => 
-    archiveYear === 'all' || c.year === archiveYear
-  );
-
-  const renderArchive = () => (
-    <div className="animate-fade-in space-y-6">
-       {/* (Same Archive UI as before) */}
-       <div className="flex gap-2 items-center mb-4">
-          <span className="text-sm font-medium text-slate-600">筛选年份:</span>
-          {['all', '2023', '2022', '2021', '2020'].map(year => (
-            <button
-              key={year}
-              onClick={() => setArchiveYear(year)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                archiveYear === year ? 'bg-indigo-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              {year === 'all' ? '全部' : year}
-            </button>
-          ))}
-       </div>
-       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCases.map(c => (
-            <div key={c.id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-md transition-all group cursor-pointer">
-               <div className="h-40 overflow-hidden relative">
-                  <img src={c.coverImage} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={c.title} />
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur text-xs font-bold px-2 py-1 rounded">
-                    {c.year}
-                  </div>
-                  <div className="absolute bottom-3 left-3 bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
-                    {c.category}
-                  </div>
-               </div>
-               <div className="p-5">
-                  <h3 className="font-bold text-slate-800 text-lg mb-2 line-clamp-1">{c.title}</h3>
-                  <p className="text-sm text-slate-500 line-clamp-3 mb-4">{c.description}</p>
-               </div>
-            </div>
-          ))}
-       </div>
-    </div>
-  );
+  const getTasksByStatus = (status: TaskStatus) => tasks.filter(t => t.status === status);
 
   return (
     <div className="h-full flex flex-col">
+      {/* Modal */}
       {selectedTask && <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} />}
 
-      <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="flex gap-4 items-center">
-          {viewMode === 'kanban' && activeProject && (
-            <img 
-              src={activeProject.coverImage || "https://placehold.co/100x100?text=Cover"} 
-              alt={activeProject.title} 
-              className="w-16 h-16 rounded-xl object-cover border border-slate-200 shadow-sm"
-              onError={handleImageError}
-            />
-          )}
-          <div>
-            <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
-              {viewMode === 'kanban' ? (activeProject ? activeProject.title : '项目看板') : '历史项目归档'}
-              <div className="flex bg-slate-100 rounded-lg p-1 ml-4 h-8 items-center">
-                 <button onClick={() => setViewMode('kanban')} className={`p-1 rounded transition-colors ${viewMode === 'kanban' ? 'bg-white shadow text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}>
-                   <LayoutList className="w-4 h-4" />
-                 </button>
-                 <button onClick={() => setViewMode('archive')} className={`p-1 rounded transition-colors ${viewMode === 'archive' ? 'bg-white shadow text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}>
-                   <Archive className="w-4 h-4" />
-                 </button>
-              </div>
-            </h2>
-            <p className="text-slate-500 text-sm mt-1 max-w-xl">
-              {viewMode === 'kanban' ? (activeProject ? activeProject.description : '查看所有项目的任务进度与状态') : '浏览企业过往的成功案例与交付成果数据'}
-            </p>
-          </div>
+      <div className="mb-6 flex justify-between items-end">
+        <div>
+           <h2 className="text-2xl font-bold text-slate-800">项目看板</h2>
+           <p className="text-slate-500 text-sm">管理任务进度与交付</p>
         </div>
-
-        {viewMode === 'kanban' && (
-          <div className="flex items-center gap-3">
-            <select 
-              value={activeProjectId}
-              onChange={(e) => setActiveProjectId(e.target.value)}
-              className="bg-white border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2.5 min-w-[200px]"
-            >
-              <option value="all">全部项目</option>
-              {projects.map(p => (
-                <option key={p.id} value={p.id}>{p.title}</option>
-              ))}
-            </select>
-            <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
-              <Plus className="w-4 h-4" /> 新建任务
-            </button>
-          </div>
-        )}
+        <div className="flex gap-2">
+           <button 
+             onClick={() => setViewMode('kanban')} 
+             className={`p-2 rounded transition-colors ${viewMode === 'kanban' ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400 hover:bg-slate-50'}`}
+           >
+             <LayoutList className="w-5 h-5"/>
+           </button>
+           <button 
+             onClick={() => setViewMode('archive')} 
+             className={`p-2 rounded transition-colors ${viewMode === 'archive' ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400 hover:bg-slate-50'}`}
+           >
+             <Archive className="w-5 h-5"/>
+           </button>
+        </div>
       </div>
 
-      {viewMode === 'archive' ? renderArchive() : (
-        <>
-          <div className="mb-6 bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-                <div className="relative flex-1 w-full md:max-w-md">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input 
-                    type="text" 
-                    placeholder="搜索任务标题..." 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 pr-4 py-2.5 w-full bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm" 
-                  />
+      {isLoading ? (
+        <div className="flex-1 overflow-hidden">
+           <KanbanSkeleton />
+        </div>
+      ) : (
+        <div className="flex-1 overflow-x-auto overflow-y-hidden">
+          <div className="flex gap-6 min-w-[1000px] h-full pb-4">
+            {['todo', 'in-progress', 'review', 'done'].map(status => (
+              <div key={status} className="flex-1 flex flex-col bg-slate-50/50 rounded-xl p-3 border border-slate-100/50">
+                <div className="flex justify-between mb-4 font-bold text-slate-700 px-1">
+                   <span>{status === 'todo' ? '待处理' : status === 'in-progress' ? '进行中' : status === 'review' ? '审核中' : '已完成'}</span>
+                   <span className="bg-slate-200 px-2 rounded text-xs flex items-center text-slate-600">{getTasksByStatus(status as any).length}</span>
                 </div>
-                <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-                   {hasActiveFilters && (
-                    <button onClick={resetFilters} className="flex items-center gap-1 text-slate-500 hover:text-red-500 transition-colors text-xs font-medium bg-slate-100 px-3 py-2 rounded-lg">
-                      <X className="w-3 h-3" /> 清除筛选
-                    </button>
-                  )}
+                <div className="space-y-3 overflow-y-auto custom-scrollbar pr-1 flex-1">
+                  {getTasksByStatus(status as any).map(task => (
+                     <TaskCard key={task.id} task={task} onClick={setSelectedTask} />
+                  ))}
                 </div>
               </div>
-              <div className="flex flex-col gap-4 pt-4 border-t border-slate-100">
-                <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1">
-                   <span className="text-xs font-bold text-slate-500 whitespace-nowrap flex items-center gap-1.5 w-20"><Filter className="w-3.5 h-3.5" /> 状态:</span>
-                   <div className="flex items-center gap-2">
-                     {['all', 'todo', 'in-progress', 'review', 'done'].map(s => (
-                       <FilterButton key={s} label={s==='all'?'全部':s} value={s} activeValue={filterStatus} onClick={(v) => setFilterStatus(v as any)} />
-                     ))}
-                   </div>
-                </div>
-                {/* ... (Other filters similar structure) ... */}
-              </div>
-            </div>
+            ))}
           </div>
-
-          <div className="flex-1 overflow-x-auto overflow-y-hidden">
-            <div className="flex gap-6 min-w-[1000px] h-full pb-4">
-              {['todo', 'in-progress', 'review', 'done'].map(status => (
-                <div key={status} className="flex-1 flex flex-col bg-slate-50/50 rounded-xl p-3 border border-slate-100/50">
-                  <ColumnHeader title={status === 'todo' ? '待办' : status === 'in-progress' ? '进行中' : status === 'review' ? '审核' : '完成'} count={getTasksByStatus(status as TaskStatus).length} status={status as TaskStatus} />
-                  <div className="space-y-3 overflow-y-auto custom-scrollbar pr-1 flex-1">
-                    {getTasksByStatus(status as TaskStatus).map(task => <TaskCard key={task.id} task={task} onClick={setSelectedTask} />)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
+        </div>
       )}
     </div>
   );

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
+import BottomNav from './components/BottomNav';
 import DiscoveryView from './components/DiscoveryView';
 import DashboardView from './components/DashboardView';
 import DAMView from './components/DAMView';
@@ -25,10 +26,12 @@ import EnterpriseProfilePage from './components/EnterpriseProfilePage';
 import MessagesPage from './components/MessagesPage'; 
 import MembershipPage from './components/MembershipPage'; 
 import CreditScorePage from './components/CreditScorePage';
+import ProjectCasesPage from './components/ProjectCasesPage'; // Imported
 import Footer from './components/Footer';
 import { ViewMode, WorkspaceTab, UserRole, User, MembershipLevel } from './types';
 import { getProfileById } from './constants';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ToastProvider } from './contexts/ToastContext';
 import { Loader2 } from 'lucide-react';
 
 // Separate inner component to use the context
@@ -180,6 +183,17 @@ const AppContent: React.FC = () => {
       );
     }
 
+    // New Route for Project Cases
+    if (viewMode === 'case_studies') {
+      return (
+        <ProjectCasesPage 
+          onBack={() => changeViewMode('discovery')}
+          onTriggerLogin={handleTriggerLogin}
+          onNavigate={changeViewMode}
+        />
+      );
+    }
+
     if (viewMode === 'artworks') {
       return (
         <ArtworksPage 
@@ -250,7 +264,7 @@ const AppContent: React.FC = () => {
     
     if (isAuthenticated && user) {
       return (
-        <div className="h-full p-6 md:p-8 overflow-y-auto custom-scrollbar animate-fade-in">
+        <div className="h-full p-6 md:p-8 overflow-y-auto custom-scrollbar animate-fade-in pb-20 md:pb-8">
            {activeWorkspaceTab === 'dashboard' && (
              <DashboardView 
                user={user} 
@@ -323,16 +337,24 @@ const AppContent: React.FC = () => {
       />
 
       {viewMode === 'workspace' && isAuthenticated && user && (
-        <Sidebar 
-          activeTab={activeWorkspaceTab} 
-          setActiveTab={setActiveWorkspaceTab} 
-          user={user}
-          onRoleChange={handleSetUserRole}
-        />
+        <>
+          <Sidebar 
+            activeTab={activeWorkspaceTab} 
+            setActiveTab={setActiveWorkspaceTab} 
+            user={user}
+            onRoleChange={handleSetUserRole}
+            onNavigate={changeViewMode}
+          />
+          <BottomNav 
+            activeTab={activeWorkspaceTab}
+            setActiveTab={setActiveWorkspaceTab}
+            role={user.role}
+          />
+        </>
       )}
 
       <main className={`flex-1 transition-all duration-300 ${
-        viewMode === 'workspace' && isAuthenticated ? 'ml-64 pt-16 h-screen overflow-hidden' : 'pt-0'
+        viewMode === 'workspace' && isAuthenticated ? 'md:ml-64 pt-16 h-screen overflow-hidden' : 'pt-0'
       }`}>
         <div className={`h-full w-full transition-opacity duration-200 ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
            {renderContent()}
@@ -356,8 +378,6 @@ const AppContent: React.FC = () => {
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
         onLogin={(loggedInUser) => {
-           // We already called login via context inside the modal or trigger, 
-           // here we just handle the UI transition
            handleLoginSuccess();
         }} 
       />
@@ -368,7 +388,9 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <AppContent />
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </AuthProvider>
   );
 };

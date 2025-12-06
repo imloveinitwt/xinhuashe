@@ -1,11 +1,17 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Briefcase, Search, Filter, DollarSign, Calendar, Clock, 
-  MapPin, ArrowRight, ArrowLeft, CheckCircle2, AlertCircle, Building, Star
+  MapPin, ArrowRight, ArrowLeft, CheckCircle2, AlertCircle, Building, X,
+  Layers, MessageSquare, FileText, UploadCloud, MoreHorizontal, User as UserIcon,
+  Check, Send, Paperclip, Download, ChevronRight, TrendingUp, Zap, Target,
+  Heart, Share2, Star, ShieldCheck, Flame, ChevronDown, SlidersHorizontal, MousePointerClick,
+  Loader2
 } from 'lucide-react';
 import { MOCK_PROJECTS } from '../constants';
 import { Project, User } from '../types';
+import ProjectDrawer from './ProjectDrawer';
 
 interface ProjectsHubPageProps {
   onBack: () => void;
@@ -13,219 +19,487 @@ interface ProjectsHubPageProps {
   user?: User | null;
 }
 
+// --- Configuration Constants ---
+const CATEGORIES = ['全部', 'UI/UX', '插画', '3D/动画', '平面设计', '游戏原画', '网站设计', '品牌全案'];
+
+const BUDGET_RANGES = [
+  { id: 'all', label: '不限预算', min: 0, max: Infinity },
+  { id: 'low', label: '5k以下', min: 0, max: 5000 },
+  { id: 'mid', label: '5k - 20k', min: 5000, max: 20000 },
+  { id: 'high', label: '20k - 50k', min: 20000, max: 50000 },
+  { id: 'premium', label: '50k以上', min: 50000, max: Infinity },
+];
+
+const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+  e.currentTarget.src = 'https://placehold.co/800x400/f1f5f9/94a3b8?text=Project+Cover';
+};
+
 const ProjectsHubPage: React.FC<ProjectsHubPageProps> = ({ onBack, onTriggerLogin, user }) => {
-  const [filterStatus, setFilterStatus] = useState('all'); // all, recruiting, in-progress, completed
+  const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [budgetRange, setBudgetRange] = useState('all');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'budget_high' | 'budget_low'>('newest');
+  const [selectedCategory, setSelectedCategory] = useState('全部');
+  const [selectedBudgetRange, setSelectedBudgetRange] = useState('all');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  
+  // Pagination State
+  const [visibleCount, setVisibleCount] = useState(9);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  // Filter Logic
-  const filteredProjects = MOCK_PROJECTS.filter(project => {
-    // Status Filter (Map mock statuses to filter keys)
-    let matchStatus = true;
-    if (filterStatus === 'recruiting') matchStatus = project.status === '招募中' || project.status === '草稿';
-    else if (filterStatus === 'in-progress') matchStatus = project.status === '进行中' || project.status === '审核中';
-    else if (filterStatus === 'completed') matchStatus = project.status === '已完成';
+  // Filter & Sort Logic
+  const filteredProjects = useMemo(() => {
+    return MOCK_PROJECTS.filter(project => {
+      // 1. Status Filter
+      let matchStatus = true;
+      if (filterStatus === 'recruiting') matchStatus = project.status === '招募中';
+      else if (filterStatus === 'progress') matchStatus = ['进行中', '验收中', '交付中'].includes(project.status);
+      else if (filterStatus === 'finished') matchStatus = project.status === '已完结';
 
-    // Search Filter
-    const matchSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                        project.client.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Budget Filter (Simple logic for demo)
-    let matchBudget = true;
-    if (budgetRange === 'low') matchBudget = project.budget < 10000;
-    else if (budgetRange === 'medium') matchBudget = project.budget >= 10000 && project.budget < 50000;
-    else if (budgetRange === 'high') matchBudget = project.budget >= 50000;
+      // 2. Search Filter
+      const matchSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          project.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          project.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    return matchStatus && matchSearch && matchBudget;
-  });
+      // 3. Category Filter
+      const matchCategory = selectedCategory === '全部' || project.category === selectedCategory || (project.tags && project.tags.includes(selectedCategory));
 
-  const handleApply = (e: React.MouseEvent) => {
-    e.stopPropagation();
+      // 4. Budget Filter
+      const budgetRange = BUDGET_RANGES.find(r => r.id === selectedBudgetRange);
+      const matchBudget = budgetRange ? (project.budget >= budgetRange.min && project.budget < budgetRange.max) : true;
+
+      return matchStatus && matchSearch && matchCategory && matchBudget;
+    }).sort((a, b) => {
+       if (sortOrder === 'budget_high') return b.budget - a.budget;
+       if (sortOrder === 'budget_low') return a.budget - b.budget;
+       return 0; // Default: Newest (mock order)
+    });
+  }, [filterStatus, searchQuery, selectedCategory, selectedBudgetRange, sortOrder]);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setVisibleCount(9);
+  }, [filterStatus, searchQuery, selectedCategory, selectedBudgetRange, sortOrder]);
+
+  const featuredProjects = MOCK_PROJECTS.filter(p => p.status === '招募中' && p.budget > 10000).slice(0, 3);
+
+  // Mock Stats
+  const stats = {
+    activeProjects: MOCK_PROJECTS.filter(p => p.status === '招募中').length,
+    avgBudget: Math.floor(MOCK_PROJECTS.reduce((acc, curr) => acc + curr.budget, 0) / MOCK_PROJECTS.length),
+    newToday: 5
+  };
+
+  const handleApply = () => {
     if (!user && onTriggerLogin) {
       onTriggerLogin();
     } else {
-      // In a real app, open application modal
-      alert("申请功能仅在演示模式下模拟");
+      alert("申请已发送！");
+      setSelectedProject(null);
     }
   };
 
+  const handlePostProject = () => {
+    if (!user && onTriggerLogin) {
+        onTriggerLogin();
+    } else {
+        alert("请点击顶部导航栏的 '发布需求' 按钮进行发布。");
+    }
+  };
+
+  const handleLoadMore = () => {
+    setIsLoadingMore(true);
+    setTimeout(() => {
+      setVisibleCount(prev => prev + 6);
+      setIsLoadingMore(false);
+    }, 600); // Simulate network delay
+  };
+
+  // Interactive tag click
+  const handleTagClick = (tag: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Check if tag is in categories, otherwise set search
+    if (CATEGORIES.includes(tag)) {
+      setSelectedCategory(tag);
+    } else {
+      setSearchQuery(tag);
+    }
+    // Scroll to filter bar
+    window.scrollTo({ top: 400, behavior: 'smooth' });
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 pb-20 pt-20 px-4 md:px-8 font-sans">
-      <div className="max-w-6xl mx-auto">
-        
-        {/* Header */}
-        <div className="mb-8">
-           <button 
-              onClick={onBack}
-              className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 mb-2 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" /> 返回社区
+    <div className="min-h-screen bg-slate-50 font-sans pb-20 pt-16">
+      {selectedProject && (
+        <ProjectDrawer 
+          project={selectedProject} 
+          onClose={() => setSelectedProject(null)} 
+          onApply={handleApply} 
+          user={user}
+        />
+      )}
+
+      {/* 1. Enhanced Hero Section */}
+      <div className="bg-white border-b border-slate-200 relative overflow-hidden">
+         {/* Decorative Background */}
+         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-indigo-50 to-blue-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-to-tr from-purple-50 to-pink-50 rounded-full blur-3xl opacity-40 pointer-events-none"></div>
+         
+         <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 relative z-10">
+            <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 mb-6 transition-colors font-medium text-sm">
+               <ArrowLeft className="w-4 h-4" /> 返回社区
             </button>
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-               <div>
-                  <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-                    <Briefcase className="w-8 h-8 text-indigo-600" />
+            <div className="flex flex-col lg:flex-row justify-between items-end gap-8 mb-10">
+               <div className="max-w-2xl">
+                  <h1 className="text-4xl font-extrabold text-slate-900 mb-4 flex items-center gap-3 tracking-tight">
+                    <div className="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-200">
+                       <Briefcase className="w-8 h-8" />
+                    </div>
                     企划大厅
                   </h1>
-                  <p className="text-slate-500 mt-2 max-w-2xl">
-                    汇聚优质甲方需求，提供资金托管与规范化交易流程。
-                    当前共有 <span className="font-bold text-indigo-600">{MOCK_PROJECTS.length}</span> 个项目正在进行或招募中。
+                  <p className="text-slate-500 text-lg leading-relaxed">
+                     汇聚全网优质商业需求，提供 <span className="text-indigo-700 font-bold bg-indigo-50 px-1 rounded">100% 资金托管</span> 保障。
+                     <br className="hidden md:block" />让每一次创作都有价值，让每一次交付都更安心。
                   </p>
+                  
+                  {/* Quick Stats Strip */}
+                  <div className="flex gap-6 mt-6 pt-6 border-t border-slate-100">
+                     <div>
+                        <div className="text-2xl font-bold text-slate-900">{stats.activeProjects}</div>
+                        <div className="text-xs text-slate-500 font-medium uppercase tracking-wider">招募中企划</div>
+                     </div>
+                     <div className="w-px bg-slate-200 h-10"></div>
+                     <div>
+                        <div className="text-2xl font-bold text-slate-900">¥{(stats.avgBudget/1000).toFixed(1)}k</div>
+                        <div className="text-xs text-slate-500 font-medium uppercase tracking-wider">平均预算</div>
+                     </div>
+                     <div className="w-px bg-slate-200 h-10"></div>
+                     <div>
+                        <div className="text-2xl font-bold text-green-600">+{stats.newToday}</div>
+                        <div className="text-xs text-slate-500 font-medium uppercase tracking-wider">今日新增</div>
+                     </div>
+                  </div>
                </div>
-               {(!user || user.role === 'enterprise') && (
+               
+               <div className="flex gap-3">
                  <button 
-                   onClick={() => onTriggerLogin && onTriggerLogin()}
-                   className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all flex items-center gap-2"
+                   onClick={handlePostProject}
+                   className="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-600 transition-all shadow-xl hover:shadow-indigo-200 hover:-translate-y-1 flex items-center justify-center gap-2 group"
                  >
-                   <Building className="w-4 h-4" /> 我是甲方，发布需求
+                   <UploadCloud className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                   发布新企划
                  </button>
-               )}
+               </div>
             </div>
+
+            {/* Featured Projects Scroll */}
+            <div className="mb-2">
+               <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2 text-sm font-bold text-slate-800">
+                     <div className="p-1 bg-rose-100 text-rose-600 rounded"><Flame className="w-3.5 h-3.5" /></div>
+                     急需人才 / 高薪项目
+                  </div>
+               </div>
+               <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 -mx-4 px-4 md:mx-0 md:px-0">
+                  {featuredProjects.map(p => (
+                     <div 
+                        key={`feat-${p.id}`} 
+                        onClick={() => setSelectedProject(p)}
+                        className="min-w-[280px] bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl p-5 text-white shadow-lg cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all relative overflow-hidden group"
+                     >
+                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity"><Zap className="w-24 h-24" /></div>
+                        <div className="relative z-10 flex flex-col h-full">
+                           <div className="flex justify-between items-start mb-2">
+                              <span className="text-[10px] bg-white/10 border border-white/10 px-2 py-0.5 rounded font-medium text-indigo-100 backdrop-blur-sm">{p.client}</span>
+                              <span className="text-[10px] text-amber-300 font-bold bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/30">急招</span>
+                           </div>
+                           <h4 className="font-bold text-lg mb-1 line-clamp-1 group-hover:text-indigo-200 transition-colors">{p.title}</h4>
+                           <div className="text-xs text-slate-400 mb-6 line-clamp-1">{p.description}</div>
+                           
+                           <div className="mt-auto flex justify-between items-end border-t border-white/10 pt-3">
+                              <div>
+                                 <p className="text-[10px] text-slate-400 uppercase font-bold">预算</p>
+                                 <p className="text-xl font-bold tracking-tight">¥{p.budget.toLocaleString()}</p>
+                              </div>
+                              <div className="w-8 h-8 rounded-full bg-white text-indigo-900 flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                                 <ArrowRight className="w-4 h-4" />
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  ))}
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 relative z-20">
+        
+        {/* 2. Advanced Sticky Filter Bar */}
+        <div className="sticky top-16 md:top-20 z-30 mb-8 space-y-3">
+           
+           {/* Primary Filter Row */}
+           <div className="bg-white/90 backdrop-blur-xl p-3 rounded-2xl border border-white/50 shadow-lg shadow-slate-200/50 flex flex-col md:flex-row gap-3 items-center ring-1 ring-slate-200/50 transition-all">
+              
+              {/* Search */}
+              <div className="relative w-full md:w-72 group">
+                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 group-focus-within:text-indigo-500 transition-colors" />
+                 <input 
+                   type="text" 
+                   placeholder="搜索企划标题、发布方..." 
+                   className="w-full bg-slate-50 hover:bg-white focus:bg-white border border-transparent focus:border-indigo-200 rounded-xl py-2.5 pl-9 pr-8 text-sm outline-none transition-all shadow-inner"
+                   value={searchQuery}
+                   onChange={(e) => setSearchQuery(e.target.value)}
+                 />
+                 {searchQuery && (
+                   <button 
+                     onClick={() => setSearchQuery('')}
+                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-full hover:bg-slate-200 transition-colors"
+                   >
+                     <X className="w-3 h-3" />
+                   </button>
+                 )}
+              </div>
+              
+              <div className="h-8 w-px bg-slate-200 hidden md:block mx-1"></div>
+
+              {/* Status Tabs */}
+              <div className="flex gap-1 overflow-x-auto no-scrollbar w-full md:w-auto pb-1 md:pb-0">
+                 {[
+                    { id: 'all', label: '全部' },
+                    { id: 'recruiting', label: '招募中' },
+                    { id: 'progress', label: '进行中' },
+                    { id: 'finished', label: '已完结' }
+                 ].map(tab => (
+                    <button 
+                      key={tab.id}
+                      onClick={() => setFilterStatus(tab.id)}
+                      className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${
+                        filterStatus === tab.id 
+                          ? 'bg-slate-900 text-white shadow-md' 
+                          : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                 ))}
+              </div>
+              
+              <div className="ml-auto flex gap-2 w-full md:w-auto justify-end">
+                 {/* Budget Dropdown */}
+                 <div className="relative group">
+                    <select 
+                        className="appearance-none pl-3 pr-8 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:border-indigo-300 transition-colors outline-none cursor-pointer shadow-sm"
+                        value={selectedBudgetRange}
+                        onChange={(e) => setSelectedBudgetRange(e.target.value)}
+                    >
+                        {BUDGET_RANGES.map(range => (
+                            <option key={range.id} value={range.id}>{range.label}</option>
+                        ))}
+                    </select>
+                    <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                 </div>
+
+                 {/* Sort Dropdown */}
+                 <div className="relative group">
+                    <select 
+                        className="appearance-none pl-3 pr-8 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:border-indigo-300 transition-colors outline-none cursor-pointer shadow-sm"
+                        value={sortOrder}
+                        onChange={(e) => setSortOrder(e.target.value as any)}
+                    >
+                        <option value="newest">最新发布</option>
+                        <option value="budget_high">预算最高</option>
+                        <option value="budget_low">预算最低</option>
+                    </select>
+                    <SlidersHorizontal className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                 </div>
+              </div>
+           </div>
+
+           {/* Secondary Filter Row: Categories */}
+           <div className="bg-white/80 backdrop-blur-md rounded-xl border border-white/50 p-2 overflow-x-auto no-scrollbar flex items-center gap-2 shadow-sm justify-between">
+              <div className="flex items-center gap-2">
+                <div className="px-2 text-xs font-bold text-slate-400 flex items-center gap-1 uppercase tracking-wider flex-shrink-0">
+                   <Filter className="w-3 h-3" /> 分类:
+                </div>
+                {CATEGORIES.map(cat => (
+                   <button
+                     key={cat}
+                     onClick={() => setSelectedCategory(cat)}
+                     className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all border ${
+                        selectedCategory === cat
+                           ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                           : 'bg-white text-slate-500 border-slate-200 hover:border-indigo-200 hover:text-indigo-600'
+                     }`}
+                   >
+                      {cat}
+                   </button>
+                ))}
+              </div>
+              
+              <div className="text-xs text-slate-400 font-medium whitespace-nowrap px-2 hidden lg:block">
+                 共找到 {filteredProjects.length} 个企划
+              </div>
+           </div>
         </div>
 
-        {/* Filter Bar */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 grid grid-cols-1 md:grid-cols-12 gap-4">
-           
-           {/* Search */}
-           <div className="md:col-span-5 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <input 
-                type="text" 
-                placeholder="搜索企划标题、甲方名称..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-4 py-2.5 w-full bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-              />
-           </div>
+        {/* 3. Project Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+           {filteredProjects.slice(0, visibleCount).map((project, idx) => (
+             <div 
+               key={project.id} 
+               onClick={() => setSelectedProject(project)}
+               className="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col h-full ring-1 ring-slate-100 hover:ring-indigo-100/50"
+               style={{ animationDelay: `${idx * 50}ms` }}
+             >
+                {/* Image Area */}
+                <div className="h-48 bg-slate-100 relative overflow-hidden">
+                   <img 
+                     src={project.coverImage || 'https://placehold.co/800x400/f1f5f9/94a3b8?text=Project+Cover'} 
+                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                     alt=""
+                     onError={handleImageError}
+                   />
+                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-80"></div>
+                   
+                   {/* Status Badge */}
+                   <div className={`absolute top-3 right-3 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm backdrop-blur-md border border-white/10 flex items-center gap-1 ${
+                      project.status === '招募中' ? 'bg-indigo-600 text-white' : 
+                      ['进行中', '验收中'].includes(project.status) ? 'bg-blue-500 text-white' :
+                      'bg-slate-500 text-white'
+                   }`}>
+                      {project.status === '招募中' && <Zap className="w-3 h-3 fill-current" />}
+                      {project.status}
+                   </div>
 
-           {/* Status Select */}
-           <div className="md:col-span-3">
-              <select 
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full h-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="all">所有状态</option>
-                <option value="recruiting">招募中 / 草稿</option>
-                <option value="in-progress">进行中</option>
-                <option value="completed">已完成</option>
-              </select>
-           </div>
+                   {/* Deadline Badge */}
+                   <div className="absolute top-3 left-3 flex items-center gap-1 bg-black/40 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-full border border-white/10">
+                      <Clock className="w-3 h-3" /> {project.deadline} 截止
+                   </div>
 
-           {/* Budget Select */}
-           <div className="md:col-span-3">
-              <select 
-                value={budgetRange}
-                onChange={(e) => setBudgetRange(e.target.value)}
-                className="w-full h-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                   {/* Title Overlay */}
+                   <div className="absolute bottom-4 left-4 right-4">
+                      <h3 className="font-bold text-lg text-white drop-shadow-md line-clamp-1 mb-1 group-hover:text-indigo-200 transition-colors">
+                        {project.title}
+                      </h3>
+                      <div className="flex items-center gap-2 text-white/90 text-xs">
+                         <span className="flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded backdrop-blur-sm">
+                            <Building className="w-3 h-3" /> {project.client}
+                         </span>
+                         {/* Mock Verified */}
+                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" title="认证企业" />
+                      </div>
+                   </div>
+                </div>
+                
+                {/* Info Body */}
+                <div className="p-5 flex-1 flex flex-col">
+                   <div className="mb-4">
+                      {/* Tags */}
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                         {project.category && (
+                            <button 
+                              onClick={(e) => handleTagClick(project.category!, e)}
+                              className="text-[10px] bg-indigo-50 text-indigo-600 border border-indigo-100 px-2 py-0.5 rounded-full font-bold hover:bg-indigo-100 transition-colors"
+                            >
+                               {project.category}
+                            </button>
+                         )}
+                         {project.tags?.slice(0,3).map(tag => (
+                            <button 
+                              key={tag} 
+                              onClick={(e) => handleTagClick(tag, e)}
+                              className="text-[10px] bg-slate-50 text-slate-500 border border-slate-200 px-2 py-0.5 rounded-full hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                            >
+                               {tag}
+                            </button>
+                         ))}
+                      </div>
+                      
+                      {/* Description Teaser */}
+                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-3">
+                         {project.description || "项目暂无详细描述，请点击查看详情。"}
+                      </p>
+
+                      {/* Progress Bar (if active) */}
+                      {['进行中', '验收中'].includes(project.status) && (
+                         <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                            <div className="flex justify-between text-[10px] text-slate-500 mb-1.5 font-medium">
+                               <span>交付进度</span>
+                               <span className="text-indigo-600 font-bold">{project.progress}%</span>
+                            </div>
+                            <div className="w-full bg-slate-200 rounded-full h-1.5">
+                               <div className="bg-indigo-500 h-1.5 rounded-full transition-all duration-1000 shadow-[0_0_8px_rgba(99,102,241,0.5)]" style={{ width: `${project.progress}%` }}></div>
+                            </div>
+                         </div>
+                      )}
+                   </div>
+
+                   {/* Footer Info */}
+                   <div className="mt-auto pt-4 border-t border-slate-50 flex items-end justify-between">
+                      <div>
+                         <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">
+                            <Target className="w-3 h-3" /> 项目预算
+                         </p>
+                         <div className={`text-xl font-extrabold font-mono tracking-tight ${project.budget > 20000 ? 'text-indigo-600' : 'text-slate-800'}`}>
+                            ¥{project.budget.toLocaleString()}
+                         </div>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                         <button 
+                           onClick={(e) => { e.stopPropagation(); alert('已收藏'); }}
+                           className="p-2 border border-slate-200 rounded-xl text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50 transition-colors"
+                         >
+                            <Heart className="w-4 h-4" />
+                         </button>
+                         <button className="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-600 transition-colors shadow-sm flex items-center gap-1">
+                            查看 <ArrowRight className="w-3 h-3" />
+                         </button>
+                      </div>
+                   </div>
+                </div>
+             </div>
+           ))}
+        </div>
+        
+        {/* Empty State */}
+        {filteredProjects.length === 0 && (
+           <div className="py-24 text-center bg-white rounded-3xl border border-dashed border-slate-200 flex flex-col items-center justify-center">
+              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6 text-slate-300 ring-8 ring-slate-50">
+                 <Search className="w-10 h-10" />
+              </div>
+              <h3 className="text-xl text-slate-800 font-bold mb-2">未找到相关企划</h3>
+              <p className="text-slate-500 text-sm max-w-xs mx-auto">我们没有找到符合当前筛选条件的企划，尝试调整预算范围或关键词。</p>
+              <button 
+                onClick={() => { setFilterStatus('all'); setSearchQuery(''); setSelectedCategory('全部'); setSelectedBudgetRange('all'); }}
+                className="mt-6 text-white bg-indigo-600 px-6 py-2.5 rounded-full font-bold text-sm hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5"
               >
-                <option value="all">所有预算范围</option>
-                <option value="low">¥10k 以下</option>
-                <option value="medium">¥10k - ¥50k</option>
-                <option value="high">¥50k 以上</option>
-              </select>
-           </div>
-           
-           <div className="md:col-span-1 flex items-center justify-center">
-              <button className="p-2.5 text-slate-400 hover:bg-slate-50 rounded-lg transition-colors" title="更多筛选">
-                 <Filter className="w-5 h-5" />
+                清除所有筛选
               </button>
            </div>
-        </div>
+        )}
 
-        {/* Projects List */}
-        <div className="space-y-4">
-           {filteredProjects.length > 0 ? (
-             filteredProjects.map((project, idx) => (
-               <div 
-                 key={project.id} 
-                 className="group bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all animate-fade-in-up flex flex-col md:flex-row gap-5"
-                 style={{ animationDelay: `${idx * 50}ms` }}
-               >
-                  {/* Left: Image */}
-                  <div className="w-full md:w-48 h-32 md:h-auto flex-shrink-0 bg-slate-100 rounded-lg overflow-hidden relative">
-                     <img 
-                       src={project.coverImage || "https://placehold.co/200x150?text=Project"} 
-                       alt={project.title} 
-                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                     />
-                     <div className="absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-slate-800">
-                        {project.phase}
-                     </div>
-                  </div>
-
-                  {/* Middle: Content */}
-                  <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
-                     <div>
-                        <div className="flex items-center gap-2 mb-1">
-                           <h3 className="font-bold text-lg text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
-                             {project.title}
-                           </h3>
-                           {project.status === '招募中' && (
-                             <span className="bg-rose-100 text-rose-600 text-xs px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
-                               <Clock className="w-3 h-3" /> 急招
-                             </span>
-                           )}
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-slate-500 mb-3">
-                           <span className="font-medium text-slate-700">{project.client}</span>
-                           <span>•</span>
-                           <span>发布于 2天前</span>
-                           <span>•</span>
-                           <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> 远程</span>
-                        </div>
-                        <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">
-                          {project.description || '暂无详细描述...'}
-                        </p>
-                     </div>
-                     
-                     <div className="flex flex-wrap gap-2 mt-4">
-                        <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded border border-slate-200">商业约稿</span>
-                        <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded border border-slate-200">全额托管</span>
-                        <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded border border-slate-200">买断制</span>
-                     </div>
-                  </div>
-
-                  {/* Right: Action & Meta */}
-                  <div className="w-full md:w-48 flex flex-col justify-between items-end border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6 mt-2 md:mt-0">
-                     <div className="text-right w-full flex flex-row md:flex-col justify-between md:justify-start items-center md:items-end">
-                        <div className="font-bold text-xl text-indigo-600 flex items-center gap-0.5">
-                           <span className="text-sm text-slate-400 font-normal mr-1">预算</span>
-                           <span className="text-base">¥</span>{project.budget.toLocaleString()}
-                        </div>
-                        <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                           <Calendar className="w-3 h-3" /> 截止: {project.deadline}
-                        </div>
-                     </div>
-
-                     <div className="w-full mt-4">
-                        {project.status === '招募中' || project.status === '草稿' ? (
-                          <button 
-                            onClick={handleApply}
-                            className="w-full bg-slate-900 hover:bg-indigo-600 text-white font-bold py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
-                          >
-                            立即应征 <ArrowRight className="w-4 h-4" />
-                          </button>
-                        ) : (
-                           <button disabled className="w-full bg-slate-100 text-slate-400 font-bold py-2 rounded-lg cursor-not-allowed flex items-center justify-center gap-2">
-                             {project.status === '已完成' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                             {project.status}
-                           </button>
-                        )}
-                     </div>
-                  </div>
-               </div>
-             ))
-           ) : (
-             <div className="text-center py-20 bg-white rounded-xl border border-dashed border-slate-200">
-                <Briefcase className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500 font-medium">暂无符合条件的企划</p>
-                <button onClick={() => { setFilterStatus('all'); setSearchQuery(''); setBudgetRange('all'); }} className="mt-2 text-indigo-600 text-sm hover:underline">
-                  重置筛选条件
-                </button>
-             </div>
-           )}
-        </div>
+        {/* Load More Button */}
+        {visibleCount < filteredProjects.length && (
+          <div className="mt-12 text-center">
+             <button 
+               onClick={handleLoadMore}
+               disabled={isLoadingMore}
+               className="bg-white border border-slate-200 text-slate-600 px-8 py-3 rounded-full font-bold hover:bg-slate-50 hover:shadow-md transition-all hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+             >
+               {isLoadingMore ? (
+                 <>
+                   <Loader2 className="w-4 h-4 animate-spin" /> 加载中...
+                 </>
+               ) : (
+                 <>
+                   加载更多 ({filteredProjects.length - visibleCount})
+                   <ChevronDown className="w-4 h-4" />
+                 </>
+               )}
+             </button>
+          </div>
+        )}
 
       </div>
     </div>

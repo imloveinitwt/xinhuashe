@@ -1,5 +1,6 @@
 
-export type ViewMode = 'discovery' | 'workspace' | 'profile' | 'artworks' | 'projects_hub' | 'rising_creators' | 'rankings' | 'help_center' | 'painter_guide_full' | 'employer_guide_full' | 'terms_service_full' | 'enterprise_showcase' | 'messages' | 'membership' | 'enterprise_profile' | 'credit_score';
+
+export type ViewMode = 'discovery' | 'workspace' | 'profile' | 'artworks' | 'projects_hub' | 'rising_creators' | 'rankings' | 'help_center' | 'painter_guide_full' | 'employer_guide_full' | 'terms_service_full' | 'enterprise_showcase' | 'messages' | 'membership' | 'enterprise_profile' | 'credit_score' | 'case_studies';
 export type WorkspaceTab = 'dashboard' | 'projects' | 'dam' | 'finance' | 'admin_users' | 'admin_roles' | 'membership';
 
 // 2.2 角色定义
@@ -162,7 +163,9 @@ export interface Project {
   progress: number; 
   phase: string; 
   description?: string;
-  coverImage?: string; // New field for project visual
+  coverImage?: string; 
+  category?: string; // e.g., 'UI设计', '插画', '3D'
+  tags?: string[]; // e.g., ['游戏', '二次元']
 }
 
 export type TaskStatus = 'todo' | 'in-progress' | 'review' | 'done';

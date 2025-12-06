@@ -53,7 +53,7 @@ const HelpCenterPage: React.FC<HelpCenterPageProps> = ({ onBack }) => {
     <div className="min-h-screen bg-slate-50 font-sans">
       
       {/* 1. Hero Search Section */}
-      <div className="bg-indigo-900 text-white pt-24 pb-16 px-6 relative overflow-hidden">
+      <div className="bg-indigo-900 text-white pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full opacity-20 blur-3xl -mr-16 -mt-16"></div>
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500 rounded-full opacity-20 blur-3xl -ml-10 -mb-10"></div>
         
@@ -81,7 +81,7 @@ const HelpCenterPage: React.FC<HelpCenterPageProps> = ({ onBack }) => {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-12 -mt-10 relative z-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-10 relative z-20">
         
         {/* 2. Category Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
