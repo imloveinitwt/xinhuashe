@@ -6,6 +6,9 @@ import { StorageService } from './storage';
 // 模拟网络延迟
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Helper for consistent avatar generation
+const getAvatar = (seed: string) => `https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(seed)}&backgroundColor=e5e7eb,b6e3f4,c0aede,d1d4f9,ffd5dc`;
+
 export const AuthService = {
   /**
    * 登录逻辑
@@ -74,7 +77,7 @@ export const AuthService = {
     const newUser: User = {
       id: `u_${Date.now()}`,
       name: username,
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random&color=fff`,
+      avatar: getAvatar(username), // Stable avatar
       role: role,
       roleName: roleDef?.name || '用户',
       permissions: roleDef?.defaultPermissions || [],
@@ -110,6 +113,18 @@ export const AuthService = {
   },
 
   /**
+   * 更新用户信息 (Mock DB)
+   */
+  updateUser: (userId: string, updates: Partial<User>) => {
+    const users = StorageService.getUsers();
+    const idx = users.findIndex((u: any) => u.id === userId);
+    if (idx !== -1) {
+      users[idx] = { ...users[idx], ...updates };
+      StorageService.setItem(StorageService.KEYS.USERS, users);
+    }
+  },
+
+  /**
    * 辅助方法：生成 Mock 用户（用于快速演示）
    */
   createMockUser: (roleCode: UserRole, nameBase: string): User => {
@@ -117,7 +132,7 @@ export const AuthService = {
     return {
       id: `u_${Math.floor(Math.random() * 10000)}`,
       name: nameBase || (roleCode === 'creator' ? 'ArtMaster' : 'TechCorp'),
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(nameBase || roleCode)}&background=random&color=fff`,
+      avatar: getAvatar(nameBase || roleCode), // Stable avatar
       role: roleCode,
       roleName: roleDef?.name || '',
       permissions: roleDef?.defaultPermissions || [],

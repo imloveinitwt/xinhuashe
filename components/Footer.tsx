@@ -6,7 +6,7 @@ import {
   ExternalLink, Mail, MapPin, Phone, X, 
   Shield, FileText, Users, HelpCircle, Building, ChevronRight, Scale,
   Briefcase, Palette, CreditCard, CheckCircle2, LayoutTemplate,
-  BookOpen, Umbrella, Search
+  BookOpen, Umbrella, Search, UploadCloud
 } from 'lucide-react';
 import { ViewMode } from '../types';
 
@@ -73,6 +73,60 @@ const PAGE_CONTENT: Record<FooterPageKey, { title: string; icon: any; content: R
               <p className="text-sm">核心团队组建完成，启动“创意供应链”项目研发。</p>
             </li>
           </ul>
+        </section>
+      </div>
+    )
+  },
+  join: {
+    title: '加入我们',
+    icon: Users,
+    content: (
+      <div className="space-y-6 text-slate-600 text-sm leading-relaxed">
+        <section className="bg-indigo-50 p-5 rounded-xl border border-indigo-100">
+          <h3 className="font-bold text-indigo-900 mb-2">我们要找的人就是你！</h3>
+          <p className="text-sm text-indigo-700">
+            薪画社正处于快速成长期，我们寻找对创意产业充满热情、勇于创新的伙伴加入我们。
+          </p>
+        </section>
+
+        <section>
+          <h4 className="font-bold text-slate-900 text-base mb-4">热招职位</h4>
+          <div className="space-y-4">
+            <div className="border border-slate-200 p-4 rounded-lg hover:border-indigo-300 transition-colors">
+              <div className="flex justify-between items-start mb-2">
+                <h5 className="font-bold text-slate-800">高级前端工程师</h5>
+                <span className="text-indigo-600 font-bold">25k-40k</span>
+              </div>
+              <p className="text-xs text-slate-500 mb-2">北京 · 3-5年 · 本科</p>
+              <p className="text-sm">负责平台核心业务的前端开发，主导技术选型与性能优化。熟练掌握 React, TypeScript, Tailwind CSS。</p>
+            </div>
+            
+            <div className="border border-slate-200 p-4 rounded-lg hover:border-indigo-300 transition-colors">
+              <div className="flex justify-between items-start mb-2">
+                <h5 className="font-bold text-slate-800">产品运营经理</h5>
+                <span className="text-indigo-600 font-bold">18k-30k</span>
+              </div>
+              <p className="text-xs text-slate-500 mb-2">北京 · 3-5年 · 本科</p>
+              <p className="text-sm">负责创作者社区的运营与增长，策划线上线下活动，提升用户活跃度与留存率。</p>
+            </div>
+
+            <div className="border border-slate-200 p-4 rounded-lg hover:border-indigo-300 transition-colors">
+              <div className="flex justify-between items-start mb-2">
+                <h5 className="font-bold text-slate-800">视觉设计师</h5>
+                <span className="text-indigo-600 font-bold">15k-25k</span>
+              </div>
+              <p className="text-xs text-slate-500 mb-2">北京 · 1-3年 · 本科</p>
+              <p className="text-sm">负责平台整体视觉风格的把控与设计，包括品牌VI、营销素材及UI界面设计。</p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4 className="font-bold text-slate-900 text-base mb-2">投递方式</h4>
+          <p>
+            请将简历发送至 <a href="mailto:hr@xinhuashe.com" className="text-indigo-600 hover:underline font-bold">hr@xinhuashe.com</a>，
+            邮件标题请注明“应聘职位-姓名”。我们将在收到简历后的 3 个工作日内与您联系。
+          </p>
         </section>
       </div>
     )
@@ -374,46 +428,6 @@ const PAGE_CONTENT: Record<FooterPageKey, { title: string; icon: any; content: R
       </div>
     )
   },
-  join: {
-    title: '加入我们',
-    icon: Users,
-    content: (
-      <div className="space-y-6 text-slate-600">
-        <div className="bg-indigo-600 text-white p-6 rounded-xl text-center">
-          <h3 className="text-xl font-bold mb-2">和优秀的人，做有挑战的事</h3>
-          <p className="opacity-90 text-sm">薪画社正在重新定义创意产业的未来，我们需要你的加入。</p>
-        </div>
-        
-        <h4 className="font-bold text-slate-900 mt-6 mb-4">热招职位</h4>
-        <div className="space-y-3">
-           <div className="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-lg hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group">
-              <div>
-                <div className="font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">高级前端工程师 (React)</div>
-                <div className="text-xs text-slate-500 mt-1">北京 • 研发部 • 3-5年经验</div>
-              </div>
-              <span className="text-indigo-600 text-sm font-bold">25k-40k</span>
-           </div>
-           <div className="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-lg hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group">
-              <div>
-                <div className="font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">产品经理 (SaaS/B端)</div>
-                <div className="text-xs text-slate-500 mt-1">上海 • 产品部 • 3年以上经验</div>
-              </div>
-              <span className="text-indigo-600 text-sm font-bold">20k-35k</span>
-           </div>
-           <div className="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-lg hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group">
-              <div>
-                <div className="font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">资深运营专家 (创作者生态)</div>
-                <div className="text-xs text-slate-500 mt-1">远程/北京 • 运营部 • 5年以上经验</div>
-              </div>
-              <span className="text-indigo-600 text-sm font-bold">面议</span>
-           </div>
-        </div>
-        <div className="text-center pt-4">
-          <p className="text-sm">简历投递：<a href="mailto:hr@xinhuashe.com" className="text-indigo-600 font-bold hover:underline">hr@xinhuashe.com</a></p>
-        </div>
-      </div>
-    )
-  },
   employer_guide: {
     title: '企划方发约指南',
     icon: Briefcase,
@@ -474,19 +488,6 @@ const PAGE_CONTENT: Record<FooterPageKey, { title: string; icon: any; content: R
             </div>
           </div>
         </section>
-
-        {/* Link to full guide */}
-        <div className="mt-8 pt-6 border-t border-slate-100 text-center">
-            <button 
-              onClick={() => {
-                // Handle navigation in Footer component
-              }}
-              data-nav-target="employer_guide_full"
-              className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors inline-flex items-center gap-2 shadow-lg"
-            >
-              查看完整企划手册 <ChevronRight className="w-4 h-4" />
-            </button>
-        </div>
       </div>
     )
   },
@@ -531,9 +532,6 @@ const PAGE_CONTENT: Record<FooterPageKey, { title: string; icon: any; content: R
             <li>保持诚信，恶意拖稿或失联将严重影响您的信用分及接单权限。</li>
           </ul>
         </section>
-        
-        {/* Placeholder for link to full guide */}
-        <div id="full-guide-link-placeholder"></div> 
       </div>
     )
   },
@@ -612,7 +610,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate, onTriggerUpload }) => {
   return (
     <>
       <footer className="bg-white border-t border-slate-200 pt-16 pb-8 font-sans">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-12">
             
             {/* Brand Column */}
@@ -762,17 +760,26 @@ const Footer: React.FC<FooterProps> = ({ onNavigate, onTriggerUpload }) => {
                 </div>
               )}
 
-              {/* Conditional Button for Employer Guide */}
+              {/* Conditional Button for Employer Guide (UPDATED) */}
               {modalKey === 'employer_guide' && (
-                 <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+                 <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row justify-center gap-4">
                     <button 
                       onClick={() => {
                          setModalKey(null);
                          onNavigate?.('employer_guide_full');
                       }}
-                      className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors inline-flex items-center gap-2 shadow-lg"
+                      className="bg-white border border-slate-200 text-slate-700 px-6 py-3 rounded-xl font-bold hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors inline-flex items-center justify-center gap-2 shadow-sm"
                     >
                       查看完整企划手册 <ChevronRight className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => {
+                         setModalKey(null);
+                         onTriggerUpload?.();
+                      }}
+                      className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors inline-flex items-center justify-center gap-2 shadow-lg hover:-translate-y-0.5"
+                    >
+                      <UploadCloud className="w-4 h-4" /> 立即发布需求
                     </button>
                  </div>
               )}

@@ -67,13 +67,20 @@ const Header: React.FC<HeaderProps> = ({
   const isCommunityMode = !isWorkspace;
 
   return (
-    <header className={`fixed top-0 w-full z-30 transition-all duration-300 ${
+    <header className={`fixed top-0 w-full z-30 transition-all duration-300 font-sans ${
       isWorkspace 
-      ? 'pl-64 bg-white border-b border-slate-200' 
+      ? 'pl-0 md:pl-64 bg-white border-b border-slate-200' 
       : 'bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm'
     }`}>
       
-      <div className="px-6 h-16 flex items-center justify-between">
+      {/* 
+         Unified Layout Container:
+         - Workspace: px-6 md:px-8 to match App content padding.
+         - Community: max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 to match global wide page standard.
+      */}
+      <div className={`h-16 flex items-center justify-between ${
+        isWorkspace ? 'px-6 md:px-8' : 'max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8'
+      }`}>
         
         {/* Left: Branding & Navigation */}
         <div className="flex items-center gap-8">
@@ -87,7 +94,7 @@ const Header: React.FC<HeaderProps> = ({
                 </div>
 
                 {/* Primary Navigation Links (Desktop) */}
-                <nav className="hidden md:flex items-center gap-6">
+                <nav className="hidden lg:flex items-center gap-6">
                   <button 
                       onClick={() => setViewMode('projects_hub')} 
                       className={`text-sm font-medium transition-colors ${viewMode === 'projects_hub' ? 'text-indigo-600 font-bold' : 'text-slate-600 hover:text-indigo-600'}`}
@@ -122,8 +129,15 @@ const Header: React.FC<HeaderProps> = ({
             </div>
           ) : (
             /* Spacer for workspace mode */
-            <div className="flex items-center gap-2">
-               <span className={`text-xs font-medium px-2 py-1 rounded border ${
+            <div className="flex items-center gap-3">
+               <button 
+                  className="md:hidden p-2 -ml-2 text-slate-600"
+                  // Mobile sidebar toggle would go here in a real app, typically handled by layout state
+                  onClick={() => {}} 
+               >
+                  <Menu className="w-6 h-6" />
+               </button>
+               <span className={`text-xs font-medium px-2 py-1 rounded border hidden sm:inline-block ${
                  userRole === 'enterprise' 
                    ? 'bg-indigo-50 text-indigo-700 border-indigo-200' 
                    : userRole === 'root_admin'
@@ -187,13 +201,15 @@ const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Mobile Menu Toggle */}
-          <button 
-            className="md:hidden p-2 text-slate-600"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            <Menu className="w-6 h-6" />
-          </button>
+          {/* Mobile Menu Toggle (Community Mode) */}
+          {isCommunityMode && (
+            <button 
+              className="lg:hidden p-2 text-slate-600"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+          )}
 
           {currentUser ? (
             <>
@@ -386,7 +402,7 @@ const Header: React.FC<HeaderProps> = ({
 
       {/* Mobile Navigation Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-slate-100 animate-fade-in-up">
+        <div className="lg:hidden bg-white border-t border-slate-100 animate-fade-in-up">
           <nav className="flex flex-col p-4 space-y-2">
             <button 
               onClick={() => { setViewMode('discovery'); setIsMobileMenuOpen(false); }}

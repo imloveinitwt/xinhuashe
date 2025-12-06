@@ -18,32 +18,17 @@ interface ArtworkDetailModalProps {
 }
 
 // --- Mock Data for Dynamic Comments ---
-const MOCK_COMMENT_USERS = [
-  { name: 'Alex Chen', avatar: 'https://ui-avatars.com/api/?name=Alex+Chen&background=fde047&color=333' },
-  { name: 'Sarah Wu', avatar: 'https://ui-avatars.com/api/?name=Sarah+Wu&background=fca5a5&color=fff' },
-  { name: 'Mike Ross', avatar: 'https://ui-avatars.com/api/?name=Mike+Ross&background=93c5fd&color=fff' },
-  { name: 'DesignPro', avatar: 'https://ui-avatars.com/api/?name=Design+Pro&background=c4b5fd&color=fff' },
-  { name: 'ArtLover99', avatar: 'https://ui-avatars.com/api/?name=Art+Lover&background=86efac&color=333' },
-  { name: 'PixelGod', avatar: 'https://ui-avatars.com/api/?name=Pixel+God&background=fdba74&color=fff' },
-  { name: 'CreativeSoul', avatar: 'https://ui-avatars.com/api/?name=Creative+Soul&background=f0abfc&color=fff' },
-  { name: 'NeonVibe', avatar: 'https://ui-avatars.com/api/?name=Neon+Vibe&background=5eead4&color=333' },
-  { name: 'CyberPunk_X', avatar: 'https://ui-avatars.com/api/?name=Cyber+Punk&background=cbd5e1&color=333' },
-  { name: 'WatercolorFan', avatar: 'https://ui-avatars.com/api/?name=Watercolor+Fan&background=f9a8d4&color=fff' },
-  { name: '3D_Master', avatar: 'https://ui-avatars.com/api/?name=3D+Master&background=67e8f9&color=333' },
-  { name: 'SketchBook', avatar: 'https://ui-avatars.com/api/?name=Sketch+Book&background=d8b4fe&color=fff' },
-  { name: 'ColorPalette', avatar: 'https://ui-avatars.com/api/?name=Color+Palette&background=fda4af&color=fff' },
-  { name: 'VisualArtist', avatar: 'https://ui-avatars.com/api/?name=Visual+Artist&background=a5b4fc&color=fff' },
-  { name: 'GameDev_User', avatar: 'https://ui-avatars.com/api/?name=Game+Dev&background=818cf8&color=fff' },
-  // Adding Chinese users
-  { name: '追风少年', avatar: 'https://ui-avatars.com/api/?name=追风&background=ef4444&color=fff' },
-  { name: '墨染流年', avatar: 'https://ui-avatars.com/api/?name=墨染&background=10b981&color=fff' },
-  { name: '绘梦师', avatar: 'https://ui-avatars.com/api/?name=绘梦&background=f59e0b&color=fff' },
-  { name: '快乐小狗', avatar: 'https://ui-avatars.com/api/?name=快乐&background=3b82f6&color=fff' },
-  { name: '橘子汽水', avatar: 'https://ui-avatars.com/api/?name=橘子&background=f97316&color=fff' },
-  { name: '云边小卖部', avatar: 'https://ui-avatars.com/api/?name=云边&background=8b5cf6&color=fff' },
-  { name: '星河滚烫', avatar: 'https://ui-avatars.com/api/?name=星河&background=ec4899&color=fff' },
-  { name: '一只特立独行的猪', avatar: 'https://ui-avatars.com/api/?name=特立&background=6366f1&color=fff' },
+const MOCK_COMMENT_USERS_RAW = [
+  'Alex Chen', 'Sarah Wu', 'Mike Ross', 'DesignPro', 'ArtLover99', 'PixelGod', 
+  'CreativeSoul', 'NeonVibe', 'CyberPunk_X', 'WatercolorFan', '3D_Master', 
+  'SketchBook', 'ColorPalette', 'VisualArtist', 'GameDev_User',
+  '追风少年', '墨染流年', '绘梦师', '快乐小狗', '橘子汽水', '云边小卖部', '星河滚烫', '一只特立独行的猪'
 ];
+
+const MOCK_COMMENT_USERS = MOCK_COMMENT_USERS_RAW.map(name => ({
+  name,
+  avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(name)}&backgroundColor=e5e7eb,b6e3f4,c0aede,d1d4f9,ffd5dc`
+}));
 
 const MOCK_COMMENTS_TEXT = [
   "光影处理得太棒了！非常有氛围感。",
@@ -176,7 +161,7 @@ const ArtworkDetailModal: React.FC<ArtworkDetailModalProps> = ({
       id: `new_${Date.now()}`,
       user: {
         name: currentUser?.name || '我',
-        avatar: currentUser?.avatar || 'https://ui-avatars.com/api/?name=Me'
+        avatar: currentUser?.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=Me`
       },
       content: newComment,
       time: '刚刚',

@@ -28,8 +28,11 @@ const SkeletonChart = () => (
   </div>
 );
 
-const StatCard: React.FC<{ title: string; value: string; trend?: string; icon: any; color: string }> = ({ title, value, trend, icon: Icon, color }) => (
-  <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
+const StatCard: React.FC<{ title: string; value: string; trend?: string; icon: any; color: string; onClick?: () => void }> = ({ title, value, trend, icon: Icon, color, onClick }) => (
+  <div 
+    onClick={onClick}
+    className={`bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow ${onClick ? 'cursor-pointer' : ''}`}
+  >
     <div>
       <p className="text-slate-500 text-sm font-medium mb-1">{title}</p>
       <h3 className="text-2xl font-bold text-slate-800">{value}</h3>
@@ -142,14 +145,28 @@ const DashboardView: React.FC<DashboardProps> = ({ user, onNavigate }) => {
           <>
             <StatCard title="总支出" value="¥142,593" trend="+12.5% 环比" icon={DollarSign} color="bg-indigo-500" />
             <StatCard title="活跃项目" value="8" trend="3个即将交付" icon={Briefcase} color="bg-blue-500" />
-            <StatCard title="企业信用" value="AAA" trend="极佳" icon={ShieldCheck} color="bg-green-500" />
+            <StatCard 
+              title="企业信用" 
+              value="AAA" 
+              trend="极佳" 
+              icon={ShieldCheck} 
+              color="bg-green-500" 
+              onClick={() => onNavigate?.('credit_score')}
+            />
             <StatCard title="当前套餐" value="专业版" trend="企业特权" icon={Crown} color="bg-amber-500" />
           </>
         ) : (
           <>
             <StatCard title="本月收入" value="¥12,450" trend="+8.2% 环比" icon={DollarSign} color="bg-pink-500" />
             <StatCard title="主页访问" value="5.4k" trend="+240 今日新增" icon={Eye} color="bg-purple-500" />
-            <StatCard title="个人信用" value="700" trend="良好" icon={Zap} color="bg-yellow-500" />
+            <StatCard 
+              title="个人信用" 
+              value="700" 
+              trend="良好" 
+              icon={Zap} 
+              color="bg-yellow-500"
+              onClick={() => onNavigate?.('credit_score')}
+            />
             <StatCard title="会员等级" value="Pro" trend="权益生效中" icon={Crown} color="bg-indigo-500" />
           </>
         )}

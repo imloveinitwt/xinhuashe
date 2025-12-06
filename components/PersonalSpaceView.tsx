@@ -5,23 +5,29 @@ import {
   MapPin, Link as LinkIcon, Calendar, BadgeCheck, Settings, 
   UserPlus, Mail, Eye, Heart, Share2, PenTool, Image as ImageIcon,
   Grid, List, Check, X, Palette, Layout, Users, Crown, Zap, Loader2,
-  Briefcase, Sparkles, MessageCircle
+  Briefcase, Sparkles, MessageCircle, Camera
 } from 'lucide-react';
-import { User, UserProfile, UserProfilePreferences, ThemeColor } from '../types';
+import { User, UserProfile, UserProfilePreferences, ThemeColor, ViewMode } from '../types';
 import { MOCK_ARTWORKS, MOCK_CREATORS, MOCK_USERS_ADMIN_VIEW } from '../constants';
 import ArtworkDetailModal from './ArtworkDetailModal';
 import ArtworkCard from './ArtworkCard';
+import Avatar from './Avatar';
+import AvatarUploadModal from './AvatarUploadModal';
+import { useAuth } from '../contexts/AuthContext';
 
 interface PersonalSpaceViewProps {
   profile: UserProfile;
   currentUser: User | null;
+  onNavigate?: (mode: ViewMode) => void;
 }
 
-const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentUser }) => {
+const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentUser, onNavigate }) => {
+  const { updateUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'works' | 'likes' | 'about' | 'followers'>('works');
   
   // Customization State
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const [isEditLoading, setIsEditLoading] = useState(false);
   const [preferences, setPreferences] = useState<UserProfilePreferences>(
     profile.preferences || { themeColor: 'indigo', layoutMode: 'grid' }
@@ -41,13 +47,13 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
   }, [profile]);
 
   useEffect(() => {
-    if (isCustomizeOpen) {
+    if (isCustomizeOpen || isAvatarModalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
     }
     return () => { document.body.style.overflow = 'unset'; };
-  }, [isCustomizeOpen]);
+  }, [isCustomizeOpen, isAvatarModalOpen]);
   
   // Logic to determine if the viewer is the owner of this profile
   const isOwner = currentUser?.id && (profile.userId === currentUser.id || profile.displayName === currentUser.name);
@@ -89,6 +95,15 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
     }, 800);
   };
 
+  const handleAvatarSave = async (base64Image: string) => {
+    // 1. Update global user state (so sidebar/header updates)
+    updateUser({ avatar: base64Image });
+    // 2. In a real app, we would also update 'profile.avatar', but since 'profile' prop 
+    // comes from MOCK_DATA generator based on ID, we rely on the fact that if isOwner is true,
+    // currentUser.avatar IS the profile avatar in this context for immediate feedback.
+    setIsAvatarModalOpen(false);
+  };
+
   // Helpers for Dynamic Styling
   const getThemeColorClass = (type: 'text' | 'bg' | 'border' | 'ring') => {
     const color = preferences.themeColor;
@@ -118,15 +133,14 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
     e.currentTarget.src = 'https://placehold.co/1200x400/1e293b/64748b?text=Cover+Image';
   };
 
-  const handleAvatarError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = 'https://ui-avatars.com/api/?name=User&background=cbd5e1&color=fff';
-  };
-
   const handleArtworkError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = 'https://placehold.co/600x400/f1f5f9/94a3b8?text=Image+Load+Error';
   };
 
   const hasMembership = profile.membershipLevel && profile.membershipLevel !== 'none';
+
+  // Use current user avatar if owner, otherwise profile avatar
+  const displayAvatar = isOwner && currentUser ? currentUser.avatar : profile.avatar;
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20 relative">
@@ -136,6 +150,13 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
         artworkId={selectedArtworkId}
         onClose={() => setSelectedArtworkId(null)}
         currentUser={currentUser}
+      />
+
+      {/* Avatar Upload Modal */}
+      <AvatarUploadModal 
+        isOpen={isAvatarModalOpen}
+        onClose={() => setIsAvatarModalOpen(false)}
+        onSave={handleAvatarSave}
       />
 
       {/* Customization Modal */}
@@ -244,16 +265,27 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
           <div className="lg:w-80 flex-shrink-0">
              <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-6 flex flex-col items-center lg:items-start text-center lg:text-left relative overflow-hidden">
                 {/* Avatar */}
-                <div className="relative group/avatar cursor-pointer">
-                  <div className={`w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden mb-4 bg-white relative z-10`}>
-                    <img 
-                      src={profile.avatar} 
-                      alt={profile.displayName} 
-                      className="w-full h-full object-cover bg-slate-200 group-hover/avatar:scale-110 transition-transform duration-500" 
-                      onError={handleAvatarError}
+                <div className="relative group/avatar">
+                  <div className={`rounded-full border-4 border-white shadow-lg mb-4 bg-white relative z-10`}>
+                    <Avatar 
+                      src={displayAvatar} 
+                      name={profile.displayName} 
+                      size="3xl"
+                      className="border-4 border-white"
                     />
                   </div>
-                  {hasMembership && (
+                  
+                  {isOwner && (
+                    <button 
+                      onClick={() => setIsAvatarModalOpen(true)}
+                      className="absolute bottom-4 right-0 z-20 w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-md border-2 border-white opacity-0 group-hover/avatar:opacity-100 transition-all hover:bg-indigo-600 cursor-pointer"
+                      title="更换头像"
+                    >
+                       <Camera className="w-4 h-4" />
+                    </button>
+                  )}
+
+                  {hasMembership && !isOwner && (
                     <div className="absolute bottom-4 right-0 z-20 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md border-2 border-slate-50">
                        <Crown className={`w-4 h-4 ${profile.membershipLevel === 'max' ? 'text-amber-500 fill-amber-500' : 'text-indigo-500 fill-indigo-500'}`} />
                     </div>
@@ -272,7 +304,10 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
                 {/* Badges Row (Credit + Membership) */}
                 <div className="flex flex-wrap justify-center lg:justify-start gap-2 mb-6">
                   {profile.creditScore && (
-                    <div className="bg-slate-50 px-3 py-1 rounded-full border border-slate-200 flex items-center gap-1.5 shadow-sm">
+                    <div 
+                      onClick={() => onNavigate?.('credit_score')}
+                      className="bg-slate-50 px-3 py-1 rounded-full border border-slate-200 flex items-center gap-1.5 shadow-sm cursor-pointer hover:bg-slate-100 transition-colors"
+                    >
                       <Zap className="w-3.5 h-3.5 text-yellow-500 fill-current" />
                       <span className="text-xs font-bold text-slate-700">信用 {profile.creditScore}</span>
                     </div>
@@ -545,11 +580,11 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
                    {mockFollowers.map((follower, idx) => (
                      <div key={idx} className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 flex items-center justify-between hover:shadow-md transition-shadow hover:border-indigo-200 group">
                        <div className="flex items-center gap-3">
-                         <img 
+                         <Avatar
                            src={follower.avatar} 
-                           alt={follower.name} 
-                           className="w-12 h-12 rounded-full border border-slate-100 bg-slate-200"
-                           onError={handleAvatarError}
+                           name={follower.name} 
+                           size="md"
+                           className="bg-slate-200"
                          />
                          <div>
                            <div className="flex items-center gap-1">

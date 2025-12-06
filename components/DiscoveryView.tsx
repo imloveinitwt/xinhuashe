@@ -300,13 +300,18 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-20 pt-16">
       
-      <ArtworkDetailModal 
-        artworkId={selectedArtworkId}
-        onClose={() => setSelectedArtworkId(null)}
-        onNavigateToProfile={(artist) => handleArtistClick({ stopPropagation: () => {} } as any, artist)}
-        onTriggerLogin={onTriggerLogin}
-        currentUser={user}
-      />
+      {selectedArtworkId && (
+        <ArtworkDetailModal 
+          artworkId={selectedArtworkId}
+          onClose={() => setSelectedArtworkId(null)}
+          onNavigateToProfile={(artist) => {
+             setSelectedArtworkId(null);
+             handleArtistClick({ stopPropagation: () => {} } as any, artist);
+          }}
+          onTriggerLogin={onTriggerLogin}
+          currentUser={user}
+        />
+      )}
 
       {selectedProject && (
         <ProjectDrawer 
@@ -339,7 +344,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
           </div>
         ))}
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center">
+        <div className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             
             {/* Left Content */}
@@ -464,7 +469,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
 
         {/* Integrated Stats Bar (Glassmorphism) */}
         <div className="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-slate-900/60 backdrop-blur-md z-20">
-           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <div className="flex flex-wrap justify-center md:justify-between items-center gap-6 md:gap-12">
                  <div className="flex items-center gap-3 group cursor-pointer hover:scale-105 transition-transform">
                     <div className="p-2 bg-indigo-500/20 rounded-lg text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-colors"><Monitor className="w-5 h-5" /></div>
@@ -500,7 +505,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
       </div>
 
       {/* 3. Main Content Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
         
         {/* SECTION: Featured This Week (Refined) */}
         <section>
@@ -681,17 +686,17 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
               </div>
            </div>
 
-           {/* Waterfall Grid */}
-           <div className="mt-6 columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
+           {/* Waterfall Grid - Masonry Layout */}
+           <div className="mt-6 columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
               {isLoading ? (
                  Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="break-inside-avoid mb-4">
-                        <ArtworkCard isLoading={true} />
+                    <div key={i} className="break-inside-avoid mb-6">
+                        <ArtworkCard isLoading={true} aspectRatio="auto" />
                     </div>
                  ))
               ) : (
                  artworks.map((artwork, idx) => (
-                    <div key={artwork.id} className="break-inside-avoid mb-4 animate-fade-in-up" style={{ animationDelay: `${idx * 50}ms` }}>
+                    <div key={artwork.id} className="break-inside-avoid mb-6 animate-fade-in-up" style={{ animationDelay: `${idx * 50}ms` }}>
                        <ArtworkCard 
                           artwork={artwork}
                           isLiked={likedArtworks.has(artwork.id)}

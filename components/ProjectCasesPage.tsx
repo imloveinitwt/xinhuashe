@@ -30,9 +30,9 @@ const ProjectCasesPage: React.FC<ProjectCasesPageProps> = ({ onBack, onNavigate,
          {/* Background Decoration */}
          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-900/30 rounded-full blur-[100px] -mr-20 -mt-20 pointer-events-none"></div>
          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-900/20 rounded-full blur-[80px] -ml-20 -mb-20 pointer-events-none"></div>
-         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 pointer-events-none"></div>
+         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80')] opacity-10 pointer-events-none mix-blend-overlay bg-cover bg-center"></div>
 
-         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <button 
               onClick={onBack}
               className="flex items-center gap-2 text-slate-400 hover:text-white mb-8 transition-colors text-sm font-medium"
@@ -59,7 +59,7 @@ const ProjectCasesPage: React.FC<ProjectCasesPageProps> = ({ onBack, onNavigate,
 
       {/* 2. Filter Bar */}
       <div className="sticky top-16 z-20 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
-         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between overflow-x-auto no-scrollbar gap-4">
+         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between overflow-x-auto no-scrollbar gap-4">
             <div className="flex gap-2">
                {industries.map(ind => (
                   <button
@@ -82,7 +82,7 @@ const ProjectCasesPage: React.FC<ProjectCasesPageProps> = ({ onBack, onNavigate,
       </div>
 
       {/* 3. Case Studies List */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-24">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-24">
          {filteredCases.map((caseItem, idx) => (
             <div key={caseItem.id} className={`flex flex-col gap-12 ${idx % 2 === 1 ? 'lg:flex-row-reverse' : 'lg:flex-row'} items-center group`}>
                
@@ -162,7 +162,7 @@ const ProjectCasesPage: React.FC<ProjectCasesPageProps> = ({ onBack, onNavigate,
 
       {/* 4. CTA Section */}
       <div className="bg-slate-900 py-20 mt-12 relative overflow-hidden">
-         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80')] opacity-5 bg-cover bg-center"></div>
          <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
             <h2 className="text-3xl font-bold text-white mb-6">准备好书写您的成功故事了吗？</h2>
             <p className="text-slate-400 mb-8 text-lg">

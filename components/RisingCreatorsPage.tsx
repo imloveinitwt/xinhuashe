@@ -128,7 +128,7 @@ const RisingCreatorsPage: React.FC<RisingCreatorsPageProps> = ({ onBack, onNavig
          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-purple-600/30 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none"></div>
 
-         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
             {/* Nav Back (Light Theme) */}
             <button 
               onClick={onBack}
@@ -209,7 +209,7 @@ const RisingCreatorsPage: React.FC<RisingCreatorsPageProps> = ({ onBack, onNavig
          </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Toolbar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 sticky top-16 z-20 bg-slate-50/95 backdrop-blur py-4 transition-all">

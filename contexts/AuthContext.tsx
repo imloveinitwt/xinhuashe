@@ -73,6 +73,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const updatedUser = { ...user, ...data };
       setUser(updatedUser);
       StorageService.setSession(updatedUser);
+      // Persist to local "database" as well for demo consistency across reloads
+      // In a real app, this would be an API call
+      AuthService.updateUser(user.id, data);
     }
   };
 

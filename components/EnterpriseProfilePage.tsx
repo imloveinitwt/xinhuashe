@@ -36,7 +36,7 @@ const EnterpriseProfilePage: React.FC<EnterpriseProfilePageProps> = ({ onBack, o
        {/* Hero Cover */}
        <div className="h-64 md:h-80 w-full relative bg-slate-900 group overflow-hidden">
           <img 
-            src="https://image.pollinations.ai/prompt/modern%20tech%20office%20building%20glass%20facade%20blue%20sky?width=1600&height=600&nologo=true" 
+            src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&h=600&q=80" 
             alt="Cover" 
             className="w-full h-full object-cover opacity-80 transition-transform duration-1000 group-hover:scale-105"
           />
@@ -405,7 +405,7 @@ const EnterpriseProfilePage: React.FC<EnterpriseProfilePageProps> = ({ onBack, o
                                           {caseItem.clientTestimonial && (
                                               <div className="bg-indigo-50/50 p-6 rounded-xl border border-indigo-100 relative">
                                                   <Quote className="w-8 h-8 text-indigo-200 absolute top-4 right-4 rotate-180" />
-                                                  <p className="text-slate-700 italic text-sm mb-4 relative z-10 leading-relaxed">"{caseItem.clientTestimonial.text}"</p>
+                                                  <p className="text-slate-700 italic relative z-10 mb-4 text-sm leading-relaxed">"{caseItem.clientTestimonial.text}"</p>
                                                   <div className="flex items-center gap-2">
                                                     <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs">
                                                       {caseItem.clientTestimonial.author[0]}
@@ -425,7 +425,7 @@ const EnterpriseProfilePage: React.FC<EnterpriseProfilePageProps> = ({ onBack, o
                       <div className="animate-fade-in space-y-6">
                          <div className="grid grid-cols-2 gap-4">
                             <div className="col-span-2 aspect-[21/9] bg-slate-200 rounded-2xl overflow-hidden relative group">
-                               <img src="https://image.pollinations.ai/prompt/modern%20startup%20office%20team%20collaborating%20happy?width=800&height=400&nologo=true" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Office Life" />
+                               <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&h=400&q=80" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Office Life" />
                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-8">
                                   <div className="text-white">
                                      <h4 className="font-bold text-2xl mb-2">开放协作的办公环境</h4>
@@ -434,12 +434,12 @@ const EnterpriseProfilePage: React.FC<EnterpriseProfilePageProps> = ({ onBack, o
                                </div>
                             </div>
                             <div className="aspect-square bg-slate-200 rounded-2xl overflow-hidden relative group">
-                               <img src="https://image.pollinations.ai/prompt/corporate%20team%20building%20event%20outdoor?width=400&height=400&nologo=true" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Team Building" />
+                               <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=400&h=400&q=80" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Team Building" />
                                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>
                                <div className="absolute bottom-4 left-4 text-white font-bold text-lg drop-shadow-md">季度团建</div>
                             </div>
                             <div className="aspect-square bg-slate-200 rounded-2xl overflow-hidden relative group">
-                               <img src="https://image.pollinations.ai/prompt/tech%20conference%20presentation%20stage?width=400&height=400&nologo=true" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Conference" />
+                               <img src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=400&h=400&q=80" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Conference" />
                                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>
                                <div className="absolute bottom-4 left-4 text-white font-bold text-lg drop-shadow-md">技术分享会</div>
                             </div>
@@ -481,8 +481,11 @@ const EnterpriseProfilePage: React.FC<EnterpriseProfilePageProps> = ({ onBack, o
              <div className="space-y-6">
                 
                 {/* Credit Score Widget - Optimized Visual */}
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col items-center">
-                   <div className="absolute top-0 right-0 w-32 h-32 bg-green-50 rounded-bl-full -mr-10 -mt-10 pointer-events-none"></div>
+                <div 
+                  onClick={() => onNavigate?.('credit_score')}
+                  className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col items-center cursor-pointer hover:shadow-md hover:border-green-200 transition-all group"
+                >
+                   <div className="absolute top-0 right-0 w-32 h-32 bg-green-50 rounded-bl-full -mr-10 -mt-10 pointer-events-none group-hover:scale-110 transition-transform"></div>
                    
                    <h3 className="font-bold text-slate-900 mb-6 relative z-10 w-full flex items-center gap-2">
                       <Shield className="w-5 h-5 text-green-600" /> 企业信用

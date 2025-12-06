@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import { 
-  ArrowLeft, Check, Crown, HelpCircle, Star, Zap, Shield, Sparkles, X, 
-  Minus, Gem, Rocket, ChevronDown, CheckCircle2
+  ArrowLeft, Check, Crown, HelpCircle, Star, Zap, Shield, X, 
+  Minus, Rocket, ChevronDown, CheckCircle2, Layout, Briefcase
 } from 'lucide-react';
 import { User, MembershipLevel } from '../types';
 import { MEMBERSHIP_PLANS_CREATOR, MEMBERSHIP_PLANS_ENTERPRISE } from '../constants';
@@ -12,10 +12,10 @@ interface MembershipPageProps {
   user: User | null;
   onUpgrade: (level: MembershipLevel) => void;
   onTriggerLogin: () => void;
-  isEmbedded?: boolean; // Control layout for embedded view (e.g. inside workspace)
+  isEmbedded?: boolean;
 }
 
-// Grouped Comparison Data for better readability
+// Comparison Data
 const COMPARISON_GROUPS = [
   {
     title: '核心权益',
@@ -44,29 +44,41 @@ const COMPARISON_GROUPS = [
   }
 ];
 
+const FAQ_LIST = [
+  { q: '可以随时取消订阅吗？', a: '是的，您可以随时在“账户设置”中取消自动续费。取消后，您当前的权益将保留至本计费周期结束，次一周期不再扣费。' },
+  { q: '升级或降级如何计算费用？', a: '升级套餐立即生效，系统将自动计算您当前周期剩余金额并抵扣新套餐费用，您只需支付差价。降级将在当前付费周期结束后生效。' },
+  { q: '企业版发票如何开具？', a: '支持开具增值税专用发票或普通电子发票。支付成功后，请前往“财务中心 - 发票管理”提交开票信息，电子发票通常在 1-3 个工作日内发送。' },
+  { q: 'AI 辅助创作次数如何计算？', a: '每日额度在凌晨 00:00 重置。未使用完的次数不会累积到下一天。Max 版用户的无限次使用受公平使用原则限制。' }
+];
+
 const MembershipPage: React.FC<MembershipPageProps> = ({ onBack, user, onUpgrade, onTriggerLogin, isEmbedded = false }) => {
-  const [activeTab, setActiveTab] = useState<'creator' | 'enterprise'>(
+  const [activeRole, setActiveRole] = useState<'creator' | 'enterprise'>(
     user?.role === 'enterprise' ? 'enterprise' : 'creator'
   );
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
-  
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [activeFaqIndex, setActiveFaqIndex] = useState<number | null>(null);
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
-  const plans = activeTab === 'creator' ? MEMBERSHIP_PLANS_CREATOR : MEMBERSHIP_PLANS_ENTERPRISE;
-  
+  const plans = activeRole === 'creator' ? MEMBERSHIP_PLANS_CREATOR : MEMBERSHIP_PLANS_ENTERPRISE;
   const currentLevel = user ? (user.membershipLevel || 'none') : 'none';
+  const themeColor = activeRole === 'creator' ? 'indigo' : 'blue';
+
+  // Safe color getter for dynamic Tailwind classes to ensure they exist/purge correctly if using JIT
+  const getThemeText = () => activeRole === 'creator' ? 'text-indigo-600' : 'text-blue-600';
+  const getThemeBg = () => activeRole === 'creator' ? 'bg-indigo-600' : 'bg-blue-600';
+  const getThemeBorder = () => activeRole === 'creator' ? 'border-indigo-500' : 'border-blue-500';
+
+  const calculatePrice = (monthlyPrice: number) => {
+    return billingCycle === 'yearly' ? Math.floor(monthlyPrice * 12 * 0.8) : monthlyPrice;
+  };
 
   const handleSubscribe = (planId: MembershipLevel) => {
     if (!user) {
       onTriggerLogin();
       return;
     }
-    
     setProcessingId(planId);
-    
-    // Simulate Payment API Latency
     setTimeout(() => {
       onUpgrade(planId);
       setProcessingId(null);
@@ -74,307 +86,243 @@ const MembershipPage: React.FC<MembershipPageProps> = ({ onBack, user, onUpgrade
     }, 1500);
   };
 
-  const calculatePrice = (monthlyPrice: number) => {
-    if (billingCycle === 'yearly') {
-      return Math.floor(monthlyPrice * 12 * 0.8); // 20% off
-    }
-    return monthlyPrice;
-  };
-
-  const renderFeatureValue = (value: string | boolean) => {
-    if (typeof value === 'boolean') {
-      return value ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <Minus className="w-4 h-4 text-slate-300 mx-auto" />;
-    }
-    return <span className="text-slate-700 font-medium">{value}</span>;
-  };
-
   return (
-    <div className={`bg-slate-50 font-sans pb-20 relative ${isEmbedded ? 'min-h-full rounded-3xl overflow-hidden' : 'min-h-screen pt-20'}`}>
+    <div className={`bg-slate-50 font-sans min-h-screen relative overflow-x-hidden ${isEmbedded ? '' : 'pt-20'}`}>
       
       {/* Success Modal */}
       {showSuccessModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md animate-fade-in">
-           <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center animate-scale-in relative overflow-hidden shadow-2xl">
-              {/* Confetti / Decor */}
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500"></div>
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-yellow-100 rounded-full blur-3xl opacity-50"></div>
-              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-100 rounded-full blur-3xl opacity-50"></div>
-
-              <div className="w-20 h-20 bg-gradient-to-br from-yellow-100 to-amber-100 rounded-full flex items-center justify-center mx-auto mb-6 text-amber-600 ring-8 ring-amber-50 shadow-inner">
-                 <Crown className="w-10 h-10 fill-current animate-heart-pop" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+           <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center animate-scale-in shadow-2xl relative">
+              <button onClick={() => setShowSuccessModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><X className="w-5 h-5"/></button>
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                 <CheckCircle2 className="w-10 h-10 text-green-600 animate-pulse" />
               </div>
-              <h3 className="text-2xl font-extrabold text-slate-900 mb-2">尊贵身份已激活！</h3>
-              <p className="text-slate-500 mb-8 leading-relaxed text-sm">
-                您已成功升级为 <span className="font-bold text-slate-800">{activeTab === 'creator' ? '创作者' : '企业'} VIP</span><br/>
-                所有专属特权即刻生效。
+              <h3 className="text-2xl font-bold text-slate-900 mb-2">升级成功！</h3>
+              <p className="text-slate-500 mb-8">
+                您的 <span className="font-bold text-slate-800">{activeRole === 'creator' ? '创作者' : '企业'} VIP</span> 权益已即时生效。
               </p>
               <button 
                 onClick={() => setShowSuccessModal(false)}
-                className="w-full py-3.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all"
               >
-                立即体验权益
+                开始使用
               </button>
            </div>
         </div>
       )}
 
-      {/* Header Section */}
-      <div className={`relative overflow-hidden ${isEmbedded ? 'bg-slate-900 pt-12 pb-24' : 'bg-[#0B0F19] pt-20 pb-32'}`}>
-         {/* Dynamic Background */}
-         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl overflow-hidden pointer-events-none">
-            <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-indigo-600/30 rounded-full blur-[100px] animate-pulse" style={{animationDuration: '8s'}}></div>
-            <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] animate-pulse" style={{animationDuration: '10s'}}></div>
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03]"></div>
-         </div>
-         
-         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            {!isEmbedded && (
-              <button 
-                onClick={onBack}
-                className="absolute top-0 left-4 md:left-8 flex items-center gap-2 text-white/50 hover:text-white transition-colors text-sm font-medium"
-              >
-                <ArrowLeft className="w-4 h-4" /> 返回
-              </button>
-            )}
-            
-            <div className="text-center max-w-3xl mx-auto">
-               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-200/10 to-yellow-400/10 border border-amber-200/20 text-amber-200 text-xs font-bold mb-6 backdrop-blur-md shadow-lg shadow-amber-900/20">
-                  <Sparkles className="w-3 h-3 fill-current" /> 薪画社 PRO 会员
+      {/* --- HEADER SECTION --- */}
+      <div className="relative bg-white border-b border-slate-200">
+         {!isEmbedded && (
+            <button 
+              onClick={onBack}
+              className="absolute top-6 left-6 md:left-8 flex items-center gap-2 text-slate-400 hover:text-slate-800 transition-colors font-medium text-sm z-10"
+            >
+              <ArrowLeft className="w-4 h-4" /> 返回
+            </button>
+         )}
+
+         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12 text-center">
+            <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 mb-6 tracking-tight">
+               升级您的<span className={`${getThemeText()}`}>创作引擎</span>
+            </h1>
+            <p className="text-lg text-slate-500 max-w-2xl mx-auto mb-10">
+               {activeRole === 'creator' 
+                 ? '加入数万名 Pro 创作者，享受更低费率、更高流量曝光与专属 AI 工具。' 
+                 : '为团队赋能，解锁企业级资产管理、合规发票与专属项目经理支持。'}
+            </p>
+
+            {/* Controls Container */}
+            <div className="flex flex-col items-center gap-6">
+               
+               {/* Role Switcher */}
+               <div className="inline-flex p-1.5 bg-slate-100 rounded-full relative">
+                  {/* Sliding Background */}
+                  <div 
+                    className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-white rounded-full shadow-sm transition-all duration-300 ease-out ${
+                       activeRole === 'creator' ? 'left-1.5' : 'left-[calc(50%+3px)]'
+                    }`}
+                  ></div>
+                  
+                  <button
+                    onClick={() => setActiveRole('creator')}
+                    className={`relative z-10 px-8 py-2 rounded-full text-sm font-bold transition-colors flex items-center gap-2 ${
+                       activeRole === 'creator' ? 'text-slate-900' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                     <Layout className="w-4 h-4" /> 创作者版
+                  </button>
+                  <button
+                    onClick={() => setActiveRole('enterprise')}
+                    className={`relative z-10 px-8 py-2 rounded-full text-sm font-bold transition-colors flex items-center gap-2 ${
+                       activeRole === 'enterprise' ? 'text-slate-900' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                     <Briefcase className="w-4 h-4" /> 企业版
+                  </button>
                </div>
-               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 leading-tight tracking-tight text-white">
-                  解锁您的<br/>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-300">
-                    无限创意潜能
+
+               {/* Billing Switcher */}
+               <div className="flex items-center gap-4">
+                  <span className={`text-sm font-bold ${billingCycle === 'monthly' ? 'text-slate-900' : 'text-slate-400'}`}>按月付费</span>
+                  <button 
+                    onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
+                    className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 ${billingCycle === 'yearly' ? getThemeBg() : 'bg-slate-300'}`}
+                  >
+                    <div className={`w-6 h-6 bg-white rounded-full shadow transition-transform duration-300 ${billingCycle === 'yearly' ? 'translate-x-6' : ''}`}></div>
+                  </button>
+                  <span className={`text-sm font-bold flex items-center gap-2 ${billingCycle === 'yearly' ? 'text-slate-900' : 'text-slate-400'}`}>
+                    按年付费
+                    <span className="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full font-extrabold border border-amber-200">
+                      省 20%
+                    </span>
                   </span>
-               </h1>
-               <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
-                  {activeTab === 'creator' 
-                    ? '更低费率，更高曝光，专属 AI 创作工具，助您收入倍增。' 
-                    : '企业级资产管理，合规发票，专属项目经理，降本增效首选。'}
-               </p>
-            </div>
-
-            {/* Role Toggle */}
-            <div className="flex justify-center mt-12">
-               <div className="bg-white/10 backdrop-blur-md p-1.5 rounded-full border border-white/10 flex relative shadow-inner">
-                  <button
-                    onClick={() => setActiveTab('creator')}
-                    className={`relative z-10 px-8 py-2.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2 ${
-                      activeTab === 'creator' 
-                        ? 'text-slate-900 bg-white shadow-lg' 
-                        : 'text-white/60 hover:text-white'
-                    }`}
-                  >
-                    创作者版
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('enterprise')}
-                    className={`relative z-10 px-8 py-2.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2 ${
-                      activeTab === 'enterprise' 
-                        ? 'text-slate-900 bg-white shadow-lg' 
-                        : 'text-white/60 hover:text-white'
-                    }`}
-                  >
-                    企业版
-                  </button>
                </div>
-            </div>
-
-            {/* Billing Cycle Toggle */}
-            <div className="flex justify-center mt-8 items-center gap-4">
-               <span className={`text-sm font-bold transition-colors ${billingCycle === 'monthly' ? 'text-white' : 'text-slate-500'}`}>按月付费</span>
-               <button 
-                 onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
-                 className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 flex items-center border border-transparent focus:ring-2 focus:ring-indigo-500 focus:outline-none ${billingCycle === 'yearly' ? 'bg-indigo-600' : 'bg-slate-700'}`}
-               >
-                 <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-transform duration-300 ${billingCycle === 'yearly' ? 'translate-x-6' : ''}`}></div>
-               </button>
-               <span className={`text-sm font-bold transition-colors flex items-center gap-2 ${billingCycle === 'yearly' ? 'text-white' : 'text-slate-500'}`}>
-                 按年付费
-                 <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full font-extrabold shadow-lg shadow-orange-900/20">
-                   省 20%
-                 </span>
-               </span>
             </div>
          </div>
       </div>
 
-      {/* Plans Cards */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 relative z-20">
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-start">
+      {/* --- PRICING CARDS --- */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
             {plans.map((plan) => {
                const isCurrent = currentLevel === plan.id;
-               const isRecommended = plan.recommended;
-               const price = calculatePrice(plan.price);
-               
+               const isRec = plan.recommended;
+               const finalPrice = calculatePrice(plan.price);
+
                return (
-                 <div 
-                   key={plan.id}
-                   className={`relative bg-white rounded-3xl flex flex-col transition-all duration-300 group overflow-hidden ${
-                     isRecommended 
-                       ? 'border-2 border-indigo-500 shadow-2xl scale-100 md:scale-105 z-10 ring-4 ring-indigo-500/10' 
-                       : 'border border-slate-200 shadow-xl hover:shadow-2xl hover:-translate-y-1 opacity-95 hover:opacity-100'
-                   }`}
-                 >
-                    {isRecommended && (
-                       <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
-                    )}
-                    {isRecommended && (
-                       <div className="absolute top-4 right-4">
-                          <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-full border border-indigo-100">
-                             <Star className="w-3 h-3 fill-current" /> 推荐
-                          </span>
-                       </div>
-                    )}
-                    
-                    <div className="p-8 pb-0">
-                       <h3 className={`text-xl font-extrabold mb-4 flex items-center gap-2 ${
-                          plan.id === 'max' ? 'text-amber-600' : 
-                          plan.id === 'pro' ? 'text-indigo-600' : 'text-slate-800'
-                       }`}>
-                          {plan.id === 'max' && <Crown className="w-6 h-6 fill-current" />}
-                          {plan.id === 'pro' && <Zap className="w-6 h-6 fill-current" />}
-                          {plan.id === 'none' && <Shield className="w-6 h-6 text-slate-400" />}
-                          {plan.name}
-                       </h3>
-                       
-                       <div className="flex items-baseline gap-1 mb-2">
-                          <span className="text-5xl font-extrabold text-slate-900 tracking-tight">¥{price}</span>
-                          {plan.price > 0 && <span className="text-slate-500 font-medium">/ {billingCycle === 'yearly' ? '年' : '月'}</span>}
-                       </div>
-                       
-                       <div className="h-6 mb-6">
-                          {billingCycle === 'yearly' && plan.price > 0 && (
-                              <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">
-                                 已节省 ¥{Math.floor(plan.price * 12 - price)}
-                              </span>
-                          )}
-                       </div>
+                  <div 
+                    key={plan.id} 
+                    className={`relative flex flex-col bg-white rounded-[2rem] transition-all duration-300 ${
+                       isRec 
+                         ? `border-2 ${getThemeBorder()} shadow-xl scale-105 z-10` 
+                         : 'border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1'
+                    }`}
+                  >
+                     {isRec && (
+                        <div className={`absolute -top-4 left-1/2 -translate-x-1/2 ${getThemeBg()} text-white px-4 py-1 rounded-full text-xs font-bold shadow-md flex items-center gap-1`}>
+                           <Star className="w-3 h-3 fill-current" /> 最受欢迎
+                        </div>
+                     )}
 
-                       <p className="text-sm text-slate-500 leading-relaxed mb-8 border-b border-slate-100 pb-8 min-h-[80px]">
-                          {plan.id === 'none' ? '零成本开启创作之旅，适合新手体验平台基础功能。' : 
-                           plan.id === 'pro' ? '解锁高级工具与流量扶持，适合追求成长的专业创作者。' : 
-                           '全方位尊享特权与定制服务，适合工作室与高频交易用户。'}
-                       </p>
-                    </div>
+                     <div className="p-8 pb-4">
+                        <div className="flex items-center justify-between mb-4">
+                           <h3 className="text-xl font-bold text-slate-900">{plan.name}</h3>
+                           {plan.id === 'max' && <Crown className="w-6 h-6 text-amber-500 fill-current" />}
+                           {plan.id === 'pro' && <Zap className="w-6 h-6 text-indigo-500 fill-current" />}
+                           {plan.id === 'none' && <Shield className="w-6 h-6 text-slate-400" />}
+                        </div>
+                        
+                        <div className="mb-6">
+                           <span className="text-4xl font-extrabold text-slate-900">¥{finalPrice}</span>
+                           {plan.price > 0 && <span className="text-slate-500 font-medium text-sm">/{billingCycle === 'yearly' ? '年' : '月'}</span>}
+                        </div>
 
-                    <div className="p-8 pt-0 flex-1">
-                       <ul className="space-y-4 mb-8">
-                          {plan.features.map((feature, idx) => (
-                             <li key={idx} className="flex items-start gap-3 text-sm text-slate-700">
-                                <div className={`mt-0.5 rounded-full p-0.5 flex-shrink-0 ${plan.id === 'none' ? 'bg-slate-100 text-slate-400' : 'bg-green-100 text-green-600'}`}>
-                                   <Check className="w-3 h-3" />
-                                </div>
-                                <span className="font-medium">{feature}</span>
-                             </li>
-                          ))}
-                       </ul>
-                    </div>
+                        <p className="text-sm text-slate-500 leading-relaxed border-b border-slate-100 pb-6 min-h-[80px]">
+                           {plan.id === 'none' && '适合刚开始探索的个人创作者，提供基础接单与展示功能。'}
+                           {plan.id === 'pro' && '适合职业自由画师，提供更低的费率、更多的曝光和 AI 辅助工具。'}
+                           {plan.id === 'max' && '适合工作室或高频交易用户，享受零费率、专属服务和顶级流量支持。'}
+                        </p>
+                     </div>
 
-                    <div className="p-8 pt-0 mt-auto">
-                       <button
-                         onClick={() => handleSubscribe(plan.id)}
-                         disabled={isCurrent || processingId !== null}
-                         className={`w-full py-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
-                            isCurrent 
-                              ? 'bg-slate-100 text-slate-400 cursor-default border border-slate-200' 
-                              : isRecommended
-                                ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200 hover:-translate-y-1'
-                                : 'bg-slate-900 text-white hover:bg-slate-800 hover:-translate-y-1 shadow-md'
-                         }`}
-                       >
-                          {processingId === plan.id ? (
-                             <span className="animate-pulse flex items-center gap-2">
-                               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                               处理中...
-                             </span>
-                          ) : isCurrent ? (
-                             <>当前方案</>
-                          ) : (
-                             <>立即升级</>
-                          )}
-                       </button>
-                    </div>
-                 </div>
+                     <div className="p-8 pt-2 flex-1">
+                        <ul className="space-y-4">
+                           {plan.features.map((feat, i) => (
+                              <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
+                                 <Check className={`w-5 h-5 flex-shrink-0 ${plan.id === 'none' ? 'text-slate-400' : getThemeText()}`} />
+                                 <span>{feat}</span>
+                              </li>
+                           ))}
+                        </ul>
+                     </div>
+
+                     <div className="p-8 pt-0 mt-auto">
+                        <button
+                           onClick={() => handleSubscribe(plan.id)}
+                           disabled={isCurrent || processingId !== null}
+                           className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                              isCurrent
+                                 ? 'bg-slate-100 text-slate-400 cursor-default'
+                                 : isRec
+                                    ? `${getThemeBg()} text-white hover:opacity-90 shadow-lg`
+                                    : 'bg-slate-900 text-white hover:bg-slate-800'
+                           }`}
+                        >
+                           {processingId === plan.id ? '处理中...' : isCurrent ? '当前方案' : '立即升级'}
+                        </button>
+                     </div>
+                  </div>
                );
             })}
          </div>
       </div>
 
-      {/* Enhanced Comparison Table */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-24">
-         <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">全维度权益对比</h2>
-            <p className="text-slate-500">详细对比，助您做出明智选择</p>
-         </div>
+      {/* --- COMPARISON TABLE --- */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-slate-200">
+         <h2 className="text-2xl font-bold text-slate-900 text-center mb-12">权益全景对比</h2>
          
-         <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="overflow-x-auto">
-               <table className="w-full text-sm text-left">
-                  <thead>
-                     <tr className="bg-slate-50/80 backdrop-blur border-b border-slate-200">
-                        <th className="p-6 w-1/3 font-bold text-slate-900 text-lg min-w-[200px]">功能权益</th>
-                        <th className="p-6 w-1/5 text-center text-slate-600 font-bold min-w-[120px]">基础版</th>
-                        <th className="p-6 w-1/5 text-center text-indigo-600 font-bold text-lg min-w-[120px] bg-indigo-50/30">专业版 Pro</th>
-                        <th className="p-6 w-1/5 text-center text-amber-600 font-bold text-lg min-w-[120px] bg-amber-50/30">旗舰版 Max</th>
-                     </tr>
-                  </thead>
-                  <tbody>
-                     {COMPARISON_GROUPS.map((group, groupIdx) => (
-                        <React.Fragment key={group.title}>
-                           <tr className="bg-slate-50/50">
-                              <td colSpan={4} className="px-6 py-3 font-bold text-xs text-slate-400 uppercase tracking-wider border-y border-slate-100">
-                                 {group.title}
+         <div className="overflow-hidden bg-white rounded-3xl border border-slate-200 shadow-sm">
+            <table className="w-full text-sm">
+               <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200">
+                     <th className="p-5 text-left text-slate-500 font-medium pl-8">功能权益</th>
+                     <th className="p-5 text-center text-slate-900 font-bold w-1/5">基础版</th>
+                     <th className={`p-5 text-center ${getThemeText()} font-bold w-1/5`}>专业版 Pro</th>
+                     <th className="p-5 text-center text-amber-600 font-bold w-1/5">旗舰版 Max</th>
+                  </tr>
+               </thead>
+               <tbody className="divide-y divide-slate-100">
+                  {COMPARISON_GROUPS.map((group) => (
+                     <React.Fragment key={group.title}>
+                        <tr className="bg-slate-50/50">
+                           <td colSpan={4} className="px-8 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                              {group.title}
+                           </td>
+                        </tr>
+                        {group.features.map((item, idx) => (
+                           <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                              <td className="px-8 py-4 font-medium text-slate-700">{item.name}</td>
+                              <td className="px-4 py-4 text-center text-slate-500">
+                                 {typeof item.none === 'boolean' ? (item.none ? <Check className="w-5 h-5 mx-auto text-slate-800"/> : <Minus className="w-4 h-4 mx-auto text-slate-300"/>) : item.none}
+                              </td>
+                              <td className="px-4 py-4 text-center font-bold text-slate-800 bg-indigo-50/20">
+                                 {typeof item.pro === 'boolean' ? (item.pro ? <Check className={`w-5 h-5 mx-auto ${getThemeText()}`}/> : <Minus className="w-4 h-4 mx-auto text-slate-300"/>) : item.pro}
+                              </td>
+                              <td className="px-4 py-4 text-center font-bold text-slate-800 bg-amber-50/20">
+                                 {typeof item.max === 'boolean' ? (item.max ? <Check className="w-5 h-5 mx-auto text-amber-500"/> : <Minus className="w-4 h-4 mx-auto text-slate-300"/>) : item.max}
                               </td>
                            </tr>
-                           {group.features.map((item, idx) => (
-                              <tr key={idx} className="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 group">
-                                 <td className="px-6 py-4 font-medium text-slate-700 group-hover:text-slate-900">
-                                    {item.name}
-                                 </td>
-                                 <td className="px-6 py-4 text-center">
-                                    {renderFeatureValue(item.none)}
-                                 </td>
-                                 <td className="px-6 py-4 text-center bg-indigo-50/10 group-hover:bg-indigo-50/20">
-                                    {renderFeatureValue(item.pro)}
-                                 </td>
-                                 <td className="px-6 py-4 text-center bg-amber-50/10 group-hover:bg-amber-50/20">
-                                    {renderFeatureValue(item.max)}
-                                 </td>
-                              </tr>
-                           ))}
-                        </React.Fragment>
-                     ))}
-                  </tbody>
-               </table>
-            </div>
+                        ))}
+                     </React.Fragment>
+                  ))}
+               </tbody>
+            </table>
          </div>
       </div>
 
-      {/* FAQ Section */}
-      <div className="max-w-3xl mx-auto px-6 mt-24">
-         <h2 className="text-3xl font-bold text-slate-900 text-center mb-10">常见问题解答</h2>
+      {/* --- FAQ --- */}
+      <div className="max-w-3xl mx-auto px-6 py-16">
+         <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">常见问题</h2>
          <div className="space-y-4">
-            {[
-               { q: '可以随时取消订阅吗？', a: '是的，您可以随时在“账户设置”中取消自动续费。取消后，您当前的权益将保留至本计费周期结束，次一周期不再扣费。' },
-               { q: '升级或降级如何计算费用？', a: '升级套餐立即生效，系统将自动计算您当前周期剩余金额并抵扣新套餐费用，您只需支付差价。降级将在当前付费周期结束后生效。' },
-               { q: '企业版发票如何开具？', a: '支持开具增值税专用发票或普通电子发票。支付成功后，请前往“财务中心 - 发票管理”提交开票信息，电子发票通常在 1-3 个工作日内发送。' },
-               { q: 'AI 辅助创作次数如何计算？', a: '每日额度在凌晨 00:00 重置。未使用完的次数不会累积到下一天。Max 版用户的无限次使用受公平使用原则限制。' }
-            ].map((faq, index) => (
-               <div key={index} className="bg-white border border-slate-200 rounded-2xl overflow-hidden transition-all hover:border-indigo-200 hover:shadow-sm">
+            {FAQ_LIST.map((item, i) => (
+               <div key={i} className="border border-slate-200 rounded-2xl bg-white overflow-hidden">
                   <button 
-                     onClick={() => setActiveFaqIndex(activeFaqIndex === index ? null : index)}
-                     className="w-full flex items-center justify-between p-6 text-left"
+                     onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
+                     className="w-full flex items-center justify-between p-5 text-left font-bold text-slate-800 hover:bg-slate-50 transition-colors"
                   >
-                     <h4 className="font-bold text-slate-800 flex items-center gap-3">
-                        <HelpCircle className="w-5 h-5 text-indigo-500" />
-                        {faq.q}
-                     </h4>
-                     <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${activeFaqIndex === index ? 'rotate-180' : ''}`} />
+                     <span className="flex items-center gap-3">
+                        <HelpCircle className={`w-5 h-5 ${expandedFaq === i ? getThemeText() : 'text-slate-400'}`} />
+                        {item.q}
+                     </span>
+                     <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${expandedFaq === i ? 'rotate-180' : ''}`} />
                   </button>
-                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${activeFaqIndex === index ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
-                     <div className="px-6 pb-6 pt-0 text-slate-600 text-sm leading-relaxed ml-8 border-l-2 border-indigo-100 pl-4">
-                        {faq.a}
+                  <div 
+                     className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                        expandedFaq === i ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
+                     }`}
+                  >
+                     <div className="px-5 pb-5 pt-0 text-slate-600 text-sm leading-relaxed ml-8">
+                        {item.a}
                      </div>
                   </div>
                </div>
@@ -382,19 +330,19 @@ const MembershipPage: React.FC<MembershipPageProps> = ({ onBack, user, onUpgrade
          </div>
       </div>
 
-      {/* CTA Footer (only if not embedded) */}
+      {/* --- CTA FOOTER (If not embedded) --- */}
       {!isEmbedded && (
-         <div className="mt-24 bg-slate-900 py-16 text-center relative overflow-hidden">
+         <div className="bg-slate-900 py-20 text-center px-4 relative overflow-hidden">
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
-            <div className="max-w-4xl mx-auto px-6 relative z-10">
-               <h2 className="text-3xl font-bold text-white mb-6">准备好提升您的创作事业了吗？</h2>
-               <p className="text-slate-400 mb-8 max-w-xl mx-auto">加入数万名 Pro 会员，享受更高效的工具与更丰厚的回报。</p>
+            <div className="relative z-10 max-w-2xl mx-auto">
+               <h2 className="text-3xl font-bold text-white mb-6">准备好开启全新旅程了吗？</h2>
+               <p className="text-slate-400 mb-8 text-lg">加入数万名专业用户的选择，让创意更有价值。</p>
                <button 
                   onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                  className="bg-white text-slate-900 px-8 py-3.5 rounded-full font-bold hover:bg-indigo-50 transition-colors shadow-lg inline-flex items-center gap-2"
+                  className="bg-white text-slate-900 px-10 py-4 rounded-full font-bold text-lg hover:bg-indigo-50 transition-colors shadow-xl flex items-center gap-2 mx-auto"
                >
                   <Rocket className="w-5 h-5 text-indigo-600" />
-                  立即开启 Pro 之旅
+                  立即选择方案
                </button>
             </div>
          </div>

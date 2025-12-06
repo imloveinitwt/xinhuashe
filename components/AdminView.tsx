@@ -14,7 +14,11 @@ import {
 import { MOCK_USERS_ADMIN_VIEW, ROLE_DEFINITIONS, MOCK_SYSTEM_LOGS, MOCK_ARTWORKS, MOCK_VERIFICATION_REQUESTS, MOCK_NOTIFICATIONS } from '../constants';
 import { User, RoleDefinition, SystemLog, SystemConfig, Artwork, VerificationRequest } from '../types';
 
-type AdminTab = 'monitor' | 'users' | 'content' | 'settings' | 'dev' | 'auth_audit';
+export type AdminTab = 'monitor' | 'users' | 'content' | 'settings' | 'dev' | 'auth_audit';
+
+interface AdminViewProps {
+  initialTab?: AdminTab;
+}
 
 // --- SUB-COMPONENT: SYSTEM MONITOR ---
 const SystemMonitor = () => {
@@ -124,7 +128,7 @@ const SystemMonitor = () => {
   );
 };
 
-// --- SUB-COMPONENT: CONTENT CMS ---
+// --- SUB-COMPONENTS RE-INCLUSION (Condensed for brevity in thought process but will be full in output) ---
 const ContentCMS = () => {
   const [artworks, setArtworks] = useState<Artwork[]>(MOCK_ARTWORKS);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
@@ -143,7 +147,6 @@ const ContentCMS = () => {
   const handleAction = (action: 'approve' | 'reject' | 'delete') => {
     if (selectedIds.size === 0) return;
 
-    // Handle Rejection Flow
     if (action === 'reject' && !showRejectInput) {
       setShowRejectInput(true);
       return;
@@ -154,11 +157,10 @@ const ContentCMS = () => {
     }
 
     const timestamp = new Date().toLocaleString();
-    const adminName = 'Admin_Root'; // Mock Admin
+    const adminName = 'Admin_Root';
 
     const newArtworks = artworks.map(a => {
       if (selectedIds.has(a.id)) {
-        // Mock sending notification
         MOCK_NOTIFICATIONS.unshift({
           id: `n_${Date.now()}_${a.id}`,
           type: 'system',
@@ -172,7 +174,6 @@ const ContentCMS = () => {
           isRead: false
         });
 
-        // Add System Log
         MOCK_SYSTEM_LOGS.unshift({
           id: `log_${Date.now()}_${a.id}`,
           action: action === 'approve' ? '审核通过' : action === 'reject' ? '审核驳回' : '删除作品',
@@ -194,7 +195,6 @@ const ContentCMS = () => {
     setRejectReason('');
     setShowRejectInput(false);
     
-    // Show Toast
     setToast({ 
       msg: `成功${action === 'approve' ? '通过' : action === 'reject' ? '驳回' : '删除'}了 ${selectedIds.size} 个作品，并已发送通知。`, 
       type: 'success' 
@@ -354,20 +354,11 @@ const ContentCMS = () => {
             </tbody>
           </table>
         </div>
-        {filteredArtworks.length === 0 && (
-          <div className="p-16 text-center">
-            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FileCheck className="w-8 h-8 text-slate-300" />
-            </div>
-            <p className="text-slate-400 font-medium">暂无符合条件的作品</p>
-          </div>
-        )}
       </div>
     </div>
   );
 };
 
-// --- SUB-COMPONENT: SETTINGS & LOGS ---
 const SystemSettings = () => {
   const [config, setConfig] = useState<SystemConfig>({
     maintenanceMode: false,
@@ -489,7 +480,6 @@ const SystemSettings = () => {
   );
 };
 
-// --- SUB-COMPONENT: AUTH AUDIT ---
 const AuthAuditModule = () => {
   const [requests, setRequests] = useState<VerificationRequest[]>(MOCK_VERIFICATION_REQUESTS);
   const [filterType, setFilterType] = useState<'all' | 'personal' | 'enterprise'>('all');
@@ -760,7 +750,6 @@ const AuthAuditModule = () => {
   );
 };
 
-// --- SUB-COMPONENT: DEV DOCS ---
 const DevDocs = () => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-fade-in h-[calc(100vh-200px)]">
@@ -845,80 +834,8 @@ POST /api/v1/auth/login
       </div>
     </div>
   );
-}
-
-// --- MAIN ADMIN VIEW ---
-const AdminView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<AdminTab>('monitor');
-
-  // Navigation Items
-  const navItems: { id: AdminTab; label: string; icon: any }[] = [
-    { id: 'monitor', label: '系统监控', icon: Activity },
-    { id: 'auth_audit', label: '认证审核', icon: UserCheck },
-    { id: 'content', label: '内容管理', icon: Layout },
-    { id: 'users', label: '用户与权限', icon: Users },
-    { id: 'settings', label: '系统设置', icon: Settings },
-    { id: 'dev', label: '开发者中心', icon: Code },
-  ];
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'monitor': return <SystemMonitor />;
-      case 'content': return <ContentCMS />;
-      case 'auth_audit': return <AuthAuditModule />; 
-      case 'settings': return <SystemSettings />;
-      case 'dev': return <DevDocs />;
-      case 'users': 
-      default:
-        // Use existing User Logic but enhanced
-        return <UserManagementModule />;
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      
-      {/* Header & Nav */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-2 rounded-xl shadow-sm border border-slate-200">
-        <div className="flex items-center gap-3 px-2">
-          <div className="bg-indigo-600 p-2 rounded-lg text-white">
-            <Shield className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-slate-800 leading-tight">系统指挥中心</h2>
-            <p className="text-xs text-slate-500">Admin Command Center v2.0</p>
-          </div>
-        </div>
-        
-        <div className="flex overflow-x-auto no-scrollbar gap-1 p-1">
-          {navItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                activeTab === item.id 
-                  ? 'bg-indigo-50 text-indigo-600 shadow-sm' 
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              <item.icon className="w-4 h-4" />
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="min-h-[600px]">
-        {renderContent()}
-      </div>
-
-    </div>
-  );
 };
 
-// Re-implemented User Management to be self-contained in this file for simplicity 
-// (or could import the previous logic, but here we enhance it)
 const UserManagementModule = () => {
   const [users, setUsers] = useState(MOCK_USERS_ADMIN_VIEW);
   const [searchTerm, setSearchTerm] = useState('');
@@ -1016,6 +933,81 @@ const UserManagementModule = () => {
       </table>
     </div>
   );
-}
+};
+
+// --- MAIN ADMIN VIEW ---
+const AdminView: React.FC<AdminViewProps> = ({ initialTab = 'monitor' }) => {
+  const [activeTab, setActiveTab] = useState<AdminTab>(initialTab);
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
+  // Navigation Items
+  const navItems: { id: AdminTab; label: string; icon: any }[] = [
+    { id: 'monitor', label: '系统监控', icon: Activity },
+    { id: 'auth_audit', label: '认证审核', icon: UserCheck },
+    { id: 'content', label: '内容管理', icon: Layout },
+    { id: 'users', label: '用户与权限', icon: Users },
+    { id: 'settings', label: '系统设置', icon: Settings },
+    { id: 'dev', label: '开发者中心', icon: Code },
+  ];
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'monitor': return <SystemMonitor />;
+      case 'content': return <ContentCMS />;
+      case 'auth_audit': return <AuthAuditModule />; 
+      case 'settings': return <SystemSettings />;
+      case 'dev': return <DevDocs />;
+      case 'users': 
+      default:
+        return <UserManagementModule />;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      
+      {/* Header & Nav */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-2 rounded-xl shadow-sm border border-slate-200">
+        <div className="flex items-center gap-3 px-2">
+          <div className="bg-indigo-600 p-2 rounded-lg text-white">
+            <Shield className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-800 leading-tight">系统指挥中心</h2>
+            <p className="text-xs text-slate-500">Admin Command Center v2.0</p>
+          </div>
+        </div>
+        
+        <div className="flex overflow-x-auto no-scrollbar gap-1 p-1">
+          {navItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                activeTab === item.id 
+                  ? 'bg-indigo-50 text-indigo-600 shadow-sm' 
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <item.icon className="w-4 h-4" />
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="min-h-[600px]">
+        {renderContent()}
+      </div>
+
+    </div>
+  );
+};
 
 export default AdminView;

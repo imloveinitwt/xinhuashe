@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, Building, ShieldCheck, Zap, Layers, 
@@ -95,7 +94,7 @@ const EnterprisePage: React.FC<EnterprisePageProps> = ({ onBack, onTriggerLogin,
       
       {/* Sticky Navigation Bar */}
       <div className={`sticky top-16 z-40 transition-all duration-300 border-b ${isScrolled ? 'bg-white/95 backdrop-blur-md border-slate-200 shadow-sm py-2' : 'bg-slate-900 border-white/10 py-4'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
            <div className={`font-bold text-lg tracking-tight ${isScrolled ? 'text-slate-900' : 'text-white'}`}>
               Enterprise <span className="text-indigo-500">Pro</span>
            </div>
@@ -143,7 +142,7 @@ const EnterprisePage: React.FC<EnterprisePageProps> = ({ onBack, onTriggerLogin,
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-600/20 rounded-full opacity-20 blur-[100px] -ml-20 -mb-20 pointer-events-none animate-pulse" style={{animationDuration: '10s'}}></div>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none"></div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col items-center text-center max-w-4xl mx-auto space-y-8 animate-fade-in-up">
             <button 
               onClick={onBack}
@@ -199,7 +198,7 @@ const EnterprisePage: React.FC<EnterprisePageProps> = ({ onBack, onTriggerLogin,
       </div>
 
       {/* 2. Value Stats Bar (Floating) */}
-      <div className="-mt-16 relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="-mt-16 relative z-20 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
          <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 grid grid-cols-1 md:grid-cols-3 gap-8 divide-y md:divide-y-0 md:divide-x divide-slate-100">
             <div className="flex flex-col items-center text-center px-4 group">
                <div className="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -229,7 +228,7 @@ const EnterprisePage: React.FC<EnterprisePageProps> = ({ onBack, onTriggerLogin,
       </div>
 
       {/* 3. Core Solutions (Bento Grid) */}
-      <div id="solutions" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div id="solutions" className="py-24 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
          <div className="text-center mb-16">
             <span className="text-indigo-600 font-bold tracking-wider uppercase text-sm mb-2 block">Our Services</span>
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">全链路创意管理闭环</h2>
@@ -342,7 +341,7 @@ const EnterprisePage: React.FC<EnterprisePageProps> = ({ onBack, onTriggerLogin,
 
       {/* 4. Workflow Visualization */}
       <div id="workflow" className="bg-white py-24 border-y border-slate-100">
-         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
                <span className="text-slate-400 font-bold tracking-wider uppercase text-sm mb-2 block">Process</span>
                <h2 className="text-3xl font-bold text-slate-900 mb-4">标准化作业流程 (SOP)</h2>
@@ -378,7 +377,7 @@ const EnterprisePage: React.FC<EnterprisePageProps> = ({ onBack, onTriggerLogin,
 
       {/* 5. Industry Scenarios */}
       <div className="bg-slate-50 py-24">
-         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row gap-12 items-center">
                <div className="flex-1 space-y-8">
                   <h2 className="text-3xl font-bold text-slate-900">多行业场景覆盖</h2>
@@ -418,7 +417,7 @@ const EnterprisePage: React.FC<EnterprisePageProps> = ({ onBack, onTriggerLogin,
 
       {/* 6. Comparison Table */}
       <div id="value" className="py-24 bg-white border-t border-slate-100 scroll-mt-20">
-         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
                <span className="text-indigo-600 font-bold tracking-wider uppercase text-sm mb-2 block">Value Proposition</span>
                <h2 className="text-3xl font-bold text-slate-900 mb-4">为什么选择薪画社企业版？</h2>
@@ -484,7 +483,7 @@ const EnterprisePage: React.FC<EnterprisePageProps> = ({ onBack, onTriggerLogin,
       {/* 7. Enterprise Security & Integration */}
       <div id="security" className="py-24 bg-slate-900 text-white relative overflow-hidden scroll-mt-20">
          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 pointer-events-none"></div>
-         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="text-center mb-16">
                <h2 className="text-3xl font-bold mb-4">企业级安全与生态集成</h2>
                <p className="text-slate-400 max-w-2xl mx-auto">
@@ -504,114 +503,80 @@ const EnterprisePage: React.FC<EnterprisePageProps> = ({ onBack, onTriggerLogin,
                </div>
                <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 hover:border-indigo-500 transition-colors group">
                   <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center mb-4 group-hover:text-indigo-400 text-slate-400">
-                     <Key className="w-6 h-6" />
-                  </div>
-                  <h4 className="font-bold text-lg mb-2">权限管控体系</h4>
-                  <p className="text-sm text-slate-400 leading-relaxed">
-                     支持 SSO 单点登录，细粒度的 RBAC 权限管理，确保人员离职后资产不流失。
-                  </p>
-               </div>
-               <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 hover:border-indigo-500 transition-colors group">
-                  <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center mb-4 group-hover:text-indigo-400 text-slate-400">
                      <Server className="w-6 h-6" />
                   </div>
-                  <h4 className="font-bold text-lg mb-2">混合云部署</h4>
+                  <h4 className="font-bold text-lg mb-2">私有化部署</h4>
                   <p className="text-sm text-slate-400 leading-relaxed">
-                     支持 SaaS、私有云及混合云部署模式，满足集团型企业对数据物理隔离的严苛要求。
+                     支持私有云及混合云部署方案，数据自主可控，满足大型集团企业IT管控要求。
                   </p>
                </div>
                <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 hover:border-indigo-500 transition-colors group">
                   <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center mb-4 group-hover:text-indigo-400 text-slate-400">
-                     <Globe className="w-6 h-6" />
+                     <Key className="w-6 h-6" />
                   </div>
-                  <h4 className="font-bold text-lg mb-2">生态应用集成</h4>
+                  <h4 className="font-bold text-lg mb-2">SSO 单点登录</h4>
                   <p className="text-sm text-slate-400 leading-relaxed">
-                     已打通飞书、钉钉、企业微信及 Jira，消息实时同步，审批流自动对接。
+                     预置主流 OA 系统 (钉钉/企业微信/飞书) 接口，账号体系一键打通，降低管理成本。
+                  </p>
+               </div>
+               <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 hover:border-indigo-500 transition-colors group">
+                  <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center mb-4 group-hover:text-indigo-400 text-slate-400">
+                     <MousePointerClick className="w-6 h-6" />
+                  </div>
+                  <h4 className="font-bold text-lg mb-2">API 开放平台</h4>
+                  <p className="text-sm text-slate-400 leading-relaxed">
+                     提供丰富的 Open API 接口，支持将创意资产库与内部 ERP/CMS 系统深度集成。
                   </p>
                </div>
             </div>
          </div>
       </div>
 
-      {/* 8. Testimonials */}
-      <div className="py-24 bg-white border-t border-slate-100">
-         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-slate-900 text-center mb-16">客户成功故事</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-               {[
-                  { quote: "薪画社帮我们在 3 天内组建了一支高水平的原画团队，不仅按时完成了《星际》项目的资产制作，质量更是超出了预期。", author: "张总", role: "某知名游戏公司 制作人", logo: "GAME" },
-                  { quote: "作为一家初创品牌，我们很难招到全职的高级设计师。通过平台，我们以非常灵活的方式完成了全套 VI 升级，成本降低了 40%。", author: "李女士", role: "新消费品牌 创始人", logo: "BRAND" },
-                  { quote: "DAM 系统太好用了！以前素材都在硬盘里吃灰，现在通过 AI 标签，团队能快速复用过往资产，效率提升显著。", author: "王总监", role: "电商代运营 设计主管", logo: "SHOP" }
-               ].map((t, i) => (
-                  <div key={i} className="bg-slate-50 p-8 rounded-2xl border border-slate-100 relative shadow-sm hover:shadow-md transition-shadow">
-                     <Quote className="w-10 h-10 text-indigo-100 absolute top-6 left-6" />
-                     <p className="text-slate-600 italic mb-6 relative z-10 leading-relaxed">"{t.quote}"</p>
-                     <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-500">
-                           {t.logo === 'GAME' && <Gamepad2 className="w-5 h-5" />}
-                           {t.logo === 'BRAND' && <Briefcase className="w-5 h-5" />}
-                           {t.logo === 'SHOP' && <ShoppingBag className="w-5 h-5" />}
-                        </div>
-                        <div>
-                           <div className="font-bold text-slate-900 text-sm">{t.author}</div>
-                           <div className="text-xs text-slate-500">{t.role}</div>
-                        </div>
-                     </div>
-                  </div>
-               ))}
-            </div>
+      {/* 8. FAQ Section */}
+      <div id="faq" className="py-24 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-20">
+         <h2 className="text-3xl font-bold text-slate-900 text-center mb-12">常见问题</h2>
+         <div className="space-y-4">
+            <FAQItem 
+               question="企业版和普通版有什么区别？"
+               answer="企业版提供专属的资金管理账户、增值税专票开具、多账号协作权限以及企业级资产库(DAM)等功能，更适合团队使用。"
+               isOpen={openFaqIndex === 0}
+               onClick={() => toggleFaq(0)}
+            />
+            <FAQItem 
+               question="如何进行对公打款充值？"
+               answer="在企业控制台的财务中心，您可以获取专属的对公转账账号。转账后系统会自动核销并在 1 小时内入账到企业余额。"
+               isOpen={openFaqIndex === 1}
+               onClick={() => toggleFaq(1)}
+            />
+            <FAQItem 
+               question="是否支持先票后款？"
+               answer="针对年框签约客户，我们提供一定的信用额度支持先票后款。具体请咨询您的专属客户经理。"
+               isOpen={openFaqIndex === 2}
+               onClick={() => toggleFaq(2)}
+            />
+            <FAQItem 
+               question="可以邀请外部画师加入企业项目吗？"
+               answer="可以。您可以通过链接邀请外部合作画师注册并加入您的项目，统一进行管理和结算，享受平台的工具与合规服务。"
+               isOpen={openFaqIndex === 3}
+               onClick={() => toggleFaq(3)}
+            />
          </div>
       </div>
 
-      {/* 9. FAQ Section */}
-      <div id="faq" className="py-24 bg-slate-50 scroll-mt-20">
-         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-               <h2 className="text-3xl font-bold text-slate-900 mb-4 flex items-center justify-center gap-2">
-                  <HelpCircle className="w-8 h-8 text-indigo-600" /> 常见问题
-               </h2>
-               <p className="text-slate-500">解答您关于企业服务的疑问</p>
-            </div>
-            
-            <div className="space-y-2">
-               {[
-                  { q: "企业版是否支持免费试用？", a: "支持。您可以点击页面上方的“免费试用”按钮，填写企业信息后，我们将为您开通 14 天的企业高级版试用权限，包含 5 个子账号及 50GB DAM 空间。" },
-                  { q: "平台如何保障交付质量？", a: "我们通过三重机制保障：1. 严格的画师准入与分级认证；2. 资金托管机制，验收满意后才付款；3. 争议仲裁服务，若作品严重不符，支持退款或重做。" },
-                  { q: "能否开具增值税专用发票？", a: "可以。企业认证用户在充值或支付项目款项后，可在财务中心申请开具增值税专用发票（6% 技术服务费或设计费），通常在 3-5 个工作日内寄出。" },
-                  { q: "对于大型项目，是否提供项目经理介入服务？", a: "是的。对于预算超过 10万 的项目或企业旗舰版客户，我们将提供专属的项目经理（PM），协助您梳理需求、筛选画师及跟进进度，确保项目按期交付。" },
-                  { q: "是否支持 API 对接内部 OA 系统？", a: "支持。企业版提供完善的 Open API 文档，您可以将薪画社的采购流程、资产库无缝集成到自有的 OA、ERP 或项目管理系统中。" }
-               ].map((faq, idx) => (
-                  <FAQItem 
-                     key={idx} 
-                     question={faq.q} 
-                     answer={faq.a} 
-                     isOpen={openFaqIndex === idx} 
-                     onClick={() => toggleFaq(idx)} 
-                  />
-               ))}
-            </div>
-         </div>
-      </div>
-
-      {/* 10. Final CTA */}
-      <div className="bg-[#0B0F19] py-24 relative overflow-hidden">
-         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
-         <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-               准备好升级您的创意生产力了吗？
-            </h2>
-            <p className="text-slate-400 mb-10 text-lg">
-               加入 3000+ 领先企业，开启敏捷、合规、高效的创意协作新时代。
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
+      {/* Footer CTA */}
+      <div className="bg-indigo-900 py-20 text-center text-white">
+         <div className="max-w-4xl mx-auto px-6">
+            <h2 className="text-3xl font-bold mb-6">准备好升级您的创意供应链了吗？</h2>
+            <p className="text-indigo-200 mb-10 text-lg">立即注册企业账号，获得 14 天高级版免费试用权益。</p>
+            <div className="flex justify-center gap-4">
                <button 
-                 onClick={() => onTriggerLogin && onTriggerLogin()}
-                 className="bg-indigo-600 text-white px-10 py-4 rounded-full font-bold hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-900/50 text-lg flex items-center justify-center gap-2"
+                  onClick={() => onTriggerLogin && onTriggerLogin()}
+                  className="bg-white text-indigo-900 px-8 py-3 rounded-full font-bold hover:bg-indigo-50 transition-colors"
                >
-                 立即免费注册 <MousePointerClick className="w-5 h-5" />
+                  免费注册
                </button>
-               <button className="bg-transparent border border-slate-700 text-white px-10 py-4 rounded-full font-bold hover:bg-white/10 transition-colors">
-                 联系销售顾问
+               <button className="border border-white/30 text-white px-8 py-3 rounded-full font-bold hover:bg-white/10 transition-colors">
+                  联系销售
                </button>
             </div>
          </div>

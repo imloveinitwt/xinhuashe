@@ -11,7 +11,7 @@ import FinanceView from './components/FinanceView';
 import UploadModal from './components/UploadModal';
 import LoginModal from './components/LoginModal'; 
 import LoginScreen from './components/LoginScreen';
-import AdminView from './components/AdminView';
+import AdminView, { AdminTab } from './components/AdminView'; // Import AdminTab type
 import PersonalSpaceView from './components/PersonalSpaceView'; 
 import ArtworksPage from './components/ArtworksPage'; 
 import ProjectsHubPage from './components/ProjectsHubPage'; 
@@ -26,7 +26,7 @@ import EnterpriseProfilePage from './components/EnterpriseProfilePage';
 import MessagesPage from './components/MessagesPage'; 
 import MembershipPage from './components/MembershipPage'; 
 import CreditScorePage from './components/CreditScorePage';
-import ProjectCasesPage from './components/ProjectCasesPage'; // Imported
+import ProjectCasesPage from './components/ProjectCasesPage'; 
 import Footer from './components/Footer';
 import { ViewMode, WorkspaceTab, UserRole, User, MembershipLevel } from './types';
 import { getProfileById } from './constants';
@@ -106,6 +106,14 @@ const AppContent: React.FC = () => {
     setIsLoginModalOpen(true);
   };
 
+  const handleTriggerUpload = () => {
+    if (isAuthenticated) {
+      setIsUploadModalOpen(true);
+    } else {
+      setIsLoginModalOpen(true);
+    }
+  };
+
   const handleFooterNavigation = (mode: ViewMode) => {
     if (mode === 'workspace' && !isAuthenticated) {
       handleTriggerLogin();
@@ -179,6 +187,7 @@ const AppContent: React.FC = () => {
           onBack={() => changeViewMode('discovery')}
           onTriggerLogin={handleTriggerLogin}
           user={user}
+          onNavigate={changeViewMode}
         />
       );
     }
@@ -246,7 +255,7 @@ const AppContent: React.FC = () => {
     }
 
     if (viewMode === 'employer_guide_full') {
-      return <EmployerGuidePage onBack={() => changeViewMode('discovery')} />;
+      return <EmployerGuidePage onBack={() => changeViewMode('discovery')} onTriggerUpload={handleTriggerUpload} />;
     }
 
     if (viewMode === 'terms_service_full') {
@@ -258,11 +267,18 @@ const AppContent: React.FC = () => {
         <PersonalSpaceView 
           profile={getProfileById(selectedProfileId)} 
           currentUser={user}
+          onNavigate={changeViewMode}
         />
       );
     } 
     
     if (isAuthenticated && user) {
+      // Helper to map workspace tab to AdminView internal tab
+      const getAdminTab = (): AdminTab => {
+        if (activeWorkspaceTab === 'admin_roles') return 'users'; // Map 'roles' to users tab for now as roles are managed there
+        return 'users'; // Default for admin_users
+      };
+
       return (
         <div className="h-full p-6 md:p-8 overflow-y-auto custom-scrollbar animate-fade-in pb-20 md:pb-8">
            {activeWorkspaceTab === 'dashboard' && (
@@ -274,7 +290,9 @@ const AppContent: React.FC = () => {
            {activeWorkspaceTab === 'dam' && <DAMView />}
            {activeWorkspaceTab === 'projects' && <ProjectsView />}
            {activeWorkspaceTab === 'finance' && <FinanceView user={user} />}
-           {(activeWorkspaceTab === 'admin_users' || activeWorkspaceTab === 'admin_roles') && <AdminView />}
+           {(activeWorkspaceTab === 'admin_users' || activeWorkspaceTab === 'admin_roles') && (
+             <AdminView initialTab={getAdminTab()} />
+           )}
            {activeWorkspaceTab === 'membership' && (
              <div className="-m-6 md:-m-8">
                <MembershipPage 
@@ -329,7 +347,7 @@ const AppContent: React.FC = () => {
         viewMode={viewMode} 
         setViewMode={changeViewMode} 
         userRole={user?.role || 'general'} 
-        onUploadClick={() => isAuthenticated ? setIsUploadModalOpen(true) : setIsLoginModalOpen(true)}
+        onUploadClick={handleTriggerUpload}
         currentUser={user}
         onNavigateToProfile={handleNavigateToProfile}
         onLoginClick={handleTriggerLogin}
@@ -364,7 +382,7 @@ const AppContent: React.FC = () => {
       {(viewMode !== 'workspace') && !isTransitioning && (
         <Footer 
           onNavigate={handleFooterNavigation}
-          onTriggerUpload={() => isAuthenticated ? setIsUploadModalOpen(true) : setIsLoginModalOpen(true)}
+          onTriggerUpload={handleTriggerUpload}
         />
       )}
 

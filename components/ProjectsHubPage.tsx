@@ -144,7 +144,7 @@ const ProjectsHubPage: React.FC<ProjectsHubPageProps> = ({ onBack, onTriggerLogi
          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-indigo-50 to-blue-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
          <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-to-tr from-purple-50 to-pink-50 rounded-full blur-3xl opacity-40 pointer-events-none"></div>
          
-         <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 relative z-10">
+         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">
             <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 mb-6 transition-colors font-medium text-sm">
                <ArrowLeft className="w-4 h-4" /> 返回社区
             </button>
@@ -232,7 +232,7 @@ const ProjectsHubPage: React.FC<ProjectsHubPageProps> = ({ onBack, onTriggerLogi
          </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 relative z-20">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-20">
         
         {/* 2. Advanced Sticky Filter Bar */}
         <div className="sticky top-16 md:top-20 z-30 mb-8 space-y-3">
@@ -386,7 +386,9 @@ const ProjectsHubPage: React.FC<ProjectsHubPageProps> = ({ onBack, onTriggerLogi
                             <Building className="w-3 h-3" /> {project.client}
                          </span>
                          {/* Mock Verified */}
-                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" title="认证企业" />
+                         <span title="认证企业">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                         </span>
                       </div>
                    </div>
                 </div>

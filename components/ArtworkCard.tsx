@@ -93,26 +93,26 @@ const ArtworkCard: React.FC<ArtworkCardProps> = ({
       onClick={handleCardClick}
     >
       {/* Image Container */}
-      <div className={`relative rounded-xl overflow-hidden bg-slate-100 cursor-pointer ${aspectClass} shadow-sm group-hover:shadow-md transition-all duration-300 ring-1 ring-slate-900/5 group-hover:ring-indigo-500/30`}>
+      <div className={`relative rounded-xl overflow-hidden bg-slate-100 cursor-pointer ${aspectClass} shadow-sm group-hover:shadow-lg transition-all duration-500 ring-1 ring-slate-900/5 group-hover:ring-indigo-500/20`}>
         <img 
           src={artwork.imageUrl} 
           alt={artwork.title} 
-          className={`w-full object-cover transform group-hover:scale-105 transition-transform duration-500 ease-out will-change-transform block ${aspectRatio === 'auto' ? 'h-auto' : 'h-full'}`}
+          className={`w-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out will-change-transform block ${aspectRatio === 'auto' ? 'h-auto' : 'h-full'}`}
           onError={handleImageError}
           loading="lazy"
         />
         
         {/* Overlay - Gradient on Hover */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
         
         {/* Top Right Like Button */}
         <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-10">
            <button 
              onClick={handleLikeClick}
-             className={`p-2 rounded-full shadow-lg transition-all active:scale-90 ${
+             className={`p-2 rounded-full shadow-lg transition-all active:scale-90 border border-white/10 ${
                isLiked 
                  ? 'bg-rose-500 text-white hover:bg-rose-600' 
-                 : 'bg-white text-slate-700 hover:bg-slate-100'
+                 : 'bg-white/20 backdrop-blur-md text-white hover:bg-white hover:text-rose-500'
              }`}
            >
              <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''} ${isAnimatingLike ? 'animate-heart-pop' : ''}`} />
@@ -128,7 +128,7 @@ const ArtworkCard: React.FC<ArtworkCardProps> = ({
            )}
            {artwork.isAiGenerated && (
               <span className="bg-purple-600/90 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-full font-bold shadow-sm flex items-center gap-1">
-                <Sparkles className="w-3 h-3" /> AI
+                <Sparkles className="w-3 h-3 fill-current" /> AI
               </span>
            )}
         </div>
