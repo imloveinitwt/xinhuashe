@@ -13,8 +13,8 @@ import {
 // --- ASSET HELPERS ---
 // 使用稳定的头像服务 (Notion 风格)
 const getAvatar = (seed: string) => `https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(seed)}&backgroundColor=e5e7eb,b6e3f4,c0aede,d1d4f9,ffd5dc`;
-// 使用 Unsplash 源作为高质量图片占位符
-const getImage = (id: string, w = 800, h = 600) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&h=${h}&q=80`;
+// 使用 Picsum 作为更稳定的图片源 (替代 Unsplash)
+const getImage = (id: string, w = 800, h = 600) => `https://picsum.photos/seed/${id}/${w}/${h}`;
 
 export const MOCK_PROJECT_CASES: ProjectCase[] = [
   {
@@ -23,7 +23,7 @@ export const MOCK_PROJECT_CASES: ProjectCase[] = [
     year: '2023',
     category: '游戏娱乐',
     description: '协助某头部游戏厂商，在 2 个月内完成了 50+ 个核心角色的概念设计与立绘细化，统一了美术风格，确保了项目如期上线。',
-    coverImage: getImage('1560972595559-cd870d84f33e', 800, 600), // Game Fantasy
+    coverImage: getImage('game_art_fantasy', 800, 600),
     results: [
       { label: '产能提升', value: '200%' },
       { label: '美术定档', value: '提前2周' }
@@ -39,7 +39,7 @@ export const MOCK_PROJECT_CASES: ProjectCase[] = [
     year: '2023',
     category: '品牌设计',
     description: '为新锐护肤品牌 Bloom 打造全新的品牌视觉识别系统 (VI)，包括 Logo、包装、线下门店物料及社交媒体规范。',
-    coverImage: getImage('1620916566398-39f1143ab7be', 800, 600), // Minimal Brand
+    coverImage: getImage('brand_minimal', 800, 600),
     results: [
       { label: '品牌溢价', value: '+35%' },
       { label: '点击率', value: '2.5x' }
@@ -55,7 +55,7 @@ export const MOCK_PROJECT_CASES: ProjectCase[] = [
     year: '2023',
     category: '3D/动画',
     description: '为 2023 未来科技峰会制作了开场 CG 及全套 3D 动态视觉物料，营造了极具沉浸感的科技氛围。',
-    coverImage: getImage('1633596683520-3e012f6358c3', 800, 600), // 3D Abstract Purple
+    coverImage: getImage('3d_abstract_tech', 800, 600),
     results: [
       { label: '视觉震撼', value: 'S级' },
       { label: '传播声量', value: '10w+' }
@@ -71,7 +71,7 @@ export const MOCK_PROJECT_CASES: ProjectCase[] = [
     year: '2023',
     category: '插画绘本',
     description: '为知名儿童文学作家的新作创作全套 20 幅手绘风格插画，细腻温馨的画风深受读者喜爱，助力新书首月销量破 5 万册。',
-    coverImage: getImage('1515965800554-bc196844ba31', 800, 600), // Drawing/Illustration
+    coverImage: getImage('illustration_book', 800, 600),
     results: [
       { label: '销量增长', value: '150%' },
       { label: '读者评分', value: '9.8' }
@@ -87,7 +87,7 @@ export const MOCK_PROJECT_CASES: ProjectCase[] = [
     year: '2023',
     category: 'UI/UX',
     description: '对拥有百万用户的金融 App 进行全站体验升级。通过构建设计系统与优化交互流程，显著提升了用户留存率与转化率。',
-    coverImage: getImage('1586717791821-3f44a5638d0f', 800, 600), // UI Interface
+    coverImage: getImage('ui_app_interface', 800, 600),
     results: [
       { label: '转化率', value: '+40%' },
       { label: '用户留存', value: '+25%' }
@@ -103,7 +103,7 @@ export const MOCK_PROJECT_CASES: ProjectCase[] = [
     year: '2023',
     category: '营销素材',
     description: '为头部电商平台打造双 11 全渠道营销视觉。包含 C4D 场景搭建、动态海报及 H5 页面设计，营造了极具冲击力的消费氛围。',
-    coverImage: getImage('1550684848-fac1c5b4e853', 800, 600), // 3D Neon Commerce
+    coverImage: getImage('3d_commerce_neon', 800, 600),
     results: [
       { label: '点击率', value: '3.8%' },
       { label: 'GMV贡献', value: '2亿+' }
@@ -199,7 +199,7 @@ export const MOCK_PROJECTS: Project[] = [
     description: '寻找擅长国潮风格的插画师，设计一套新年礼盒的包装主视觉。需要包含龙年元素，色彩喜庆但不俗气。',
     category: '插画',
     tags: ['国潮', '包装设计', '节日'],
-    coverImage: getImage('1606819717115-9159c900370b', 800, 600) // Red festive
+    coverImage: getImage('pkg_red_festive', 800, 600)
   },
   {
     id: 'p2',
@@ -213,7 +213,7 @@ export const MOCK_PROJECTS: Project[] = [
     description: '手游项目，需求赛博朋克风格的女性角色立绘，需要拆分图层，用于Live2D制作。',
     category: '游戏原画',
     tags: ['二次元', '赛博朋克', '角色设计'],
-    coverImage: getImage('1535905557558-afc4877a26fc', 800, 600) // Cyberpunk
+    coverImage: getImage('game_cyberpunk_char', 800, 600)
   },
   {
     id: 'p3',
@@ -227,7 +227,7 @@ export const MOCK_PROJECTS: Project[] = [
     description: '对现有官网进行改版，要求风格简洁大气，符合国际化咨询公司的定位。包含首页、关于我们、服务案例等 10+ 页面。',
     category: 'UI/UX',
     tags: ['Web设计', 'B端', '极简'],
-    coverImage: getImage('1545239351-ef35f43054bd', 800, 600) // Clean Web
+    coverImage: getImage('ui_web_clean', 800, 600)
   },
   {
     id: 'p4',
@@ -241,7 +241,7 @@ export const MOCK_PROJECTS: Project[] = [
     description: '运动健康类 APP，需要一个 5秒 的 3D 启动动画，体现活力与科技感。',
     category: '3D/动画',
     tags: ['C4D', '动态设计', '运动'],
-    coverImage: getImage('1618005198389-4875db0840c5', 800, 600) // Abstract 3D
+    coverImage: getImage('3d_motion_abstract', 800, 600)
   },
   {
     id: 'p5',
@@ -255,7 +255,7 @@ export const MOCK_PROJECTS: Project[] = [
     description: '为生鲜超市设计一个亲民、可爱的吉祥物形象，需延展 3 个动作表情。',
     category: '品牌设计',
     tags: ['IP设计', '卡通', '吉祥物'],
-    coverImage: getImage('1531747056595-07f6cbbe10fd', 800, 600) // Cute toy/mascot vibe
+    coverImage: getImage('mascot_cute_toy', 800, 600)
   },
   {
     id: 'p6',
@@ -269,74 +269,73 @@ export const MOCK_PROJECTS: Project[] = [
     description: '双11大促主会场头图背景，需要搭建高精度的 C4D 场景，风格梦幻唯美。',
     category: '3D/动画',
     tags: ['电商设计', 'C4D', '合成'],
-    coverImage: getImage('1550684848-fac1c5b4e853', 800, 600) // 3D Scene
+    coverImage: getImage('3d_scene_stage', 800, 600)
   }
 ];
 
 // --- GENERATED ARTWORK COLLECTION (50+ DISTINCT ITEMS) ---
-// Categories: Game Art, UI/UX, Branding, 3D, Illustration
 const RAW_ARTWORK_DATA = [
   // === 1. GAME ART & CONCEPT (12 items) ===
-  { id: '1563089145681-bc5574890bbe', title: '霓虹特工 2077', artist: 'NeonDreamer', tags: ['Game Art', 'Cyberpunk', 'Character'], dims: {w:600, h:800} },
-  { id: '1560972595559-cd870d84f33e', title: '龙之谷：遗迹', artist: 'FantasyForge', tags: ['Game Art', 'Fantasy', 'Environment'], dims: {w:800, h:450} },
-  { id: '1614726365723-498aa09c622c', title: '机甲少女 A-01', artist: 'MechaSoul', tags: ['Game Art', 'Sci-Fi', 'Character'], dims: {w:600, h:900} },
-  { id: '1535905557558-afc4877a26fc', title: '夜之城全景', artist: 'CyberVision', tags: ['Game Art', 'Cyberpunk', 'Cityscape'], dims: {w:800, h:600} },
-  { id: '1518709268805-4e9042af9f23', title: '深海巨兽', artist: 'AbyssWalker', tags: ['Game Art', 'Monster', 'Dark'], dims: {w:800, h:500} },
-  { id: '1542751371-adc38448a05e', title: '电竞传说皮肤', artist: 'SkinMaster', tags: ['Game Art', 'Esports', 'Character'], dims: {w:800, h:800} },
-  { id: '1605806616949-1e87b487bc2a', title: '废土生存指南', artist: 'Wastelander', tags: ['Game Art', 'Concept', 'Post-Apo'], dims: {w:800, h:600} },
-  { id: '1620641782983-5f84216e2112', title: '星际穿越', artist: 'StarTraveler', tags: ['Game Art', 'Space', 'Sci-Fi'], dims: {w:800, h:400} },
-  { id: '1519074069444-1ba4fff66d16', title: '古堡惊魂', artist: 'GothicArt', tags: ['Game Art', 'Horror', 'Environment'], dims: {w:600, h:800} },
-  { id: '1551269901-5c5e07074063', title: '像素勇者', artist: 'PixelKing', tags: ['Game Art', 'Pixel', 'Retro'], dims: {w:800, h:800} },
-  { id: '1500964757637-c85e8a162699', title: '迷雾森林', artist: 'NatureSpirit', tags: ['Game Art', 'Nature', 'Fantasy'], dims: {w:800, h:500} },
-  { id: '1592496431126-25f5e763b64c', title: '赛博武士', artist: 'RoninX', tags: ['Game Art', 'Cyberpunk', 'Character'], dims: {w:600, h:800} },
+  { id: 'art_game_1', title: '霓虹特工 2077', artist: 'NeonDreamer', tags: ['Game Art', 'Cyberpunk', 'Character'], dims: {w:600, h:800} },
+  { id: 'art_game_2', title: '龙之谷：遗迹', artist: 'FantasyForge', tags: ['Game Art', 'Fantasy', 'Environment'], dims: {w:800, h:450} },
+  { id: 'art_game_3', title: '机甲少女 A-01', artist: 'MechaSoul', tags: ['Game Art', 'Sci-Fi', 'Character'], dims: {w:600, h:900} },
+  { id: 'art_game_4', title: '夜之城全景', artist: 'CyberVision', tags: ['Game Art', 'Cyberpunk', 'Cityscape'], dims: {w:800, h:600} },
+  { id: 'art_game_5', title: '深海巨兽', artist: 'AbyssWalker', tags: ['Game Art', 'Monster', 'Dark'], dims: {w:800, h:500} },
+  { id: 'art_game_6', title: '电竞传说皮肤', artist: 'SkinMaster', tags: ['Game Art', 'Esports', 'Character'], dims: {w:800, h:800} },
+  { id: 'art_game_7', title: '废土生存指南', artist: 'Wastelander', tags: ['Game Art', 'Concept', 'Post-Apo'], dims: {w:800, h:600} },
+  { id: 'art_game_8', title: '星际穿越', artist: 'StarTraveler', tags: ['Game Art', 'Space', 'Sci-Fi'], dims: {w:800, h:400} },
+  { id: 'art_game_9', title: '古堡惊魂', artist: 'GothicArt', tags: ['Game Art', 'Horror', 'Environment'], dims: {w:600, h:800} },
+  { id: 'art_game_10', title: '像素勇者', artist: 'PixelKing', tags: ['Game Art', 'Pixel', 'Retro'], dims: {w:800, h:800} },
+  { id: 'art_game_11', title: '迷雾森林', artist: 'NatureSpirit', tags: ['Game Art', 'Nature', 'Fantasy'], dims: {w:800, h:500} },
+  { id: 'art_game_12', title: '赛博武士', artist: 'RoninX', tags: ['Game Art', 'Cyberpunk', 'Character'], dims: {w:600, h:800} },
 
   // === 2. UI/UX DESIGN (10 items) ===
-  { id: '1616469829581-73947eb19924', title: 'FinTech 仪表盘', artist: 'UI_Wizard', tags: ['UI/UX', 'Dashboard', 'Clean'], dims: {w:800, h:600} },
-  { id: '1586717791821-3f44a5638d0f', title: '极简电商 App', artist: 'AppMaster', tags: ['UI/UX', 'Mobile', 'Ecommerce'], dims: {w:600, h:1000} },
-  { id: '1551288049-bebda4e38f71', title: '数据可视化大屏', artist: 'DataView', tags: ['UI/UX', 'Data', 'Web'], dims: {w:800, h:450} },
-  { id: '1611162617474-5b21e879e113', title: '冥想 App 界面', artist: 'ZenDesign', tags: ['UI/UX', 'Mobile', 'Wellness'], dims: {w:600, h:1000} },
-  { id: '1507238691940-0db59919265d', title: 'SaaS 后台系统', artist: 'SystemArch', tags: ['UI/UX', 'B2B', 'Web'], dims: {w:800, h:600} },
-  { id: '1581291518857-4e27f48f518c', title: '智能家居控制', artist: 'SmartHomeUI', tags: ['UI/UX', 'IoT', 'Mobile'], dims: {w:600, h:1000} },
-  { id: '1545239351-ef35f43054bd', title: '旅游预订平台', artist: 'TravelUI', tags: ['UI/UX', 'Web', 'Travel'], dims: {w:800, h:1200} },
-  { id: '1522542552944-96562438e5b4', title: '深色模式 UI Kit', artist: 'DarkModePro', tags: ['UI/UX', 'Kit', 'Dark'], dims: {w:800, h:600} },
-  { id: '1467232080981-d3848db9c714', title: '社交媒体概念', artist: 'SocialConnect', tags: ['UI/UX', 'Social', 'Concept'], dims: {w:600, h:1000} },
-  { id: '1555421689-491a97ff4181', title: '在线教育平台', artist: 'EduTech', tags: ['UI/UX', 'Education', 'Web'], dims: {w:800, h:600} },
+  { id: 'ui_1', title: 'FinTech 仪表盘', artist: 'UI_Wizard', tags: ['UI/UX', 'Dashboard', 'Clean'], dims: {w:800, h:600} },
+  { id: 'ui_2', title: '极简电商 App', artist: 'AppMaster', tags: ['UI/UX', 'Mobile', 'Ecommerce'], dims: {w:600, h:1000} },
+  { id: 'ui_3', title: '数据可视化大屏', artist: 'DataView', tags: ['UI/UX', 'Data', 'Web'], dims: {w:800, h:450} },
+  { id: 'ui_4', title: '冥想 App 界面', artist: 'ZenDesign', tags: ['UI/UX', 'Mobile', 'Wellness'], dims: {w:600, h:1000} },
+  { id: 'ui_5', title: 'SaaS 后台系统', artist: 'SystemArch', tags: ['UI/UX', 'B2B', 'Web'], dims: {w:800, h:600} },
+  { id: 'ui_6', title: '智能家居控制', artist: 'SmartHomeUI', tags: ['UI/UX', 'IoT', 'Mobile'], dims: {w:600, h:1000} },
+  { id: 'ui_7', title: '旅游预订平台', artist: 'TravelUI', tags: ['UI/UX', 'Web', 'Travel'], dims: {w:800, h:1200} },
+  { id: 'ui_8', title: '深色模式 UI Kit', artist: 'DarkModePro', tags: ['UI/UX', 'Kit', 'Dark'], dims: {w:800, h:600} },
+  { id: 'ui_9', title: '社交媒体概念', artist: 'SocialConnect', tags: ['UI/UX', 'Social', 'Concept'], dims: {w:600, h:1000} },
+  { id: 'ui_10', title: '在线教育平台', artist: 'EduTech', tags: ['UI/UX', 'Education', 'Web'], dims: {w:800, h:600} },
 
   // === 3. 3D & ABSTRACT (10 items) ===
-  { id: '1618005182384-a83a8bd57fbe', title: '流体金属', artist: 'LiquidMotion', tags: ['3D', 'Abstract', 'C4D'], dims: {w:800, h:800} },
-  { id: '1633596683520-3e012f6358c3', title: '几何秩序', artist: 'GeoMaster', tags: ['3D', 'Geometry', 'Blender'], dims: {w:800, h:600} },
-  { id: '1550684848-fac1c5b4e853', title: '低多边形世界', artist: 'PolyBuilder', tags: ['3D', 'LowPoly', 'Scene'], dims: {w:800, h:600} },
-  { id: '1618005198389-4875db0840c5', title: '玻璃质感渲染', artist: 'GlassRender', tags: ['3D', 'Material', 'Abstract'], dims: {w:800, h:800} },
-  { id: '1614850523459-c2f4c699c52e', title: '超现实主义空间', artist: 'Surrealist', tags: ['3D', 'Surreal', 'Art'], dims: {w:800, h:1000} },
-  { id: '1614851099179-826c71ccf375', title: '霓虹隧道', artist: 'LightChaser', tags: ['3D', 'Neon', 'Loop'], dims: {w:800, h:450} },
-  { id: '1541701494-874ed3211717', title: '彩色烟雾', artist: 'SmokeSim', tags: ['3D', 'Abstract', 'Colorful'], dims: {w:800, h:600} },
-  { id: '1550751827-4bd374c3f58b', title: '复古未来主义', artist: 'RetroWave', tags: ['3D', 'Synthwave', 'Retro'], dims: {w:800, h:600} },
-  { id: '1618004912476-29818d81ae2e', title: '数字雕塑', artist: 'DigitalSculpt', tags: ['3D', 'Sculpt', 'Art'], dims: {w:600, h:800} },
-  { id: '1509343256512-d77a5cb3791b', title: '微观粒子', artist: 'ParticleSys', tags: ['3D', 'Particles', 'Science'], dims: {w:800, h:500} },
+  { id: '3d_1', title: '流体金属', artist: 'LiquidMotion', tags: ['3D', 'Abstract', 'C4D'], dims: {w:800, h:800} },
+  { id: '3d_2', title: '几何秩序', artist: 'GeoMaster', tags: ['3D', 'Geometry', 'Blender'], dims: {w:800, h:600} },
+  { id: '3d_3', title: '低多边形世界', artist: 'PolyBuilder', tags: ['3D', 'LowPoly', 'Scene'], dims: {w:800, h:600} },
+  { id: '3d_4', title: '玻璃质感渲染', artist: 'GlassRender', tags: ['3D', 'Material', 'Abstract'], dims: {w:800, h:800} },
+  { id: '3d_5', title: '超现实主义空间', artist: 'Surrealist', tags: ['3D', 'Surreal', 'Art'], dims: {w:800, h:1000} },
+  { id: '3d_6', title: '霓虹隧道', artist: 'LightChaser', tags: ['3D', 'Neon', 'Loop'], dims: {w:800, h:450} },
+  { id: '3d_7', title: '彩色烟雾', artist: 'SmokeSim', tags: ['3D', 'Abstract', 'Colorful'], dims: {w:800, h:600} },
+  { id: '3d_8', title: '复古未来主义', artist: 'RetroWave', tags: ['3D', 'Synthwave', 'Retro'], dims: {w:800, h:600} },
+  { id: '3d_9', title: '数字雕塑', artist: 'DigitalSculpt', tags: ['3D', 'Sculpt', 'Art'], dims: {w:600, h:800} },
+  { id: '3d_10', title: '微观粒子', artist: 'ParticleSys', tags: ['3D', 'Particles', 'Science'], dims: {w:800, h:500} },
 
   // === 4. BRANDING & PACKAGING (8 items) ===
-  { id: '1600607686527-6fb886090705', title: '纯净护肤 VI', artist: 'CleanBrand', tags: ['Branding', 'Packaging', 'Minimal'], dims: {w:800, h:600} },
-  { id: '1620916566398-39f1143ab7be', title: '精品咖啡包装', artist: 'CoffeeDesign', tags: ['Branding', 'Coffee', 'Packaging'], dims: {w:800, h:800} },
-  { id: '1531747056595-07f6cbbe10fd', title: '果汁品牌形象', artist: 'JuicyCreative', tags: ['Branding', 'Colorful', 'Logo'], dims: {w:800, h:600} },
-  { id: '1507608869274-d3177c8bb4c7', title: '文具套装设计', artist: 'StationeryPro', tags: ['Branding', 'Mockup', 'Stationery'], dims: {w:800, h:500} },
-  { id: '1581822261290-991b38b6a59b', title: '科技公司 VI', artist: 'TechBrand', tags: ['Branding', 'Corporate', 'Tech'], dims: {w:800, h:450} },
-  { id: '1541535650227-1a76d13f6d49', title: '手工皂包装', artist: 'EcoDesign', tags: ['Branding', 'Eco', 'Packaging'], dims: {w:800, h:800} },
-  { id: '1629328222955-75ce498b337f', title: '时尚杂志排版', artist: 'TypoMaster', tags: ['Branding', 'Editorial', 'Typography'], dims: {w:600, h:900} },
-  { id: '1633409361618-c73427e4e206', title: '潮牌 Logo 设计', artist: 'StreetWear', tags: ['Branding', 'Logo', 'Fashion'], dims: {w:800, h:800} },
+  { id: 'brand_1', title: '纯净护肤 VI', artist: 'CleanBrand', tags: ['Branding', 'Packaging', 'Minimal'], dims: {w:800, h:600} },
+  { id: 'brand_2', title: '精品咖啡包装', artist: 'CoffeeDesign', tags: ['Branding', 'Coffee', 'Packaging'], dims: {w:800, h:800} },
+  { id: 'brand_3', title: '果汁品牌形象', artist: 'JuicyCreative', tags: ['Branding', 'Colorful', 'Logo'], dims: {w:800, h:600} },
+  { id: 'brand_4', title: '文具套装设计', artist: 'StationeryPro', tags: ['Branding', 'Mockup', 'Stationery'], dims: {w:800, h:500} },
+  { id: 'brand_5', title: '科技公司 VI', artist: 'TechBrand', tags: ['Branding', 'Corporate', 'Tech'], dims: {w:800, h:450} },
+  { id: 'brand_6', title: '手工皂包装', artist: 'EcoDesign', tags: ['Branding', 'Eco', 'Packaging'], dims: {w:800, h:800} },
+  { id: 'brand_7', title: '时尚杂志排版', artist: 'TypoMaster', tags: ['Branding', 'Editorial', 'Typography'], dims: {w:600, h:900} },
+  { id: 'brand_8', title: '潮牌 Logo 设计', artist: 'StreetWear', tags: ['Branding', 'Logo', 'Fashion'], dims: {w:800, h:800} },
 
   // === 5. ILLUSTRATION & DIGITAL ART (12 items) ===
-  { id: '1579783902614-a3fb39279c0f', title: '梦境边缘', artist: 'DreamerArt', tags: ['Illustration', 'Surreal', 'Digital'], dims: {w:800, h:600} },
-  { id: '1515405295579-ba7f9f1a8c3a', title: '水墨山水', artist: 'InkFlow', tags: ['Illustration', 'Traditional', 'Ink'], dims: {w:800, h:400} },
-  { id: '1623945937446-20076a267f7a', title: '夏日海滩', artist: 'SummerVibe', tags: ['Illustration', 'Anime', 'Bright'], dims: {w:600, h:800} },
-  { id: '1580927752452-89d86da3fa0a', title: '赛博艺妓', artist: 'CyberArt', tags: ['Illustration', 'Cyberpunk', 'Character'], dims: {w:600, h:900} },
-  { id: '1573056073747-3e9803120610', title: '秋日私语', artist: 'AutumnLeaves', tags: ['Illustration', 'Landscape', 'Warm'], dims: {w:800, h:500} },
-  { id: '1517866579309-174092b32276', title: '浮世绘重构', artist: 'UkiyoRemix', tags: ['Illustration', 'Japanese', 'Art'], dims: {w:800, h:400} },
-  { id: '1634152962476-4b8a00e1915c', title: '治愈系云朵', artist: 'CloudPainter', tags: ['Illustration', 'Healing', 'Sky'], dims: {w:800, h:600} },
-  { id: '1555680299-f52d29f9c605', title: '未来都市人', artist: 'FutureHuman', tags: ['Illustration', 'Concept', 'Sci-Fi'], dims: {w:600, h:800} },
-  { id: '1604871000636-074fa5117945', title: '故障艺术', artist: 'GlitchMaster', tags: ['Illustration', 'Glitch', 'Abstract'], dims: {w:800, h:800} },
-  { id: '1569317044042-c24096816e20', title: '手绘美食', artist: 'FoodieArt', tags: ['Illustration', 'Food', 'Hand-drawn'], dims: {w:800, h:600} },
-  { id: '1544967082-6b95040248c9', title: '极简线条', artist: 'LineArtist', tags: ['Illustration', 'Minimal', 'Line'], dims: {w:800, h:1000} },
-  { id: '1513364776144-60967b0f800f', title: '创意拼贴', artist: 'CollageMaker', tags: ['Illustration', 'Collage', 'Mixed'], dims: {w:800, h:800} },
+  { id: 'illus_1', title: '梦境边缘', artist: 'DreamerArt', tags: ['Illustration', 'Surreal', 'Digital'], dims: {w:800, h:600} },
+  { id: 'illus_2', title: '水墨山水', artist: 'InkFlow', tags: ['Illustration', 'Traditional', 'Ink'], dims: {w:800, h:400} },
+  { id: 'illus_3', title: '夏日海滩', artist: 'SummerVibe', tags: ['Illustration', 'Anime', 'Bright'], dims: {w:600, h:800} },
+  { id: 'illus_4', title: '赛博艺妓', artist: 'CyberArt', tags: ['Illustration', 'Cyberpunk', 'Character'], dims: {w:600, h:900} },
+  { id: 'illus_5', title: '秋日私语', artist: 'AutumnLeaves', tags: ['Illustration', 'Landscape', 'Warm'], dims: {w:800, h:500} },
+  { id: 'illus_6', title: '浮世绘重构', artist: 'UkiyoRemix', tags: ['Illustration', 'Japanese', 'Art'], dims: {w:800, h:400} },
+  { id: 'illus_7', title: '治愈系云朵', artist: 'CloudPainter', tags: ['Illustration', 'Healing', 'Sky'], dims: {w:800, h:600} },
+  { id: 'illus_8', title: '未来都市人', artist: 'FutureHuman', tags: ['Illustration', 'Concept', 'Sci-Fi'], dims: {w:600, h:800} },
+  { id: 'illus_9', title: '故障艺术', artist: 'GlitchMaster', tags: ['Illustration', 'Glitch', 'Abstract'], dims: {w:800, h:800} },
+  { id: 'illus_10', title: '手绘美食', artist: 'FoodieArt', tags: ['Illustration', 'Food', 'Hand-drawn'], dims: {w:800, h:600} },
+  { id: 'illus_11', title: '极简线条', artist: 'LineArtist', tags: ['Illustration', 'Minimal', 'Line'], dims: {w:800, h:1000} },
+  { id: 'illus_12', title: '创意拼贴', artist: 'CollageMaker', tags: ['Illustration', 'Collage', 'Mixed'], dims: {w:800, h:800} },
 ];
 
 export const MOCK_ARTWORKS: Artwork[] = RAW_ARTWORK_DATA.map((item, index) => ({
@@ -382,7 +381,7 @@ export const MOCK_ENTERPRISE_PROFILE: EnterpriseProfile = {
   size: '500-1000人',
   founded: '2015年',
   website: 'www.technova.com',
-  logo: getImage('1560179707-f14e90ef3dab', 256, 256), // Tech office/Abstract
+  logo: getImage('tech_office_building', 256, 256),
   coreBusiness: ['SaaS 平台', '移动应用开发', 'AI 解决方案', '数据可视化'],
   history: [
     { year: '2015', title: '公司成立', description: 'TechNova 在北京中关村成立，获得天使轮融资。' },
@@ -464,7 +463,7 @@ export const CHART_DATA_PERSONAL_SPENDING = [
 
 export const MOCK_USERS_ADMIN_VIEW: User[] = [
   { id: 'u1', name: '系统管理员', email: 'admin@xinhuashe.com', role: 'root_admin', roleName: '超级管理员', status: 'active', avatar: getAvatar('Admin'), permissions: [], isAuthenticated: true, creditScore: 999 },
-  { id: 'u2', name: '科技创造', email: 'contact@technova.com', role: 'enterprise', roleName: '企业主', status: 'active', avatar: getImage('1560179707-f14e90ef3dab', 128, 128), permissions: [], isAuthenticated: true, creditScore: 850 },
+  { id: 'u2', name: '科技创造', email: 'contact@technova.com', role: 'enterprise', roleName: '企业主', status: 'active', avatar: getImage('company_avatar', 128, 128), permissions: [], isAuthenticated: true, creditScore: 850 },
   { id: 'u3', name: 'NeonDreamer', email: 'neon@art.com', role: 'creator', roleName: '创作者', status: 'active', avatar: getAvatar('NeonDreamer'), permissions: [], isAuthenticated: true, creditScore: 720 },
   { id: 'u4', name: '违规账号', email: 'spam@bot.com', role: 'general', roleName: '普通用户', status: 'banned', avatar: getAvatar('SpamUser'), permissions: [], isAuthenticated: true, creditScore: 300 },
 ];
@@ -522,10 +521,10 @@ export const getProfileById = (profileId: string): UserProfile => {
     id: profileId,
     userId: isCreator ? 'u3' : 'u2',
     displayName: isCreator ? (profileId.includes('p_ink') ? 'InkFlow' : 'NeonDreamer') : 'TechNova 科技',
-    avatar: isCreator ? (profileId.includes('p_ink') ? getAvatar('InkFlow') : getAvatar('NeonDreamer')) : getImage('1560179707-f14e90ef3dab', 128, 128),
+    avatar: isCreator ? (profileId.includes('p_ink') ? getAvatar('InkFlow') : getAvatar('NeonDreamer')) : getImage('tech_logo', 128, 128),
     coverImage: isCreator 
-      ? getImage('1615751072497-5f5169febeca', 1200, 400) // Neon city
-      : getImage('1497366216548-37526070297c', 1200, 400), // Modern office
+      ? getImage('neon_city_night', 1200, 400)
+      : getImage('modern_office_space', 1200, 400),
     bio: isCreator 
       ? '热衷于探索光影与色彩的数字艺术家，擅长赛博朋克与未来主义风格。' 
       : '专注 AI 与大数据的科技创新企业，期待与优秀的创意人才合作。',

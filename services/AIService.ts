@@ -65,19 +65,76 @@ export const AIService = {
   expandCreativePrompt: async (inputPrompt: string): Promise<string> => {
     if (!ai) {
       await new Promise(r => setTimeout(r, 1000));
-      return `[模拟AI扩充]: 基于您输入的 "${inputPrompt}"，建议增加细节描述：画面采用赛博朋克风格，霓虹灯光效显著，构图采用三分法...`;
+      return `[模拟AI扩充]: 基于主题 "${inputPrompt}"，建议核心视觉元素包含... 构图采用三分法，光影强调对比度...`;
     }
 
     try {
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
-        contents: `You are a professional creative director. Expand the following short art prompt into a detailed, high-quality image generation prompt (in Chinese), focusing on lighting, composition, style, and mood. Keep it under 150 words. Input: "${inputPrompt}"`,
+        contents: [
+          {
+            role: "user",
+            parts: [{ 
+              text: `
+                你是一位世界级的美术指导和提示词工程师。请将用户的简短想法扩充为一份高质量的图像生成提示词（Prompt）。
+                
+                **核心优化要求：**
+                1. **核心元素识别**：深入分析主题，识别并提取高度相关的核心视觉元素。
+                2. **构图融合**：将这些元素有机地融入图片构图中，确保布局合理，避免元素堆砌。
+                3. **视觉层次**：构建清晰的前景、中景、远景关系，确保主体突出，具有良好的视觉层次感。
+                4. **风格与质感**：明确整体视觉风格（如：电影感、数字厚涂、超写实等），并保持专业性与一致性。
+                5. **光影与氛围**：指定具体的光影类型（如：体积光、边缘光）和色彩基调，以增强氛围感。
+
+                **用户输入：** "${inputPrompt}"
+                
+                **输出规则：**
+                - 仅输出优化后的提示词段落。
+                - 语言：简体中文。
+                - 字数：200字以内。
+              ` 
+            }]
+          }
+        ],
       });
 
       return response.text || "无法生成描述";
     } catch (error) {
       console.error("Gemini Text Generation Failed:", error);
       throw new Error("创意扩充失败");
+    }
+  },
+
+  /**
+   * Generate an image based on a text prompt
+   * @param prompt Text description of the image
+   */
+  generateImage: async (prompt: string): Promise<string | null> => {
+    // Fallback if no API key
+    if (!ai) {
+      await new Promise(r => setTimeout(r, 1500));
+      // Use Pollinations AI for mock generation
+      return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=512&height=512&nologo=true&seed=${Math.floor(Math.random() * 1000)}`;
+    }
+
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: {
+          parts: [{ text: prompt }]
+        }
+      });
+
+      if (response.candidates?.[0]?.content?.parts) {
+        for (const part of response.candidates[0].content.parts) {
+          if (part.inlineData && part.inlineData.data) {
+            return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+          }
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error("Image Generation Failed:", error);
+      throw new Error("图片生成失败");
     }
   }
 };

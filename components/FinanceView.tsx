@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { 
   Wallet, TrendingUp, TrendingDown, Clock, Download, 
@@ -381,7 +380,7 @@ const FinanceView: React.FC<FinanceViewProps> = ({ user }) => {
   const isEnterprise = user.role === 'enterprise' || user.role === 'root_admin';
 
   return (
-    <div className="max-w-7xl mx-auto pb-10">
+    <div className="max-w-[1440px] mx-auto pb-10">
       
       {/* Universal Header */}
       <div className="flex items-center justify-between mb-8">

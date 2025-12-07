@@ -55,7 +55,7 @@ const CreditScorePage: React.FC<CreditScorePageProps> = ({ onBack, user }) => {
          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-3xl -ml-20 -mb-20"></div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Navigation */}
         <button 

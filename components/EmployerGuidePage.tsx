@@ -52,11 +52,11 @@ const EmployerGuidePage: React.FC<EmployerGuidePageProps> = ({ onBack, onTrigger
   }, []);
 
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 pt-20 pb-20">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pt-20 pb-20">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header & Hero */}
-        <div className="mb-16 border-b border-slate-100 pb-10">
+        <div className="mb-16 border-b border-slate-200 pb-10">
           <div className="flex justify-between items-center mb-8">
             <button 
               onClick={onBack}
@@ -115,7 +115,7 @@ const EmployerGuidePage: React.FC<EmployerGuidePageProps> = ({ onBack, onTrigger
                    ))}
                 </nav>
                 
-                <div className="mt-10 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="mt-10 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
                    <h4 className="font-bold text-slate-900 mb-2 text-sm">遇到问题？</h4>
                    <p className="text-xs text-slate-500 mb-4 leading-relaxed">
                      如需帮助，请联系专属客服或查阅帮助中心文档。
@@ -131,13 +131,13 @@ const EmployerGuidePage: React.FC<EmployerGuidePageProps> = ({ onBack, onTrigger
              {/* Section 1: Preparation */}
              <section id="prep" className="scroll-mt-32 group">
                 <div className="flex items-baseline gap-4 mb-8">
-                   <span className="text-6xl font-black text-slate-100 group-hover:text-indigo-50 transition-colors select-none">01</span>
+                   <span className="text-6xl font-black text-slate-200 group-hover:text-indigo-100 transition-colors select-none">01</span>
                    <h2 className="text-2xl font-bold text-slate-900">需求准备</h2>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100 hover:border-indigo-100 transition-colors">
-                      <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center mb-6 text-indigo-600">
+                   <div className="bg-white p-8 rounded-3xl border border-slate-200 hover:border-indigo-200 transition-colors shadow-sm">
+                      <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center mb-6 text-indigo-600">
                          <ShieldCheck className="w-5 h-5" />
                       </div>
                       <h3 className="font-bold text-lg text-slate-900 mb-3">身份认证</h3>
@@ -149,8 +149,8 @@ const EmployerGuidePage: React.FC<EmployerGuidePageProps> = ({ onBack, onTrigger
                       </div>
                    </div>
 
-                   <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100 hover:border-indigo-100 transition-colors">
-                      <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center mb-6 text-green-600">
+                   <div className="bg-white p-8 rounded-3xl border border-slate-200 hover:border-indigo-200 transition-colors shadow-sm">
+                      <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center mb-6 text-green-600">
                          <DollarSign className="w-5 h-5" />
                       </div>
                       <h3 className="font-bold text-lg text-slate-900 mb-3">预算规划</h3>
@@ -164,11 +164,11 @@ const EmployerGuidePage: React.FC<EmployerGuidePageProps> = ({ onBack, onTrigger
              {/* Section 2: Post Project */}
              <section id="post" className="scroll-mt-32 group">
                 <div className="flex items-baseline gap-4 mb-8">
-                   <span className="text-6xl font-black text-slate-100 group-hover:text-blue-50 transition-colors select-none">02</span>
+                   <span className="text-6xl font-black text-slate-200 group-hover:text-blue-100 transition-colors select-none">02</span>
                    <h2 className="text-2xl font-bold text-slate-900">发布企划</h2>
                 </div>
 
-                <div className="border border-slate-200 rounded-3xl overflow-hidden">
+                <div className="border border-slate-200 rounded-3xl overflow-hidden bg-white shadow-sm">
                    <div className="bg-slate-50 p-6 border-b border-slate-200">
                       <h3 className="font-bold text-slate-900">标准需求结构 (Brief)</h3>
                       <p className="text-sm text-slate-500 mt-1">清晰的需求描述可降低 50% 的沟通成本</p>
@@ -199,11 +199,11 @@ const EmployerGuidePage: React.FC<EmployerGuidePageProps> = ({ onBack, onTrigger
                 </div>
                 
                 <div className="mt-6 flex gap-4">
-                   <div className="flex-1 border border-slate-200 p-4 rounded-xl hover:border-indigo-300 cursor-pointer transition-all">
+                   <div className="flex-1 bg-white border border-slate-200 p-4 rounded-xl hover:border-indigo-300 cursor-pointer transition-all shadow-sm">
                       <div className="font-bold text-slate-900 mb-1">公开招募</div>
                       <p className="text-xs text-slate-500">所有画师可见。适合需求明确、希望比稿的场景。</p>
                    </div>
-                   <div className="flex-1 border border-slate-200 p-4 rounded-xl hover:border-indigo-300 cursor-pointer transition-all">
+                   <div className="flex-1 bg-white border border-slate-200 p-4 rounded-xl hover:border-indigo-300 cursor-pointer transition-all shadow-sm">
                       <div className="font-bold text-slate-900 mb-1">定向邀请</div>
                       <p className="text-xs text-slate-500">仅向特定画师发送。适合已锁定意向人选的场景。</p>
                    </div>
@@ -213,7 +213,7 @@ const EmployerGuidePage: React.FC<EmployerGuidePageProps> = ({ onBack, onTrigger
              {/* Section 3: Select */}
              <section id="select" className="scroll-mt-32 group">
                 <div className="flex items-baseline gap-4 mb-8">
-                   <span className="text-6xl font-black text-slate-100 group-hover:text-indigo-50 transition-colors select-none">03</span>
+                   <span className="text-6xl font-black text-slate-200 group-hover:text-indigo-100 transition-colors select-none">03</span>
                    <h2 className="text-2xl font-bold text-slate-900">选人合作</h2>
                 </div>
                 
@@ -244,7 +244,7 @@ const EmployerGuidePage: React.FC<EmployerGuidePageProps> = ({ onBack, onTrigger
              {/* Section 4: Fund */}
              <section id="fund" className="scroll-mt-32 group">
                 <div className="flex items-baseline gap-4 mb-8">
-                   <span className="text-6xl font-black text-slate-100 group-hover:text-green-50 transition-colors select-none">04</span>
+                   <span className="text-6xl font-black text-slate-200 group-hover:text-green-100 transition-colors select-none">04</span>
                    <h2 className="text-2xl font-bold text-slate-900">资金托管</h2>
                 </div>
 
@@ -278,7 +278,7 @@ const EmployerGuidePage: React.FC<EmployerGuidePageProps> = ({ onBack, onTrigger
              {/* Section 5: Accept */}
              <section id="accept" className="scroll-mt-32 group pb-20">
                 <div className="flex items-baseline gap-4 mb-8">
-                   <span className="text-6xl font-black text-slate-100 group-hover:text-amber-50 transition-colors select-none">05</span>
+                   <span className="text-6xl font-black text-slate-200 group-hover:text-amber-100 transition-colors select-none">05</span>
                    <h2 className="text-2xl font-bold text-slate-900">验收评价</h2>
                 </div>
 
@@ -287,14 +287,14 @@ const EmployerGuidePage: React.FC<EmployerGuidePageProps> = ({ onBack, onTrigger
                       <h3 className="font-bold text-lg text-slate-900">高效反馈原则</h3>
                       <ul className="space-y-4">
                          <li className="flex gap-4">
-                            <div className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs flex-shrink-0">1</div>
+                            <div className="w-6 h-6 rounded-full bg-white border border-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-sm">1</div>
                             <div>
                                <h4 className="font-bold text-sm text-slate-800 mb-1">汇总修改意见</h4>
                                <p className="text-xs text-slate-500 leading-relaxed">避免“挤牙膏”式反馈，尽量将同一阶段的问题一次性提出。</p>
                             </div>
                          </li>
                          <li className="flex gap-4">
-                            <div className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs flex-shrink-0">2</div>
+                            <div className="w-6 h-6 rounded-full bg-white border border-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-sm">2</div>
                             <div>
                                <h4 className="font-bold text-sm text-slate-800 mb-1">指令具体明确</h4>
                                <p className="text-xs text-slate-500 leading-relaxed">避免“感觉不对”，尝试用“背景压暗”、“表情再开心点”等具体描述。</p>

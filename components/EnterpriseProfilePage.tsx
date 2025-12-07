@@ -36,7 +36,7 @@ const EnterpriseProfilePage: React.FC<EnterpriseProfilePageProps> = ({ onBack, o
        {/* Hero Cover */}
        <div className="h-64 md:h-80 w-full relative bg-slate-900 group overflow-hidden">
           <img 
-            src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&h=600&q=80" 
+            src="https://picsum.photos/seed/tech_office_cover/1600/600" 
             alt="Cover" 
             className="w-full h-full object-cover opacity-80 transition-transform duration-1000 group-hover:scale-105"
           />
@@ -425,7 +425,7 @@ const EnterpriseProfilePage: React.FC<EnterpriseProfilePageProps> = ({ onBack, o
                       <div className="animate-fade-in space-y-6">
                          <div className="grid grid-cols-2 gap-4">
                             <div className="col-span-2 aspect-[21/9] bg-slate-200 rounded-2xl overflow-hidden relative group">
-                               <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&h=400&q=80" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Office Life" />
+                               <img src="https://picsum.photos/seed/office_culture/800/400" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Office Life" />
                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-8">
                                   <div className="text-white">
                                      <h4 className="font-bold text-2xl mb-2">开放协作的办公环境</h4>
@@ -434,12 +434,12 @@ const EnterpriseProfilePage: React.FC<EnterpriseProfilePageProps> = ({ onBack, o
                                </div>
                             </div>
                             <div className="aspect-square bg-slate-200 rounded-2xl overflow-hidden relative group">
-                               <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=400&h=400&q=80" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Team Building" />
+                               <img src="https://picsum.photos/seed/team_building/400/400" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Team Building" />
                                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>
                                <div className="absolute bottom-4 left-4 text-white font-bold text-lg drop-shadow-md">季度团建</div>
                             </div>
                             <div className="aspect-square bg-slate-200 rounded-2xl overflow-hidden relative group">
-                               <img src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=400&h=400&q=80" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Conference" />
+                               <img src="https://picsum.photos/seed/tech_conference/400/400" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Conference" />
                                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>
                                <div className="absolute bottom-4 left-4 text-white font-bold text-lg drop-shadow-md">技术分享会</div>
                             </div>

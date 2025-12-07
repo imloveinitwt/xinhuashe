@@ -59,7 +59,7 @@ const MessagesPage: React.FC<MessagesPageProps> = ({ onBack, onNavigate }) => {
 
   return (
     <div className="min-h-screen bg-slate-50 pt-20 pb-20 font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
         <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">

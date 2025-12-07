@@ -193,34 +193,34 @@ const PainterGuidePage: React.FC<PainterGuidePageProps> = ({ onBack }) => {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans pt-20 pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Breadcrumb / Header */}
         <div className="mb-8">
           <button 
             onClick={onBack}
-            className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 mb-4 transition-colors"
+            className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 mb-4 transition-colors font-medium text-sm"
           >
             <ArrowLeft className="w-4 h-4" /> 返回首页
           </button>
-          <div className="bg-gradient-to-r from-pink-600 to-purple-600 rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
+          <div className="bg-gradient-to-r from-pink-600 to-purple-600 rounded-3xl p-10 text-white shadow-xl relative overflow-hidden">
              <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl -mr-16 -mt-16"></div>
              <div className="relative z-10">
-                <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-                  <BookOpen className="w-8 h-8" /> 画师全链路接单指南
+                <h1 className="text-3xl md:text-4xl font-extrabold mb-4 flex items-center gap-3">
+                  <BookOpen className="w-10 h-10" /> 画师全链路接单指南
                 </h1>
-                <p className="text-pink-100 max-w-2xl text-lg">
+                <p className="text-pink-100 max-w-2xl text-lg font-medium leading-relaxed">
                   从完善档案到最终收款，薪画社为您提供最专业的职业指引，助您在创意变现的道路上畅通无阻。
                 </p>
              </div>
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-10">
           
           {/* Left: Sidebar Navigation (Sticky) */}
           <div className="lg:w-64 flex-shrink-0">
-             <div className="sticky top-24 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+             <div className="sticky top-24 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="p-4 border-b border-slate-100 bg-slate-50">
                    <h3 className="font-bold text-slate-800">目录导航</h3>
                 </div>
@@ -245,7 +245,7 @@ const PainterGuidePage: React.FC<PainterGuidePageProps> = ({ onBack }) => {
           </div>
 
           {/* Right: Content Area */}
-          <div className="flex-1 space-y-12">
+          <div className="flex-1 space-y-12 max-w-5xl">
              
              {/* Section 0: Workflow Diagram */}
              <section id="overview" className="scroll-mt-24">
@@ -262,15 +262,15 @@ const PainterGuidePage: React.FC<PainterGuidePageProps> = ({ onBack }) => {
                    <div className="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-sm font-bold">01</div>
                    接单准备
                 </h2>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-8 space-y-8">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 space-y-8">
                    <div>
                       <h3 className="font-bold text-lg text-slate-800 mb-3">完善个人档案</h3>
                       <p className="text-slate-600 leading-relaxed mb-4">
                          一个完整的个人档案是获得企划方信任的第一步。就像简历一样，它决定了企划方是否愿意进一步了解你。
                       </p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                         <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                            <h4 className="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                            <h4 className="font-bold text-slate-800 text-sm mb-3 flex items-center gap-2">
                                <CheckCircle2 className="w-4 h-4 text-green-500" /> 必须项
                             </h4>
                             <ul className="text-sm text-slate-600 space-y-2 list-disc pl-4">
@@ -279,8 +279,8 @@ const PainterGuidePage: React.FC<PainterGuidePageProps> = ({ onBack }) => {
                                <li><strong>代表作品：</strong>上传 3-9 张最高水准的原创作品，这是核心竞争力。</li>
                             </ul>
                          </div>
-                         <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                            <h4 className="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">
+                         <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                            <h4 className="font-bold text-slate-800 text-sm mb-3 flex items-center gap-2">
                                <AlertCircle className="w-4 h-4 text-amber-500" /> 注意事项
                             </h4>
                             <ul className="text-sm text-slate-600 space-y-2 list-disc pl-4">
@@ -293,12 +293,12 @@ const PainterGuidePage: React.FC<PainterGuidePageProps> = ({ onBack }) => {
                    
                    <div>
                       <h3 className="font-bold text-lg text-slate-800 mb-3">实名认证</h3>
-                      <div className="flex items-start gap-4 bg-blue-50 p-4 rounded-lg border border-blue-100 text-sm text-blue-800">
+                      <div className="flex items-start gap-4 bg-blue-50 p-6 rounded-xl border border-blue-100 text-sm text-blue-800">
                          <ShieldCheck className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                         <p>
+                         <p className="leading-relaxed">
                             依据相关法律法规，接单前必须完成实名认证。认证信息仅用于平台审核与资金提现，我们将严格保密。
                             <br/>
-                            未认证账号将无法发布应征或申请提现。
+                            <span className="font-bold mt-1 block">未认证账号将无法发布应征或申请提现。</span>
                          </p>
                       </div>
                    </div>
@@ -311,18 +311,18 @@ const PainterGuidePage: React.FC<PainterGuidePageProps> = ({ onBack }) => {
                    <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold">02</div>
                    参与应征
                 </h2>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-8 space-y-8">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 space-y-8">
                    <div>
                       <h3 className="font-bold text-lg text-slate-800 mb-3">如何写出中标率高的应征方案？</h3>
                       <p className="text-slate-600 mb-4">
                          在“企划大厅”看到合适的项目后，点击“立即应征”。此时你需要填写报价单，这是企划方判断是否与你合作的关键。
                       </p>
                       <div className="space-y-4">
-                         <div className="border-l-4 border-indigo-500 pl-4 py-2 bg-slate-50">
+                         <div className="border-l-4 border-indigo-500 pl-6 py-3 bg-slate-50 rounded-r-xl">
                             <h4 className="font-bold text-slate-800 mb-1">❌ 错误的示范</h4>
                             <p className="text-sm text-slate-500">“选我选我”、“画风如图”、“可以接，私聊”</p>
                          </div>
-                         <div className="border-l-4 border-green-500 pl-4 py-2 bg-slate-50">
+                         <div className="border-l-4 border-green-500 pl-6 py-3 bg-slate-50 rounded-r-xl">
                             <h4 className="font-bold text-slate-800 mb-1">✅ 优秀的示范</h4>
                             <p className="text-sm text-slate-600 leading-relaxed">
                                “您好，看了您的需求，需要绘制一张赛博朋克风格的城市夜景。我擅长科幻场景与光影处理，
@@ -340,35 +340,35 @@ const PainterGuidePage: React.FC<PainterGuidePageProps> = ({ onBack }) => {
 
                    <div>
                       <h3 className="font-bold text-lg text-slate-800 mb-3">合理报价的技巧</h3>
-                      <div className="overflow-x-auto">
-                         <table className="w-full text-sm text-left border border-slate-200 rounded-lg">
+                      <div className="overflow-hidden border border-slate-200 rounded-xl">
+                         <table className="w-full text-sm text-left">
                             <thead className="bg-slate-50 font-bold text-slate-700">
                                <tr>
-                                  <th className="p-3 border-b border-r">项目类型</th>
-                                  <th className="p-3 border-b border-r">参考价格区间 (仅供参考)</th>
-                                  <th className="p-3 border-b">影响因素</th>
+                                  <th className="p-4 border-b border-r border-slate-200">项目类型</th>
+                                  <th className="p-4 border-b border-r border-slate-200">参考价格区间 (仅供参考)</th>
+                                  <th className="p-4 border-b">影响因素</th>
                                </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200">
                                <tr>
-                                  <td className="p-3 border-r">Q版头像</td>
-                                  <td className="p-3 border-r">¥100 - ¥500</td>
-                                  <td className="p-3">精度、商用/私用、是否包含背景</td>
+                                  <td className="p-4 border-r border-slate-200">Q版头像</td>
+                                  <td className="p-4 border-r border-slate-200">¥100 - ¥500</td>
+                                  <td className="p-4">精度、商用/私用、是否包含背景</td>
                                </tr>
                                <tr>
-                                  <td className="p-3 border-r">角色立绘 (半身/全身)</td>
-                                  <td className="p-3 border-r">¥800 - ¥3000+</td>
-                                  <td className="p-3">设计复杂度、服饰细节、是否拆分图层</td>
+                                  <td className="p-4 border-r border-slate-200">角色立绘 (半身/全身)</td>
+                                  <td className="p-4 border-r border-slate-200">¥800 - ¥3000+</td>
+                                  <td className="p-4">设计复杂度、服饰细节、是否拆分图层</td>
                                </tr>
                                <tr>
-                                  <td className="p-3 border-r">插画 / 宣传图</td>
-                                  <td className="p-3 border-r">¥2000 - ¥8000+</td>
-                                  <td className="p-3">构图难度、场景大小、人物数量</td>
+                                  <td className="p-4 border-r border-slate-200">插画 / 宣传图</td>
+                                  <td className="p-4 border-r border-slate-200">¥2000 - ¥8000+</td>
+                                  <td className="p-4">构图难度、场景大小、人物数量</td>
                                </tr>
                             </tbody>
                          </table>
                       </div>
-                      <p className="text-xs text-slate-400 mt-2">* 实际报价请根据自身水平、工时成本及市场行情综合考量。</p>
+                      <p className="text-xs text-slate-400 mt-2 ml-1">* 实际报价请根据自身水平、工时成本及市场行情综合考量。</p>
                    </div>
                 </div>
              </section>
@@ -379,16 +379,16 @@ const PainterGuidePage: React.FC<PainterGuidePageProps> = ({ onBack }) => {
                    <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-sm font-bold">03</div>
                    创作流程
                 </h2>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-8">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
                    <div className="relative">
                       {/* Process Line */}
-                      <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-slate-200"></div>
+                      <div className="absolute left-6 top-2 bottom-2 w-0.5 bg-slate-200"></div>
                       
-                      <div className="space-y-8">
+                      <div className="space-y-10">
                          <div className="relative pl-16">
                             <div className="absolute left-3 top-0 w-6 h-6 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-bold ring-4 ring-white">1</div>
                             <h3 className="font-bold text-slate-800 text-lg">确认合作与保证金</h3>
-                            <p className="text-slate-600 text-sm mt-1">
+                            <p className="text-slate-600 text-sm mt-2 leading-relaxed">
                                企划方选中你后，会发起“确认合作”。此时请<strong>务必等待企划方托管赏金</strong>。
                                看到系统提示“资金已托管”后，方可开始工作。切勿在未托管状态下出稿。
                             </p>
@@ -397,7 +397,7 @@ const PainterGuidePage: React.FC<PainterGuidePageProps> = ({ onBack }) => {
                          <div className="relative pl-16">
                             <div className="absolute left-3 top-0 w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold ring-4 ring-white">2</div>
                             <h3 className="font-bold text-slate-800 text-lg">草稿阶段</h3>
-                            <p className="text-slate-600 text-sm mt-1">
+                            <p className="text-slate-600 text-sm mt-2 leading-relaxed">
                                提交大动态、构图和大致配色。此阶段是修改成本最低的时候，请务必与企划方确认好大方向。
                                <br/>上传带水印的草图至节点验收处。
                             </p>
@@ -406,7 +406,7 @@ const PainterGuidePage: React.FC<PainterGuidePageProps> = ({ onBack }) => {
                          <div className="relative pl-16">
                             <div className="absolute left-3 top-0 w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold ring-4 ring-white">3</div>
                             <h3 className="font-bold text-slate-800 text-lg">线稿 / 细化阶段</h3>
-                            <p className="text-slate-600 text-sm mt-1">
+                            <p className="text-slate-600 text-sm mt-2 leading-relaxed">
                                根据反馈细化线稿或铺色。每次提交阶段性成果，建议都打上厚码或水印，保障权益。
                             </p>
                          </div>
@@ -414,7 +414,7 @@ const PainterGuidePage: React.FC<PainterGuidePageProps> = ({ onBack }) => {
                          <div className="relative pl-16">
                             <div className="absolute left-3 top-0 w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold ring-4 ring-white">4</div>
                             <h3 className="font-bold text-slate-800 text-lg">成图完稿</h3>
-                            <p className="text-slate-600 text-sm mt-1">
+                            <p className="text-slate-600 text-sm mt-2 leading-relaxed">
                                完成所有绘制，提交成图小样（非源文件）给企划方确认。
                             </p>
                          </div>
@@ -429,15 +429,15 @@ const PainterGuidePage: React.FC<PainterGuidePageProps> = ({ onBack }) => {
                    <div className="w-8 h-8 rounded-lg bg-green-100 text-green-600 flex items-center justify-center text-sm font-bold">04</div>
                    交付验收
                 </h2>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-8 space-y-6">
-                   <div className="p-4 bg-green-50 rounded-lg border border-green-100 text-sm text-green-800 leading-relaxed">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 space-y-6">
+                   <div className="p-5 bg-green-50 rounded-xl border border-green-100 text-sm text-green-800 leading-relaxed">
                       <strong>关键规则：</strong> “一手交钱，一手交货”。在薪画社平台，这意味着：
                       企划方点击“确认验收” -> 资金解冻到画师账户 -> 画师发送高清源文件。
                    </div>
                    
                    <div className="space-y-4">
                       <h3 className="font-bold text-slate-800">标准交付动作：</h3>
-                      <ol className="list-decimal pl-5 space-y-2 text-sm text-slate-600">
+                      <ol className="list-decimal pl-5 space-y-2 text-sm text-slate-600 leading-relaxed">
                          <li>企划方对成图小样满意，表示可以收稿。</li>
                          <li>你在系统内点击“发起验收”。</li>
                          <li>企划方点击“确认支付/验收”，此时资金进入你的余额。</li>
@@ -455,7 +455,7 @@ const PainterGuidePage: React.FC<PainterGuidePageProps> = ({ onBack }) => {
                    财务安全
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                   <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                       <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
                          <ShieldCheck className="w-5 h-5 text-indigo-600" /> 资金托管机制
                       </h3>
@@ -464,7 +464,7 @@ const PainterGuidePage: React.FC<PainterGuidePageProps> = ({ onBack }) => {
                          这有效避免了“画了图不给钱”或“付了钱不画图”的风险。
                       </p>
                    </div>
-                   <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                   <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                       <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
                          <MessageSquare className="w-5 h-5 text-rose-500" /> 拒绝私下交易
                       </h3>

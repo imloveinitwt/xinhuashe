@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, UploadCloud, Image as ImageIcon, Sparkles, Wand2, CheckCircle2, Loader2, Briefcase, Calendar, DollarSign, FileText, Layers, AlertCircle } from 'lucide-react';
+import { X, UploadCloud, Image as ImageIcon, Sparkles, Wand2, CheckCircle2, Loader2, Briefcase, Calendar, DollarSign, FileText, Layers, AlertCircle, RefreshCw } from 'lucide-react';
 import { UserRole } from '../types';
 import { AIService } from '../services/AIService';
 
@@ -19,7 +19,11 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
   // AI Gen State
   const [prompt, setPrompt] = useState('');
   const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
-  const [generatedPrompt, setGeneratedPrompt] = useState('');
+  const [generatedPrompt, setGeneratedPrompt] = useState(''); // Keep for history/suggestion display if needed
+  
+  // AI Image Gen State
+  const [generatedImages, setGeneratedImages] = useState<(string | null)[]>([null, null]);
+  const [isGeneratingImage, setIsGeneratingImage] = useState<boolean[]>([false, false]);
 
   // Enterprise Form State
   const [projectForm, setProjectForm] = useState({
@@ -54,6 +58,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
         setActiveTab('upload');
         setPrompt('');
         setGeneratedPrompt('');
+        setGeneratedImages([null, null]);
       }, 1500);
     }, 2000);
   };
@@ -64,10 +69,36 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
     try {
       const optimized = await AIService.expandCreativePrompt(prompt);
       setGeneratedPrompt(optimized);
+      setPrompt(optimized); // Directly update the input for better UX
     } catch (e) {
       console.error(e);
     } finally {
       setIsGeneratingPrompt(false);
+    }
+  };
+
+  const handleGenerateImage = async (index: number) => {
+    const promptToUse = prompt; // Use what the user sees
+    if (!promptToUse.trim()) return;
+
+    const newIsGenerating = [...isGeneratingImage];
+    newIsGenerating[index] = true;
+    setIsGeneratingImage(newIsGenerating);
+
+    try {
+      const imageUrl = await AIService.generateImage(promptToUse);
+      const newImages = [...generatedImages];
+      newImages[index] = imageUrl;
+      setGeneratedImages(newImages);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      // Functional update to avoid stale state issues
+      setIsGeneratingImage(prev => {
+        const next = [...prev];
+        next[index] = false;
+        return next;
+      });
     }
   };
 
@@ -180,9 +211,9 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
             <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 flex items-start gap-3">
               <Wand2 className="w-5 h-5 text-purple-600 mt-0.5" />
               <div>
-                  <h4 className="font-bold text-purple-900 text-sm">Gemini AI 灵感扩充</h4>
+                  <h4 className="font-bold text-purple-900 text-sm">Gemini AI 灵感扩充与生成</h4>
                   <p className="text-xs text-purple-700 mt-1">
-                    输入简单的想法，AI 将自动为您丰富细节、光影和风格描述，帮助您生成更惊艳的草图或获取创作灵感。
+                    输入简单的想法，AI 将自动分析主题核心元素，并生成构图合理、风格统一的专业图像。
                   </p>
               </div>
             </div>
@@ -191,7 +222,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
               <label className="block text-sm font-medium text-slate-700 mb-1">你的想法 (Prompt)</label>
               <div className="relative">
                 <textarea 
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none h-24 resize-none pr-10"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none h-32 resize-none pr-10"
                   placeholder="例如：未来的机器人，下雨，霓虹灯..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
@@ -199,42 +230,71 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
                 <button 
                   onClick={handlePromptOptimization}
                   disabled={!prompt || isGeneratingPrompt}
-                  className="absolute bottom-2 right-2 p-1.5 bg-purple-100 hover:bg-purple-200 rounded-md text-purple-700 transition-colors disabled:opacity-50"
-                  title="AI 优化"
+                  className="absolute bottom-2 right-2 p-2 bg-purple-100 hover:bg-purple-200 rounded-lg text-purple-700 transition-colors disabled:opacity-50 flex items-center gap-1.5 text-xs font-bold"
+                  title="AI 智能优化提示词"
                 >
                   {isGeneratingPrompt ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  优化
                 </button>
               </div>
             </div>
 
-            {generatedPrompt && (
+            {/* Generated Suggestion Preview (Optional visual feedback) */}
+            {generatedPrompt && prompt !== generatedPrompt && (
               <div className="animate-fade-in bg-slate-50 border border-slate-200 rounded-lg p-3">
                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs font-bold text-slate-500 uppercase">AI 优化建议</span>
+                    <span className="text-xs font-bold text-slate-500 uppercase">上次优化结果</span>
                     <button 
                       onClick={() => setPrompt(generatedPrompt)}
                       className="text-xs text-purple-600 hover:underline font-medium"
                     >
-                      使用此描述
+                      恢复
                     </button>
                  </div>
-                 <p className="text-sm text-slate-700 leading-relaxed italic">
+                 <p className="text-xs text-slate-500 leading-relaxed italic line-clamp-2">
                     "{generatedPrompt}"
                  </p>
               </div>
             )}
 
             <div className="border-t border-slate-100 pt-4">
-               <label className="block text-sm font-medium text-slate-700 mb-2">生成预览 (Mock)</label>
+               <label className="block text-sm font-medium text-slate-700 mb-2">生成预览</label>
                <div className="grid grid-cols-2 gap-4">
-                  <div className="aspect-square bg-slate-100 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-sm hover:border-purple-300 transition-colors cursor-pointer group relative overflow-hidden">
-                    <span className="relative z-10 group-hover:text-purple-500 transition-colors">点击生成预览 1</span>
-                    <div className="absolute inset-0 bg-purple-50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  </div>
-                  <div className="aspect-square bg-slate-100 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-sm hover:border-purple-300 transition-colors cursor-pointer group relative overflow-hidden">
-                    <span className="relative z-10 group-hover:text-purple-500 transition-colors">点击生成预览 2</span>
-                    <div className="absolute inset-0 bg-purple-50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  </div>
+                  {[0, 1].map((index) => (
+                    <div 
+                      key={index}
+                      onClick={() => !isGeneratingImage[index] && handleGenerateImage(index)}
+                      className={`aspect-square bg-slate-100 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-sm hover:border-purple-300 transition-colors cursor-pointer group relative overflow-hidden ${isGeneratingImage[index] ? 'cursor-not-allowed' : ''}`}
+                    >
+                      {generatedImages[index] ? (
+                        <>
+                          <img src={generatedImages[index]!} alt="Generated" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                             <span className="text-white font-medium flex items-center gap-1">
+                               <RefreshCw className="w-4 h-4" /> 重新生成
+                             </span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {isGeneratingImage[index] ? (
+                            <div className="flex flex-col items-center gap-2">
+                               <Loader2 className="w-6 h-6 animate-spin text-purple-500" />
+                               <span className="text-xs text-purple-500">生成中...</span>
+                            </div>
+                          ) : (
+                            <>
+                              <span className="relative z-10 group-hover:text-purple-500 transition-colors font-medium flex flex-col items-center gap-1">
+                                 <ImageIcon className="w-6 h-6" />
+                                 点击生成预览 {index + 1}
+                              </span>
+                              <div className="absolute inset-0 bg-purple-50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            </>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  ))}
                </div>
             </div>
           </div>

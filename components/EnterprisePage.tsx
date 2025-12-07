@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, Building, ShieldCheck, Zap, Layers, 
@@ -407,8 +408,8 @@ const EnterprisePage: React.FC<EnterprisePageProps> = ({ onBack, onTriggerLogin,
                <div className="flex-1 relative h-[500px] w-full">
                   <div className="absolute top-8 right-8 left-8 bottom-8 bg-indigo-100 rounded-3xl transform rotate-3"></div>
                   <div className="absolute inset-0 grid grid-cols-2 gap-4">
-                     <img src="https://image.pollinations.ai/prompt/game%20character%20design%20concept%20art?width=400&height=600&nologo=true" className="w-full h-full object-cover rounded-2xl shadow-lg translate-y-8" alt="Game Art" />
-                     <img src="https://image.pollinations.ai/prompt/modern%20brand%20packaging%20design%20mockup?width=400&height=600&nologo=true" className="w-full h-full object-cover rounded-2xl shadow-lg -translate-y-8" alt="Brand Design" />
+                     <img src="https://picsum.photos/seed/game_concept/400/600" className="w-full h-full object-cover rounded-2xl shadow-lg translate-y-8" alt="Game Art" />
+                     <img src="https://picsum.photos/seed/branding_mockup/400/600" className="w-full h-full object-cover rounded-2xl shadow-lg -translate-y-8" alt="Brand Design" />
                   </div>
                </div>
             </div>

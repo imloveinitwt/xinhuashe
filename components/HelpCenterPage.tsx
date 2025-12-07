@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Search, ArrowLeft, HelpCircle, User, CreditCard, Shield, 
@@ -43,30 +42,31 @@ const FAQ_DATA: Record<CategoryKey, { q: string; a: string }[]> = {
 const HelpCenterPage: React.FC<HelpCenterPageProps> = ({ onBack }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<CategoryKey>('account');
-  const [expandedFaqIndex, setExpandedFaqIndex] = useState<number | null>(null);
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
   const toggleFaq = (index: number) => {
-    setExpandedFaqIndex(expandedFaqIndex === index ? null : index);
+    setExpandedFaq(expandedFaq === index ? null : index);
   };
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
       
       {/* 1. Hero Search Section */}
-      <div className="bg-indigo-900 text-white pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full opacity-20 blur-3xl -mr-16 -mt-16"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500 rounded-full opacity-20 blur-3xl -ml-10 -mb-10"></div>
+      <div className="bg-[#0B0F19] text-white pt-24 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600 rounded-full opacity-20 blur-[80px] -mr-16 -mt-16 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-600 rounded-full opacity-20 blur-[80px] -ml-10 -mb-10 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10 pointer-events-none"></div>
         
-        <div className="max-w-4xl mx-auto relative z-10 text-center">
+        <div className="max-w-[1440px] mx-auto relative z-10 text-center">
           <button 
             onClick={onBack}
-            className="absolute left-0 top-0 md:-top-12 flex items-center gap-2 text-indigo-200 hover:text-white transition-colors text-sm"
+            className="absolute left-0 top-0 md:-top-8 flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm font-medium"
           >
             <ArrowLeft className="w-4 h-4" /> 返回首页
           </button>
           
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">你好，我们能帮到你什么？</h1>
-          <p className="text-indigo-200 mb-8 text-lg">搜索常见问题，或浏览下方分类指南</p>
+          <h1 className="text-3xl md:text-5xl font-extrabold mb-6 tracking-tight">你好，我们能帮到你什么？</h1>
+          <p className="text-slate-400 mb-8 text-lg max-w-2xl mx-auto">搜索常见问题，或浏览下方分类指南</p>
           
           <div className="relative max-w-2xl mx-auto">
             <input 
@@ -74,31 +74,31 @@ const HelpCenterPage: React.FC<HelpCenterPageProps> = ({ onBack }) => {
               placeholder="搜索关键词，例如：'提现'、'发票'、'版权'..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-6 py-4 rounded-xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 shadow-lg transition-all"
+              className="w-full pl-12 pr-6 py-4 rounded-2xl text-slate-900 bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/30 shadow-xl transition-all"
             />
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-6 h-6" />
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-10 relative z-20">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-10 relative z-20">
         
         {/* 2. Category Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {CATEGORIES.map(cat => (
             <button
               key={cat.id}
-              onClick={() => { setActiveCategory(cat.id); setExpandedFaqIndex(null); }}
-              className={`bg-white p-6 rounded-xl shadow-sm border transition-all text-left group hover:shadow-md ${
+              onClick={() => { setActiveCategory(cat.id); setExpandedFaq(null); }}
+              className={`bg-white p-6 rounded-2xl shadow-sm border transition-all text-left group hover:shadow-xl hover:-translate-y-1 ${
                 activeCategory === cat.id 
                   ? 'border-indigo-500 ring-2 ring-indigo-500/10' 
                   : 'border-slate-200 hover:border-indigo-300'
               }`}
             >
-              <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${cat.color}`}>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${cat.color}`}>
                 <cat.icon className="w-6 h-6" />
               </div>
-              <h3 className={`font-bold text-lg mb-1 group-hover:text-indigo-600 transition-colors ${activeCategory === cat.id ? 'text-indigo-600' : 'text-slate-800'}`}>
+              <h3 className={`font-bold text-lg mb-2 group-hover:text-indigo-600 transition-colors ${activeCategory === cat.id ? 'text-indigo-600' : 'text-slate-800'}`}>
                 {cat.title}
               </h3>
               <p className="text-sm text-slate-500 leading-relaxed">
@@ -113,7 +113,7 @@ const HelpCenterPage: React.FC<HelpCenterPageProps> = ({ onBack }) => {
           
           {/* Main FAQ List */}
           <div className="lg:col-span-2">
-            <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+            <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
               <HelpCircle className="w-6 h-6 text-indigo-600" />
               常见问题：{CATEGORIES.find(c => c.id === activeCategory)?.title}
             </h2>
@@ -123,19 +123,19 @@ const HelpCenterPage: React.FC<HelpCenterPageProps> = ({ onBack }) => {
                 <div 
                   key={index} 
                   className={`border rounded-xl transition-all duration-300 overflow-hidden bg-white ${
-                    expandedFaqIndex === index ? 'border-indigo-200 shadow-md' : 'border-slate-200'
+                    expandedFaq === index ? 'border-indigo-200 shadow-md ring-1 ring-indigo-50' : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   <button 
                     onClick={() => toggleFaq(index)}
-                    className="w-full flex items-center justify-between p-5 text-left font-medium text-slate-800 hover:bg-slate-50 transition-colors"
+                    className="w-full flex items-center justify-between p-5 text-left font-bold text-slate-800 hover:bg-slate-50 transition-colors"
                   >
                     <span className="flex-1 pr-4">{faq.q}</span>
-                    <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${expandedFaqIndex === index ? 'rotate-180 text-indigo-600' : ''}`} />
+                    <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${expandedFaq === index ? 'rotate-180 text-indigo-600' : ''}`} />
                   </button>
                   <div 
                     className={`transition-[max-height] duration-300 ease-in-out overflow-hidden ${
-                      expandedFaqIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                      expandedFaq === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
                     }`}
                   >
                     <div className="p-5 pt-0 text-slate-600 text-sm leading-relaxed border-t border-indigo-50 bg-indigo-50/10">
@@ -149,11 +149,11 @@ const HelpCenterPage: React.FC<HelpCenterPageProps> = ({ onBack }) => {
             {/* Quick Links */}
             <div className="mt-8 pt-8 border-t border-slate-200">
               <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">相关文档</h3>
-              <div className="flex gap-4">
-                <a href="#" className="flex items-center gap-2 text-sm text-indigo-600 hover:underline">
+              <div className="flex gap-6">
+                <a href="#" className="flex items-center gap-2 text-sm text-indigo-600 hover:underline font-medium">
                   <FileText className="w-4 h-4" /> 用户协议条款
                 </a>
-                <a href="#" className="flex items-center gap-2 text-sm text-indigo-600 hover:underline">
+                <a href="#" className="flex items-center gap-2 text-sm text-indigo-600 hover:underline font-medium">
                   <Shield className="w-4 h-4" /> 隐私政策声明
                 </a>
               </div>
@@ -162,23 +162,23 @@ const HelpCenterPage: React.FC<HelpCenterPageProps> = ({ onBack }) => {
 
           {/* Sidebar Contact */}
           <div className="space-y-6">
-            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
               <h3 className="font-bold text-slate-800 mb-4">仍需帮助？</h3>
               <p className="text-sm text-slate-500 mb-6">
                 如果上方未能解决您的问题，请随时联系我们的支持团队。
               </p>
               <div className="space-y-3">
-                <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-bold transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-200">
                   <MessageCircle className="w-4 h-4" /> 在线咨询
                 </button>
-                <button className="w-full bg-white border border-slate-200 text-slate-700 hover:border-indigo-300 hover:text-indigo-600 py-3 rounded-lg font-bold transition-colors flex items-center justify-center gap-2">
+                <button className="w-full bg-white border border-slate-200 text-slate-700 hover:border-indigo-300 hover:text-indigo-600 py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2">
                   <Mail className="w-4 h-4" /> 发送邮件
                 </button>
               </div>
             </div>
 
-            <div className="bg-slate-100 p-6 rounded-xl">
-              <h3 className="font-bold text-slate-800 mb-2">服务时间</h3>
+            <div className="bg-slate-100 p-6 rounded-2xl">
+              <h3 className="font-bold text-slate-800 mb-3">服务时间</h3>
               <div className="text-sm text-slate-600 space-y-2">
                 <div className="flex justify-between">
                   <span>在线客服：</span>
@@ -193,7 +193,7 @@ const HelpCenterPage: React.FC<HelpCenterPageProps> = ({ onBack }) => {
                   <span className="font-medium">24小时内</span>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-slate-200 flex items-center gap-2 text-slate-500 text-xs">
+              <div className="mt-4 pt-4 border-t border-slate-200 flex items-center gap-2 text-slate-500 text-xs font-medium">
                 <Phone className="w-3 h-3" />
                 客服热线：400-888-6666
               </div>

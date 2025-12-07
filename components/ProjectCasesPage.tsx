@@ -23,14 +23,14 @@ const ProjectCasesPage: React.FC<ProjectCasesPageProps> = ({ onBack, onNavigate,
   );
 
   return (
-    <div className="min-h-screen bg-white font-sans pb-20 pt-16">
+    <div className="min-h-screen bg-slate-50 font-sans pb-20 pt-16">
       
       {/* 1. Hero Section */}
       <div className="bg-[#0B0F19] text-white relative overflow-hidden pt-20 pb-32">
          {/* Background Decoration */}
          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-900/30 rounded-full blur-[100px] -mr-20 -mt-20 pointer-events-none"></div>
          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-900/20 rounded-full blur-[80px] -ml-20 -mb-20 pointer-events-none"></div>
-         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80')] opacity-10 pointer-events-none mix-blend-overlay bg-cover bg-center"></div>
+         <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/abstract_tech_bg/1600/900')] opacity-10 pointer-events-none mix-blend-overlay bg-cover bg-center"></div>
 
          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <button 
@@ -82,79 +82,78 @@ const ProjectCasesPage: React.FC<ProjectCasesPageProps> = ({ onBack, onNavigate,
       </div>
 
       {/* 3. Case Studies List */}
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-24">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-8">
          {filteredCases.map((caseItem, idx) => (
-            <div key={caseItem.id} className={`flex flex-col gap-12 ${idx % 2 === 1 ? 'lg:flex-row-reverse' : 'lg:flex-row'} items-center group`}>
-               
-               {/* Image Side */}
-               <div className="w-full lg:w-1/2 relative">
-                  <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl relative z-10 border border-slate-200/50">
-                     <img 
-                       src={caseItem.coverImage} 
-                       alt={caseItem.title} 
-                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                     />
-                     <div className="absolute inset-0 bg-indigo-900/0 group-hover:bg-indigo-900/10 transition-colors duration-500"></div>
-                  </div>
-                  {/* Decorative Elements */}
-                  <div className={`absolute -bottom-6 -right-6 w-32 h-32 bg-slate-100 rounded-full -z-0 hidden lg:block ${idx % 2 === 1 ? '-left-6 right-auto' : ''}`}></div>
-                  <div className={`absolute -top-6 -left-6 w-24 h-24 border-2 border-indigo-100 rounded-full -z-0 hidden lg:block ${idx % 2 === 1 ? '-right-6 left-auto' : ''}`}></div>
-               </div>
-
-               {/* Content Side */}
-               <div className="w-full lg:w-1/2 lg:px-8">
-                  <div className="flex items-center gap-3 mb-4">
-                     <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-wider border border-indigo-100">
-                        {caseItem.category}
-                     </span>
-                     <span className="text-xs font-medium text-slate-400 border-l border-slate-200 pl-3">
-                        {caseItem.year} 年度案例
-                     </span>
-                  </div>
+            <div key={caseItem.id} className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-lg transition-all group">
+               <div className={`flex flex-col gap-12 ${idx % 2 === 1 ? 'lg:flex-row-reverse' : 'lg:flex-row'} items-center`}>
                   
-                  <h2 className="text-3xl font-bold text-slate-900 mb-6 leading-tight group-hover:text-indigo-600 transition-colors">
-                     {caseItem.title}
-                  </h2>
-                  
-                  <p className="text-slate-600 text-lg leading-relaxed mb-8">
-                     {caseItem.description}
-                  </p>
-
-                  {/* Key Results Grid */}
-                  <div className="grid grid-cols-2 gap-6 mb-8 border-t border-b border-slate-100 py-6">
-                     {caseItem.results.map((res, i) => (
-                        <div key={i} className="flex flex-col">
-                           <div className="flex items-baseline gap-2 mb-1">
-                              <span className="text-4xl font-extrabold text-indigo-600 tracking-tight">{res.value}</span>
-                              <span className="text-green-500 bg-green-50 rounded-full p-0.5"><TrendingUp className="w-3 h-3" /></span>
-                           </div>
-                           <div className="text-sm text-slate-500 font-bold">{res.label}</div>
-                        </div>
-                     ))}
-                  </div>
-
-                  {/* Testimonial */}
-                  {caseItem.clientTestimonial && (
-                     <div className="bg-slate-50 p-6 rounded-xl relative mb-8 border border-slate-100">
-                        <Quote className="w-8 h-8 text-indigo-200 absolute -top-3 -left-2 fill-current transform -scale-x-100" />
-                        <p className="text-slate-700 italic relative z-10 mb-4 text-sm leading-relaxed">
-                           "{caseItem.clientTestimonial.text}"
-                        </p>
-                        <div className="flex items-center gap-3">
-                           <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center font-bold text-indigo-600 text-sm shadow-sm border border-slate-100">
-                              {caseItem.clientTestimonial.author[0]}
-                           </div>
-                           <div>
-                              <div className="text-sm font-bold text-slate-900">{caseItem.clientTestimonial.author}</div>
-                              <div className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">项目负责人</div>
-                           </div>
-                        </div>
+                  {/* Image Side */}
+                  <div className="w-full lg:w-1/2 relative">
+                     <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-sm relative z-10 border border-slate-100">
+                        <img 
+                          src={caseItem.coverImage} 
+                          alt={caseItem.title} 
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-indigo-900/0 group-hover:bg-indigo-900/10 transition-colors duration-500"></div>
                      </div>
-                  )}
+                  </div>
 
-                  <button className="group flex items-center gap-2 text-indigo-600 font-bold hover:text-indigo-700 transition-colors text-base">
-                     阅读完整案例 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </button>
+                  {/* Content Side */}
+                  <div className="w-full lg:w-1/2 lg:px-4">
+                     <div className="flex items-center gap-3 mb-4">
+                        <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-wider border border-indigo-100">
+                           {caseItem.category}
+                        </span>
+                        <span className="text-xs font-medium text-slate-400 border-l border-slate-200 pl-3">
+                           {caseItem.year} 年度案例
+                        </span>
+                     </div>
+                     
+                     <h2 className="text-3xl font-bold text-slate-900 mb-6 leading-tight group-hover:text-indigo-600 transition-colors">
+                        {caseItem.title}
+                     </h2>
+                     
+                     <p className="text-slate-600 text-lg leading-relaxed mb-8">
+                        {caseItem.description}
+                     </p>
+
+                     {/* Key Results Grid */}
+                     <div className="grid grid-cols-2 gap-6 mb-8 border-t border-b border-slate-100 py-6">
+                        {caseItem.results.map((res, i) => (
+                           <div key={i} className="flex flex-col">
+                              <div className="flex items-baseline gap-2 mb-1">
+                                 <span className="text-4xl font-extrabold text-indigo-600 tracking-tight">{res.value}</span>
+                                 <span className="text-green-500 bg-green-50 rounded-full p-0.5"><TrendingUp className="w-3 h-3" /></span>
+                              </div>
+                              <div className="text-sm text-slate-500 font-bold">{res.label}</div>
+                           </div>
+                        ))}
+                     </div>
+
+                     {/* Testimonial */}
+                     {caseItem.clientTestimonial && (
+                        <div className="bg-slate-50 p-6 rounded-xl relative mb-8 border border-slate-100">
+                           <Quote className="w-8 h-8 text-indigo-200 absolute -top-3 -left-2 fill-current transform -scale-x-100" />
+                           <p className="text-slate-700 italic relative z-10 mb-4 text-sm leading-relaxed">
+                              "{caseItem.clientTestimonial.text}"
+                           </p>
+                           <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center font-bold text-indigo-600 text-sm shadow-sm border border-slate-100">
+                                 {caseItem.clientTestimonial.author[0]}
+                              </div>
+                              <div>
+                                 <div className="text-sm font-bold text-slate-900">{caseItem.clientTestimonial.author}</div>
+                                 <div className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">项目负责人</div>
+                              </div>
+                           </div>
+                        </div>
+                     )}
+
+                     <button className="group flex items-center gap-2 text-indigo-600 font-bold hover:text-indigo-700 transition-colors text-base">
+                        阅读完整案例 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                     </button>
+                  </div>
                </div>
             </div>
          ))}
@@ -162,7 +161,7 @@ const ProjectCasesPage: React.FC<ProjectCasesPageProps> = ({ onBack, onNavigate,
 
       {/* 4. CTA Section */}
       <div className="bg-slate-900 py-20 mt-12 relative overflow-hidden">
-         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80')] opacity-5 bg-cover bg-center"></div>
+         <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/business_handshake/1600/900')] opacity-5 bg-cover bg-center"></div>
          <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
             <h2 className="text-3xl font-bold text-white mb-6">准备好书写您的成功故事了吗？</h2>
             <p className="text-slate-400 mb-8 text-lg">

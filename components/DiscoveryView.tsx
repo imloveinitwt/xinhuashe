@@ -114,9 +114,9 @@ const FeaturedItem = ({
          <div className="flex justify-between items-start transform translate-y-0 transition-transform duration-300">
             {badge ? (
                <span className={`text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-md border border-white/10 flex items-center gap-1.5 ${badgeColor || 'bg-black/50'}`}>
-                  {badge === "Editor's Choice" && <Crown className="w-3 h-3 text-yellow-400 fill-current" />}
-                  {badge === "Trending" && <TrendingUp className="w-3 h-3 text-rose-400" />}
-                  {badge === "New Rising" && <Sparkles className="w-3 h-3 text-blue-400" />}
+                  {badge === "编辑精选" && <Crown className="w-3 h-3 text-yellow-400 fill-current" />}
+                  {badge === "时下流行" && <TrendingUp className="w-3 h-3 text-rose-400" />}
+                  {badge === "新锐潜力" && <Sparkles className="w-3 h-3 text-blue-400" />}
                   {badge}
                </span>
             ) : <div></div>}
@@ -527,7 +527,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
                  <FeaturedItem 
                    artwork={getSafeArtwork(21)} 
                    size="large"
-                   badge="Editor's Choice"
+                   badge="编辑精选"
                    badgeColor="bg-gradient-to-r from-yellow-500 to-amber-600 border-yellow-400/30"
                    onClick={setSelectedArtworkId}
                    onLike={toggleLike}
@@ -540,7 +540,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
                  <div className="flex-1">
                     <FeaturedItem 
                       artwork={getSafeArtwork(5)} // Example: Ink wash
-                      badge="Trending"
+                      badge="时下流行"
                       badgeColor="bg-rose-500/80 border-rose-400/30"
                       onClick={setSelectedArtworkId}
                       onLike={toggleLike}
@@ -550,7 +550,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
                  <div className="flex-1">
                     <FeaturedItem 
                       artwork={getSafeArtwork(12)} // Example: 3D assets
-                      badge="New Rising"
+                      badge="新锐潜力"
                       badgeColor="bg-blue-500/80 border-blue-400/30"
                       onClick={setSelectedArtworkId}
                       onLike={toggleLike}
