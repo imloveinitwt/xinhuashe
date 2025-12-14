@@ -1,7 +1,21 @@
 
-
 export type ViewMode = 'discovery' | 'workspace' | 'profile' | 'artworks' | 'projects_hub' | 'rising_creators' | 'rankings' | 'help_center' | 'painter_guide_full' | 'employer_guide_full' | 'terms_service_full' | 'enterprise_showcase' | 'messages' | 'membership' | 'enterprise_profile' | 'credit_score' | 'case_studies';
-export type WorkspaceTab = 'dashboard' | 'projects' | 'dam' | 'finance' | 'admin_users' | 'admin_roles' | 'membership';
+export type WorkspaceTab = 
+  | 'dashboard' 
+  | 'projects' 
+  | 'dam' 
+  | 'finance' 
+  | 'membership'
+  | 'messages'
+  | 'team'
+  | 'analytics'
+  // Admin Tabs
+  | 'admin_monitor' 
+  | 'admin_users' 
+  | 'admin_content' 
+  | 'admin_audit' 
+  | 'admin_settings' 
+  | 'admin_dev';
 
 // 2.2 角色定义
 export type UserRole = 
@@ -184,14 +198,42 @@ export interface Task {
   attachments: number;
 }
 
+// === DAM ENHANCEMENTS ===
+
+export interface Annotation {
+  id: string;
+  x: number; // Percentage 0-100 relative to image width
+  y: number; // Percentage 0-100 relative to image height
+  content: string;
+  author: string;
+  createdAt: string;
+  isResolved?: boolean;
+}
+
+export interface AssetVersion {
+  id: string;
+  version: string; // e.g. "v1.0"
+  url: string; // URL to the file
+  size: string;
+  createdAt: string;
+  author: string;
+  changeLog?: string;
+}
+
 export interface Asset {
   id: string;
+  parentId?: string | null; // For recursive folder structure. Null means root.
   name: string;
   type: 'folder' | 'image' | 'psd' | 'video' | 'doc';
   size?: string;
   modified: string;
   version: string;
   tags: string[];
+  // Enhanced Fields
+  url?: string; // Current main file URL
+  versions?: AssetVersion[];
+  annotations?: Annotation[];
+  author?: string;
 }
 
 export interface NavItem {
@@ -296,7 +338,7 @@ export interface ProjectCase {
   };
 }
 
-// === NOTIFICATION TYPES ===
+// === NOTIFICATION & CHAT TYPES ===
 export type NotificationType = 'system' | 'project' | 'social' | 'finance';
 
 export interface Notification {
@@ -309,6 +351,19 @@ export interface Notification {
   avatar?: string; // For social interactions
   actionLabel?: string;
   linkTo?: ViewMode; // Simplified navigation link
+}
+
+export interface ChatMessage {
+  id: number | string;
+  user: string;
+  avatar: string;
+  content: string; // Text content or File Name
+  fileUrl?: string; // For images/files
+  fileSize?: string;
+  type: 'text' | 'image' | 'file';
+  time: string;
+  isMe: boolean;
+  isRead?: boolean; // For read receipts
 }
 
 // === VERIFICATION TYPES ===

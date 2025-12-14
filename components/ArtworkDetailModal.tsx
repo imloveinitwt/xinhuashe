@@ -4,10 +4,11 @@ import { createPortal } from 'react-dom';
 import { 
   X, Heart, Eye, Share2, Download, MessageSquare, 
   BadgeCheck, Calendar, Maximize2, Palette, Layers, Monitor, AlertCircle,
-  Send, ThumbsUp, CornerDownRight, MoreHorizontal, Briefcase, ChevronRight
+  Send, ThumbsUp, CornerDownRight, MoreHorizontal, Briefcase, Check
 } from 'lucide-react';
 import { Artwork } from '../types';
 import { ArtworkService } from '../services/ArtworkService';
+import { useToast } from '../contexts/ToastContext';
 
 interface ArtworkDetailModalProps {
   artworkId: string | null;
@@ -86,10 +87,14 @@ const ArtworkDetailModal: React.FC<ArtworkDetailModalProps> = ({
   onTriggerLogin,
   currentUser
 }) => {
+  const { showToast } = useToast();
   const [artwork, setArtwork] = useState<Artwork | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  
+  // Interaction States
   const [isLiked, setIsLiked] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
   
   // Comment State
   const [comments, setComments] = useState<Comment[]>([]);
@@ -100,13 +105,20 @@ const ArtworkDetailModal: React.FC<ArtworkDetailModalProps> = ({
     if (artworkId) {
       loadArtwork(artworkId);
       // Generate random comments for this session
-      setComments(generateComments(Math.floor(Math.random() * 6) + 10)); // 10-15 comments
+      setComments(generateComments(Math.floor(Math.random() * 6) + 5)); 
       document.body.style.overflow = 'hidden';
     }
     return () => {
       document.body.style.overflow = 'unset';
     };
   }, [artworkId]);
+
+  // Scroll to bottom when new comment added
+  useEffect(() => {
+    if (commentsEndRef.current) {
+      commentsEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [comments.length]);
 
   const loadArtwork = async (id: string) => {
     setLoading(true);
@@ -116,6 +128,7 @@ const ArtworkDetailModal: React.FC<ArtworkDetailModalProps> = ({
       if (data) {
         setArtwork(data);
         setIsLiked(false); 
+        setIsFollowing(false);
       } else {
         setError(true);
       }
@@ -132,6 +145,18 @@ const ArtworkDetailModal: React.FC<ArtworkDetailModalProps> = ({
       return;
     }
     setIsLiked(!isLiked);
+    if (!isLiked) {
+      showToast('已添加到喜欢列表', 'success');
+    }
+  };
+
+  const handleFollow = () => {
+    if (!currentUser && onTriggerLogin) {
+      onTriggerLogin();
+      return;
+    }
+    setIsFollowing(!isFollowing);
+    showToast(isFollowing ? '已取消关注' : `已关注 ${artwork?.artist}`, 'success');
   };
 
   const handleHire = () => {
@@ -139,7 +164,12 @@ const ArtworkDetailModal: React.FC<ArtworkDetailModalProps> = ({
       onTriggerLogin();
       return;
     }
-    alert(`已向 ${artwork?.artist} 发送合作意向`);
+    showToast(`已向 ${artwork?.artist} 发送合作意向，请留意私信`, 'success');
+  };
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    showToast('链接已复制到剪贴板', 'success');
   };
 
   const handleProfileClick = () => {
@@ -169,8 +199,9 @@ const ArtworkDetailModal: React.FC<ArtworkDetailModalProps> = ({
       isLiked: false
     };
 
-    setComments([comment, ...comments]);
+    setComments([...comments, comment]); // Add to end
     setNewComment('');
+    showToast('评论发表成功', 'success');
   };
 
   const toggleCommentLike = (commentId: string) => {
@@ -242,7 +273,11 @@ const ArtworkDetailModal: React.FC<ArtworkDetailModalProps> = ({
                   <button className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md border border-white/10 transition-all hover:scale-105 active:scale-95 shadow-lg" title="查看原图">
                     <Maximize2 className="w-5 h-5" />
                   </button>
-                  <button className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md border border-white/10 transition-all hover:scale-105 active:scale-95 shadow-lg" title="下载">
+                  <button 
+                    onClick={() => { showToast('开始下载...', 'info'); }}
+                    className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md border border-white/10 transition-all hover:scale-105 active:scale-95 shadow-lg" 
+                    title="下载"
+                  >
                     <Download className="w-5 h-5" />
                   </button>
                </div>
@@ -267,8 +302,16 @@ const ArtworkDetailModal: React.FC<ArtworkDetailModalProps> = ({
                              <p className="text-xs text-slate-500 mt-0.5">2小时前发布</p>
                           </div>
                        </div>
-                       <button className="px-4 py-1.5 text-xs font-bold border border-slate-200 rounded-full text-slate-600 hover:border-indigo-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
-                          + 关注
+                       <button 
+                         onClick={handleFollow}
+                         className={`px-4 py-1.5 text-xs font-bold border rounded-full transition-colors flex items-center gap-1 ${
+                           isFollowing 
+                             ? 'bg-slate-100 text-slate-500 border-slate-200' 
+                             : 'border-slate-200 text-slate-600 hover:border-indigo-600 hover:text-indigo-600 hover:bg-indigo-50'
+                         }`}
+                       >
+                          {isFollowing ? <Check className="w-3 h-3" /> : '+'}
+                          {isFollowing ? '已关注' : '关注'}
                        </button>
                     </div>
                     
@@ -387,7 +430,6 @@ const ArtworkDetailModal: React.FC<ArtworkDetailModalProps> = ({
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handlePostComment(e)}
-                      disabled={!currentUser}
                     />
                     <button 
                       onClick={handlePostComment}
@@ -420,7 +462,10 @@ const ArtworkDetailModal: React.FC<ArtworkDetailModalProps> = ({
                        约稿 / 合作
                     </button>
                     
-                    <button className="p-3 border border-slate-200 text-slate-500 rounded-xl hover:bg-slate-50 hover:text-indigo-600 transition-colors active:scale-95">
+                    <button 
+                      onClick={handleShare}
+                      className="p-3 border border-slate-200 text-slate-500 rounded-xl hover:bg-slate-50 hover:text-indigo-600 transition-colors active:scale-95"
+                    >
                        <Share2 className="w-5 h-5" />
                     </button>
                  </div>

@@ -13,6 +13,7 @@ interface FinanceViewProps {
   user: User;
 }
 
+// ... existing TransactionRow ...
 const TransactionRow: React.FC<{ tx: Transaction }> = ({ tx }) => {
   const isIncome = ['income', 'escrow_release'].includes(tx.type);
   const isFrozen = tx.type === 'escrow_frozen';
@@ -55,6 +56,7 @@ const TransactionRow: React.FC<{ tx: Transaction }> = ({ tx }) => {
   );
 };
 
+// ... existing PersonalFinanceDashboard ...
 const PersonalFinanceDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
@@ -211,6 +213,14 @@ const PersonalFinanceDashboard: React.FC = () => {
   );
 }
 
+const CHART_DATA_ENTERPRISE_COSTS = [
+  { name: '人力成本', value: 450000, color: '#6366f1' },
+  { name: '研发投入', value: 380000, color: '#8b5cf6' },
+  { name: '市场营销', value: 250000, color: '#ec4899' },
+  { name: '云服务/IT', value: 120000, color: '#06b6d4' },
+  { name: '行政运营', value: 80000, color: '#64748b' },
+];
+
 const EnterpriseFinanceDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
@@ -306,71 +316,112 @@ const EnterpriseFinanceDashboard: React.FC = () => {
          </div>
       </div>
 
-      {/* Bottom: Department Budgets */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-         <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-            <div>
-               <h3 className="font-bold text-slate-800 text-lg">部门预算监控</h3>
-               <p className="text-xs text-slate-500 mt-1">2023 Q4 季度预算执行情况</p>
+      {/* Bottom: Cost Distribution & Department Budgets */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+         {/* Cost Analysis Chart */}
+         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col">
+            <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
+               <PieChart className="w-5 h-5 text-indigo-600" /> 成本结构分析
+            </h3>
+            <div className="flex-1 min-h-[300px] relative">
+                <ResponsiveContainer width="100%" height="100%">
+                    <RePieChart>
+                        <Pie
+                            data={CHART_DATA_ENTERPRISE_COSTS}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={80}
+                            paddingAngle={5}
+                            dataKey="value"
+                        >
+                            {CHART_DATA_ENTERPRISE_COSTS.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                        </Pie>
+                        <Tooltip 
+                            formatter={(value: number) => `¥${value.toLocaleString()}`}
+                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                        />
+                        <Legend verticalAlign="bottom" height={36} iconType="circle"/>
+                    </RePieChart>
+                </ResponsiveContainer>
+                {/* Center Label */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%] text-center pointer-events-none">
+                    <div className="text-xs text-slate-400">总成本</div>
+                    <div className="text-xl font-bold text-slate-800">¥1.28M</div>
+                </div>
             </div>
-            <button className="px-4 py-2 bg-white border border-slate-200 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-50">
-               下载报表
-            </button>
          </div>
-         <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
-               <tr>
-                  <th className="px-6 py-4">部门名称</th>
-                  <th className="px-6 py-4">负责人</th>
-                  <th className="px-6 py-4">总预算</th>
-                  <th className="px-6 py-4">已使用 / 占比</th>
-                  <th className="px-6 py-4">状态</th>
-                  <th className="px-6 py-4">操作</th>
-               </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-               {MOCK_DEPT_BUDGETS.map(budget => {
-                  const percent = (budget.usedBudget / budget.totalBudget) * 100;
-                  return (
-                     <tr key={budget.id} className="hover:bg-slate-50">
-                        <td className="px-6 py-4 font-medium text-slate-800 flex items-center gap-2">
-                           <Building className="w-4 h-4 text-slate-400" />
-                           {budget.department}
-                        </td>
-                        <td className="px-6 py-4 text-slate-600">{budget.head}</td>
-                        <td className="px-6 py-4 font-mono text-slate-700">¥{budget.totalBudget.toLocaleString()}</td>
-                        <td className="px-6 py-4">
-                           <div className="flex items-center gap-2">
-                              <span className="font-mono text-slate-700">¥{budget.usedBudget.toLocaleString()}</span>
-                              <span className="text-xs text-slate-400">({percent.toFixed(1)}%)</span>
-                           </div>
-                           <div className="w-24 bg-slate-100 rounded-full h-1.5 mt-1.5">
-                              <div 
-                                className={`h-1.5 rounded-full ${
-                                   percent > 90 ? 'bg-red-500' : percent > 75 ? 'bg-amber-500' : 'bg-green-500'
-                                }`} 
-                                style={{ width: `${Math.min(percent, 100)}%` }}
-                              ></div>
-                           </div>
-                        </td>
-                        <td className="px-6 py-4">
-                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
-                              budget.status === 'healthy' ? 'bg-green-50 text-green-600' :
-                              budget.status === 'warning' ? 'bg-amber-50 text-amber-600' :
-                              'bg-red-50 text-red-600'
-                           }`}>
-                              {budget.status === 'healthy' ? <ShieldCheck className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
-                              {budget.status === 'healthy' ? '正常' : budget.status === 'warning' ? '预警' : '超支'}
-                           </span>
-                        </td>
-                        <td className="px-6 py-4 text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer">
-                           详情
-                        </td>
+
+         {/* Department Budgets Table */}
+         <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex flex-col">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+               <div>
+                  <h3 className="font-bold text-slate-800 text-lg">部门预算监控</h3>
+                  <p className="text-xs text-slate-500 mt-1">2023 Q4 季度预算执行情况</p>
+               </div>
+               <button className="px-4 py-2 bg-white border border-slate-200 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-50">
+                  下载报表
+               </button>
+            </div>
+            <div className="overflow-x-auto">
+               <table className="w-full text-sm text-left">
+                  <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+                     <tr>
+                        <th className="px-6 py-4">部门名称</th>
+                        <th className="px-6 py-4">负责人</th>
+                        <th className="px-6 py-4">总预算</th>
+                        <th className="px-6 py-4">已使用 / 占比</th>
+                        <th className="px-6 py-4">状态</th>
+                        <th className="px-6 py-4">操作</th>
                      </tr>
-                  );
-               })}
-            </tbody>
-         </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                     {MOCK_DEPT_BUDGETS.map(budget => {
+                        const percent = (budget.usedBudget / budget.totalBudget) * 100;
+                        return (
+                           <tr key={budget.id} className="hover:bg-slate-50">
+                              <td className="px-6 py-4 font-medium text-slate-800 flex items-center gap-2">
+                                 <Building className="w-4 h-4 text-slate-400" />
+                                 {budget.department}
+                              </td>
+                              <td className="px-6 py-4 text-slate-600">{budget.head}</td>
+                              <td className="px-6 py-4 font-mono text-slate-700">¥{budget.totalBudget.toLocaleString()}</td>
+                              <td className="px-6 py-4">
+                                 <div className="flex items-center gap-2">
+                                    <span className="font-mono text-slate-700">¥{budget.usedBudget.toLocaleString()}</span>
+                                    <span className="text-xs text-slate-400">({percent.toFixed(1)}%)</span>
+                                 </div>
+                                 <div className="w-24 bg-slate-100 rounded-full h-1.5 mt-1.5">
+                                    <div 
+                                      className={`h-1.5 rounded-full ${
+                                         percent > 90 ? 'bg-red-500' : percent > 75 ? 'bg-amber-500' : 'bg-green-500'
+                                      }`} 
+                                      style={{ width: `${Math.min(percent, 100)}%` }}
+                                    ></div>
+                                 </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
+                                    budget.status === 'healthy' ? 'bg-green-50 text-green-600' :
+                                    budget.status === 'warning' ? 'bg-amber-50 text-amber-600' :
+                                    'bg-red-50 text-red-600'
+                                 }`}>
+                                    {budget.status === 'healthy' ? <ShieldCheck className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                                    {budget.status === 'healthy' ? '正常' : budget.status === 'warning' ? '预警' : '超支'}
+                                 </span>
+                              </td>
+                              <td className="px-6 py-4 text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer">
+                                 详情
+                              </td>
+                           </tr>
+                        );
+                     })}
+                  </tbody>
+               </table>
+            </div>
+         </div>
       </div>
     </div>
   );

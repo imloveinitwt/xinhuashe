@@ -280,8 +280,8 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
   const handleArtistClick = (e: React.MouseEvent, artistName: string) => {
     e.stopPropagation();
     if (onNavigateToProfile) {
-      // Demo logic mapping
-      const profileId = artistName === 'NeonDreamer' ? 'p_neon' : artistName === 'InkFlow' ? 'p_ink' : 'p_artmaster';
+      // Logic mapping with new Chinese nicknames
+      const profileId = artistName === '夜色霓虹' ? 'p_neon' : artistName === '墨染流年' ? 'p_ink' : 'p_artmaster';
       onNavigateToProfile(profileId);
     }
   };
@@ -472,28 +472,28 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <div className="flex flex-wrap justify-center md:justify-between items-center gap-6 md:gap-12">
                  <div className="flex items-center gap-3 group cursor-pointer hover:scale-105 transition-transform">
-                    <div className="p-2 bg-indigo-500/20 rounded-lg text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-colors"><Monitor className="w-5 h-5" /></div>
+                    <div className="p-2 bg-indigo-500/20 rounded-lg text-indigo-400 group-hover:bg-indigo-50 group-hover:text-white transition-colors"><Monitor className="w-5 h-5" /></div>
                     <div>
                        <div className="font-bold text-white text-lg leading-none">120k+</div>
                        <div className="text-xs text-slate-400 font-medium mt-1">优质原创作品</div>
                     </div>
                  </div>
                  <div className="flex items-center gap-3 group cursor-pointer hover:scale-105 transition-transform">
-                    <div className="p-2 bg-purple-500/20 rounded-lg text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-colors"><Crown className="w-5 h-5" /></div>
+                    <div className="p-2 bg-purple-500/20 rounded-lg text-purple-400 group-hover:bg-purple-50 group-hover:text-white transition-colors"><Crown className="w-5 h-5" /></div>
                     <div>
                        <div className="font-bold text-white text-lg leading-none">8,500+</div>
                        <div className="text-xs text-slate-400 font-medium mt-1">认证创作者</div>
                     </div>
                  </div>
                  <div className="flex items-center gap-3 group cursor-pointer hover:scale-105 transition-transform">
-                    <div className="p-2 bg-green-500/20 rounded-lg text-green-400 group-hover:bg-green-500 group-hover:text-white transition-colors"><Briefcase className="w-5 h-5" /></div>
+                    <div className="p-2 bg-green-500/20 rounded-lg text-green-400 group-hover:bg-green-50 group-hover:text-white transition-colors"><Briefcase className="w-5 h-5" /></div>
                     <div>
                        <div className="font-bold text-white text-lg leading-none">¥50M+</div>
                        <div className="text-xs text-slate-400 font-medium mt-1">累计交易总额</div>
                     </div>
                  </div>
                  <div className="flex items-center gap-3 group cursor-pointer hover:scale-105 transition-transform">
-                    <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors"><CheckCircle2 className="w-5 h-5" /></div>
+                    <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400 group-hover:bg-blue-50 group-hover:text-white transition-colors"><CheckCircle2 className="w-5 h-5" /></div>
                     <div>
                        <div className="font-bold text-white text-lg leading-none">100%</div>
                        <div className="text-xs text-slate-400 font-medium mt-1">资金托管保障</div>

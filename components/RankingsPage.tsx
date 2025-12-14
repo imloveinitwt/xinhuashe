@@ -31,7 +31,8 @@ const RankingsPage: React.FC<RankingsPageProps> = ({ onBack, onNavigateToProfile
 
   const handleRowClick = (creatorName: string) => {
     if (onNavigateToProfile) {
-        const profileId = creatorName === 'NeonDreamer' ? 'p_neon' : creatorName === 'InkFlow' ? 'p_ink' : 'p_artmaster';
+        // Map localized names to IDs
+        const profileId = creatorName === '夜色霓虹' ? 'p_neon' : creatorName === '墨染流年' ? 'p_ink' : 'p_artmaster';
         onNavigateToProfile(profileId);
     }
   };

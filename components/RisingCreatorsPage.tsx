@@ -60,12 +60,13 @@ const RisingCreatorsPage: React.FC<RisingCreatorsPageProps> = ({ onBack, onNavig
   });
 
   // Spotlight Creator (Top 1)
-  const spotlightCreator = enrichedCreators.find(c => c.name === 'NeonDreamer') || enrichedCreators[0];
+  const spotlightCreator = enrichedCreators.find(c => c.name === '夜色霓虹') || enrichedCreators[0];
 
   // Handlers
   const handleCreatorClick = (creatorName: string) => {
     if (onNavigateToProfile) {
-      const profileId = creatorName === 'NeonDreamer' ? 'p_neon' : creatorName === 'InkFlow' ? 'p_ink' : 'p_artmaster';
+      // Updated logic mapping for Chinese names
+      const profileId = creatorName === '夜色霓虹' ? 'p_neon' : creatorName === '墨染流年' ? 'p_ink' : 'p_artmaster';
       onNavigateToProfile(profileId);
     }
   };

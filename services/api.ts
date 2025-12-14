@@ -30,30 +30,39 @@ class ApiClient {
     try {
       // --- Auth Routes ---
       if (endpoint === '/auth/login' && method === 'POST') {
-        const user = DB.users.findByEmail(body.email || body.identifier); // Support identifier
+        const identifier = body.email || body.identifier;
+        // User Collection find returns array
+        const users = DB.users.find(u => u.email === identifier || u.name === identifier || (u.phone && u.phone === identifier)); 
+        const user = users[0];
+        
         if (user) {
-          DB.session.set(user);
+          DB.setSession(user);
           result = { token: 'mock-jwt-token-' + Date.now(), user };
         } else {
           throw new Error('Invalid credentials');
         }
       }
       else if (endpoint === '/auth/logout' && method === 'POST') {
-        DB.session.clear();
+        DB.clearSession();
         result = { success: true };
       }
       else if (endpoint === '/auth/me' && method === 'GET') {
-        const user = DB.session.get();
+        const user = DB.getSession();
         if (user) result = user;
         else throw new Error('Unauthorized');
       }
 
       // --- Project Routes ---
       else if (endpoint === '/projects' && method === 'GET') {
-        result = DB.projects.find();
+        result = DB.projects.getAll();
       }
       else if (endpoint === '/projects' && method === 'POST') {
-        result = DB.projects.create(body);
+        // Auto-generate ID for mock creation
+        const newProject = {
+          id: `p_${Date.now()}`,
+          ...body
+        };
+        result = DB.projects.add(newProject);
       }
       else if (endpoint.startsWith('/projects/') && method === 'PUT') {
         const id = endpoint.split('/')[2];
@@ -62,7 +71,7 @@ class ApiClient {
 
       // --- Artwork Routes ---
       else if (endpoint === '/artworks' && method === 'GET') {
-        result = DB.artworks.find();
+        result = DB.artworks.getAll();
       }
 
       // --- Default Fallback ---
@@ -71,7 +80,7 @@ class ApiClient {
         // This is a simplification for the prototype
         if (method === 'GET') {
            // Basic routing simulation
-           if(endpoint.includes('users')) result = DB.users.find();
+           if(endpoint.includes('users')) result = DB.users.getAll();
         }
       }
 

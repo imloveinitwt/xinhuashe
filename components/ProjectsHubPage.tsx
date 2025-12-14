@@ -12,6 +12,7 @@ import {
 import { MOCK_PROJECTS } from '../constants';
 import { Project, User } from '../types';
 import ProjectDrawer from './ProjectDrawer';
+import ProjectCard from './ProjectCard';
 
 interface ProjectsHubPageProps {
   onBack: () => void;
@@ -345,122 +346,13 @@ const ProjectsHubPage: React.FC<ProjectsHubPageProps> = ({ onBack, onTriggerLogi
         {/* 3. Project Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
            {filteredProjects.slice(0, visibleCount).map((project, idx) => (
-             <div 
+             <ProjectCard 
                key={project.id} 
-               onClick={() => setSelectedProject(project)}
-               className="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col h-full ring-1 ring-slate-100 hover:ring-indigo-100/50"
+               project={project} 
+               onClick={setSelectedProject}
                style={{ animationDelay: `${idx * 50}ms` }}
-             >
-                {/* Image Area */}
-                <div className="h-48 bg-slate-100 relative overflow-hidden">
-                   <img 
-                     src={project.coverImage || 'https://placehold.co/800x400/f1f5f9/94a3b8?text=Project+Cover'} 
-                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
-                     alt=""
-                     onError={handleImageError}
-                   />
-                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-80"></div>
-                   
-                   {/* Status Badge */}
-                   <div className={`absolute top-3 right-3 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm backdrop-blur-md border border-white/10 flex items-center gap-1 ${
-                      project.status === '招募中' ? 'bg-indigo-600 text-white' : 
-                      ['进行中', '验收中'].includes(project.status) ? 'bg-blue-500 text-white' :
-                      'bg-slate-500 text-white'
-                   }`}>
-                      {project.status === '招募中' && <Zap className="w-3 h-3 fill-current" />}
-                      {project.status}
-                   </div>
-
-                   {/* Deadline Badge */}
-                   <div className="absolute top-3 left-3 flex items-center gap-1 bg-black/40 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-full border border-white/10">
-                      <Clock className="w-3 h-3" /> {project.deadline} 截止
-                   </div>
-
-                   {/* Title Overlay */}
-                   <div className="absolute bottom-4 left-4 right-4">
-                      <h3 className="font-bold text-lg text-white drop-shadow-md line-clamp-1 mb-1 group-hover:text-indigo-200 transition-colors">
-                        {project.title}
-                      </h3>
-                      <div className="flex items-center gap-2 text-white/90 text-xs">
-                         <span className="flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded backdrop-blur-sm">
-                            <Building className="w-3 h-3" /> {project.client}
-                         </span>
-                         {/* Mock Verified */}
-                         <span title="认证企业">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                         </span>
-                      </div>
-                   </div>
-                </div>
-                
-                {/* Info Body */}
-                <div className="p-5 flex-1 flex flex-col">
-                   <div className="mb-4">
-                      {/* Tags */}
-                      <div className="flex flex-wrap gap-1.5 mb-3">
-                         {project.category && (
-                            <button 
-                              onClick={(e) => handleTagClick(project.category!, e)}
-                              className="text-[10px] bg-indigo-50 text-indigo-600 border border-indigo-100 px-2 py-0.5 rounded-full font-bold hover:bg-indigo-100 transition-colors"
-                            >
-                               {project.category}
-                            </button>
-                         )}
-                         {project.tags?.slice(0,3).map(tag => (
-                            <button 
-                              key={tag} 
-                              onClick={(e) => handleTagClick(tag, e)}
-                              className="text-[10px] bg-slate-50 text-slate-500 border border-slate-200 px-2 py-0.5 rounded-full hover:bg-slate-100 hover:text-slate-700 transition-colors"
-                            >
-                               {tag}
-                            </button>
-                         ))}
-                      </div>
-                      
-                      {/* Description Teaser */}
-                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-3">
-                         {project.description || "项目暂无详细描述，请点击查看详情。"}
-                      </p>
-
-                      {/* Progress Bar (if active) */}
-                      {['进行中', '验收中'].includes(project.status) && (
-                         <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                            <div className="flex justify-between text-[10px] text-slate-500 mb-1.5 font-medium">
-                               <span>交付进度</span>
-                               <span className="text-indigo-600 font-bold">{project.progress}%</span>
-                            </div>
-                            <div className="w-full bg-slate-200 rounded-full h-1.5">
-                               <div className="bg-indigo-500 h-1.5 rounded-full transition-all duration-1000 shadow-[0_0_8px_rgba(99,102,241,0.5)]" style={{ width: `${project.progress}%` }}></div>
-                            </div>
-                         </div>
-                      )}
-                   </div>
-
-                   {/* Footer Info */}
-                   <div className="mt-auto pt-4 border-t border-slate-50 flex items-end justify-between">
-                      <div>
-                         <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">
-                            <Target className="w-3 h-3" /> 项目预算
-                         </p>
-                         <div className={`text-xl font-extrabold font-mono tracking-tight ${project.budget > 20000 ? 'text-indigo-600' : 'text-slate-800'}`}>
-                            ¥{project.budget.toLocaleString()}
-                         </div>
-                      </div>
-                      
-                      <div className="flex gap-2">
-                         <button 
-                           onClick={(e) => { e.stopPropagation(); alert('已收藏'); }}
-                           className="p-2 border border-slate-200 rounded-xl text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50 transition-colors"
-                         >
-                            <Heart className="w-4 h-4" />
-                         </button>
-                         <button className="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-600 transition-colors shadow-sm flex items-center gap-1">
-                            查看 <ArrowRight className="w-3 h-3" />
-                         </button>
-                      </div>
-                   </div>
-                </div>
-             </div>
+               className="animate-fade-in-up"
+             />
            ))}
         </div>
         

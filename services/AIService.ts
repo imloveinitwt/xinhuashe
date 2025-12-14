@@ -6,6 +6,24 @@ import { GoogleGenAI } from "@google/genai";
 const apiKey = process.env.API_KEY;
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
+export interface ImageGenerationOptions {
+  aspectRatio?: '1:1' | '3:4' | '4:3' | '9:16' | '16:9';
+  style?: string;
+}
+
+// Helper to generate a fallback image URL if AI fails or for persistence optimization
+const getFallbackImageUrl = (prompt: string, options: ImageGenerationOptions = {}) => {
+  const { aspectRatio = '1:1', style } = options;
+  const width = aspectRatio === '16:9' ? 1024 : aspectRatio === '9:16' ? 576 : 768;
+  const height = aspectRatio === '16:9' ? 576 : aspectRatio === '9:16' ? 1024 : 768;
+  
+  // Clean prompt for URL
+  const cleanPrompt = (prompt + (style ? ` ${style} style` : '')).substring(0, 150);
+  const seed = Math.floor(Math.random() * 10000);
+  
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=${width}&height=${height}&nologo=true&seed=${seed}`;
+};
+
 export const AIService = {
   /**
    * Check if AI service is available (API Key present)
@@ -13,15 +31,24 @@ export const AIService = {
   isAvailable: () => !!ai,
 
   /**
+   * Get a URL-based image generated from prompt. 
+   * Useful for saving storage space compared to Base64.
+   */
+  getPersistableUrl: (prompt: string, options: ImageGenerationOptions = {}) => {
+    return getFallbackImageUrl(prompt, options);
+  },
+
+  /**
    * Analyze an image and generate relevant tags using Gemini 2.5 Flash
    * @param imageBase64 Base64 string of the image
    * @param mimeType Mime type of the image (e.g., 'image/png')
    */
   generateImageTags: async (imageBase64: string, mimeType: string = 'image/png'): Promise<string[]> => {
+    // 1. Check if configured
     if (!ai) {
       console.warn("AI Service not initialized: Missing API Key");
-      await new Promise(r => setTimeout(r, 1000)); // Simulate delay
-      return ['模拟标签_AI未配置', '赛博朋克', '高质量'];
+      await new Promise(r => setTimeout(r, 800)); // Simulate delay
+      return ['AI模拟', '赛博朋克', '高质量'];
     }
 
     try {
@@ -53,8 +80,9 @@ export const AIService = {
       const tags = text.split(/[,，、]/).map(t => t.trim()).filter(t => t.length > 0);
       return tags;
     } catch (error) {
-      console.error("Gemini Vision Analysis Failed:", error);
-      throw new Error("AI 分析失败，请稍后重试");
+      console.warn("Gemini Vision Analysis Failed (Using Fallback):", error);
+      // Return fallback tags instead of throwing to prevent UI crash
+      return ['自动分析失败', '数字艺术', '待审核'];
     }
   },
 
@@ -97,30 +125,43 @@ export const AIService = {
         ],
       });
 
-      return response.text || "无法生成描述";
+      return response.text || inputPrompt;
     } catch (error) {
       console.error("Gemini Text Generation Failed:", error);
-      throw new Error("创意扩充失败");
+      // Return original input as fallback
+      return inputPrompt;
     }
   },
 
   /**
-   * Generate an image based on a text prompt
+   * Generate an image based on a text prompt using Gemini 2.5 Flash Image (Nano Banana)
    * @param prompt Text description of the image
+   * @param options Configuration for aspect ratio and style
    */
-  generateImage: async (prompt: string): Promise<string | null> => {
-    // Fallback if no API key
+  generateImage: async (prompt: string, options: ImageGenerationOptions = {}): Promise<string | null> => {
+    // 1. Fallback if no API key
     if (!ai) {
       await new Promise(r => setTimeout(r, 1500));
-      // Use Pollinations AI for mock generation
-      return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=512&height=512&nologo=true&seed=${Math.floor(Math.random() * 1000)}`;
+      return getFallbackImageUrl(prompt, options);
     }
 
     try {
+      // 2. Construct an enhanced prompt incorporating the style
+      const { aspectRatio = '1:1', style } = options;
+      let finalPrompt = prompt;
+      if (style && style !== 'None') {
+        finalPrompt = `${prompt}, in ${style} style, high quality, highly detailed, professional composition, 8k resolution`;
+      }
+
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: {
-          parts: [{ text: prompt }]
+          parts: [{ text: finalPrompt }]
+        },
+        config: {
+          imageConfig: {
+            aspectRatio: aspectRatio,
+          }
         }
       });
 
@@ -131,10 +172,16 @@ export const AIService = {
           }
         }
       }
-      return null;
+      
+      // If response is valid but no image data found
+      console.warn("Gemini returned response but no image data found.");
+      return getFallbackImageUrl(prompt, options);
+
     } catch (error) {
-      console.error("Image Generation Failed:", error);
-      throw new Error("图片生成失败");
+      // 3. Robust Error Handling (CORS, RPC, 500s)
+      // Log the specific error for debugging but return a fallback image to the user
+      console.warn("Gemini Image Generation Failed (RPC/Network Error), switching to fallback provider.", error);
+      return getFallbackImageUrl(prompt, options);
     }
   }
 };

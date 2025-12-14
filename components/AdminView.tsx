@@ -5,14 +5,18 @@ import {
   MoreVertical, Lock, Key, AlertTriangle, Activity, BarChart2, FileText, 
   Eye, Layout, Code, Server, Database, RefreshCw, Filter, List, Power,
   ChevronRight, Terminal, UserCheck, Briefcase, CreditCard, Building, Image as ImageIcon,
-  FileCheck, IdCard, MessageSquare, Bell
+  FileCheck, IdCard, MessageSquare, Bell, Sparkles, Loader2, Save, Wand2, Download,
+  Ban, Check, LogIn
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line
 } from 'recharts';
-import { MOCK_USERS_ADMIN_VIEW, ROLE_DEFINITIONS, MOCK_SYSTEM_LOGS, MOCK_ARTWORKS, MOCK_VERIFICATION_REQUESTS, MOCK_NOTIFICATIONS } from '../constants';
-import { User, RoleDefinition, SystemLog, SystemConfig, Artwork, VerificationRequest } from '../types';
+import { ROLE_DEFINITIONS } from '../constants';
+import { User, RoleDefinition, SystemLog, SystemConfig, Artwork, VerificationRequest, UserRole } from '../types';
+import { AIService } from '../services/AIService';
+import { DB } from '../services/db';
+import { useToast } from '../contexts/ToastContext'; // Import Toast
 
 export type AdminTab = 'monitor' | 'users' | 'content' | 'settings' | 'dev' | 'auth_audit';
 
@@ -39,7 +43,6 @@ const SystemMonitor = () => {
     const interval = setInterval(() => {
       setData(prev => {
         const newData = [...prev.slice(1)];
-        const lastTime = prev[prev.length-1].time; // simplified
         const now = new Date();
         newData.push({
           time: `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`,
@@ -128,21 +131,169 @@ const SystemMonitor = () => {
   );
 };
 
-// --- SUB-COMPONENTS RE-INCLUSION (Condensed for brevity in thought process but will be full in output) ---
+// --- SUB-COMPONENT: USER MANAGEMENT ---
+const UserManagement = () => {
+  const { showToast } = useToast();
+  const [users, setUsers] = useState<User[]>(() => DB.users.getAll());
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
+
+  const filteredUsers = users.filter(u => {
+    const matchSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                        (u.email && u.email.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchRole = roleFilter === 'all' || u.role === roleFilter;
+    return matchSearch && matchRole;
+  });
+
+  const handleStatusToggle = (userId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'banned' : 'active';
+    DB.users.update(userId, { status: newStatus as any });
+    setUsers(DB.users.getAll()); // Refresh
+    showToast(`用户状态已更新为: ${newStatus === 'active' ? '正常' : '封禁'}`, newStatus === 'active' ? 'success' : 'warning');
+  };
+
+  const getRoleBadge = (role: UserRole) => {
+    switch (role) {
+      case 'root_admin': return <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-bold border border-red-200">超级管理员</span>;
+      case 'platform_admin': return <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-xs font-bold border border-orange-200">平台管理员</span>;
+      case 'enterprise': return <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-bold border border-blue-200">企业主</span>;
+      case 'creator': return <span className="bg-pink-100 text-pink-700 px-2 py-0.5 rounded text-xs font-bold border border-pink-200">创作者</span>;
+      default: return <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs font-bold border border-slate-200">普通用户</span>;
+    }
+  };
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input 
+            type="text" 
+            placeholder="搜索用户名、邮箱..." 
+            className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        
+        <div className="flex gap-2">
+          <select 
+            className="bg-white border border-slate-200 text-slate-700 text-sm rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value as any)}
+          >
+            <option value="all">所有角色</option>
+            <option value="creator">创作者</option>
+            <option value="enterprise">企业主</option>
+            <option value="root_admin">管理员</option>
+          </select>
+          <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 flex items-center gap-2">
+            <LogIn className="w-4 h-4" /> 添加用户
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 uppercase">
+            <tr>
+              <th className="px-6 py-4">用户</th>
+              <th className="px-6 py-4">角色</th>
+              <th className="px-6 py-4">信用分</th>
+              <th className="px-6 py-4">状态</th>
+              <th className="px-6 py-4 text-right">操作</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-50">
+            {filteredUsers.map(user => (
+              <tr key={user.id} className="hover:bg-slate-50 transition-colors">
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <img src={user.avatar} className="w-9 h-9 rounded-full bg-slate-200" alt="" />
+                    <div>
+                      <div className="font-bold text-slate-800">{user.name}</div>
+                      <div className="text-xs text-slate-400">{user.email || 'No Email'}</div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  {getRoleBadge(user.role)}
+                </td>
+                <td className="px-6 py-4">
+                  <div className={`font-mono font-bold ${
+                    user.creditScore >= 800 ? 'text-green-600' : 
+                    user.creditScore >= 600 ? 'text-blue-600' : 'text-amber-600'
+                  }`}>
+                    {user.creditScore}
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  {user.status === 'active' ? (
+                    <span className="flex items-center gap-1.5 text-green-600 text-xs font-bold">
+                      <CheckCircle className="w-3.5 h-3.5" /> 正常
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-red-600 text-xs font-bold">
+                      <Ban className="w-3.5 h-3.5" /> 封禁
+                    </span>
+                  )}
+                </td>
+                <td className="px-6 py-4 text-right">
+                  <div className="flex justify-end gap-2">
+                    <button 
+                      onClick={() => handleStatusToggle(user.id, user.status || 'active')}
+                      className={`p-1.5 rounded-lg transition-colors ${
+                        user.status === 'active' 
+                          ? 'text-red-500 hover:bg-red-50' 
+                          : 'text-green-500 hover:bg-green-50'
+                      }`}
+                      title={user.status === 'active' ? '封禁账号' : '解封账号'}
+                    >
+                      {user.status === 'active' ? <Ban className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                    </button>
+                    <button className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors">
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {filteredUsers.length === 0 && (
+          <div className="p-8 text-center text-slate-400">
+            未找到匹配的用户
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// --- SUB-COMPONENT: CONTENT CMS ---
 const ContentCMS = () => {
-  const [artworks, setArtworks] = useState<Artwork[]>(MOCK_ARTWORKS);
+  // Use DB for source of truth to ensure frontend syncs
+  const [artworks, setArtworks] = useState<Artwork[]>(() => DB.artworks.getAll());
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [editingArtwork, setEditingArtwork] = useState<Artwork | null>(null);
   
   // Interaction State
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectInput, setShowRejectInput] = useState(false);
-  const [toast, setToast] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
+  const [isRegenerating, setIsRegenerating] = useState(false); // For bulk
+  const [isRegeneratingSingle, setIsRegeneratingSingle] = useState(false); // For single modal
+  const { showToast } = useToast();
 
   const filteredArtworks = artworks.filter(a => {
     const status = a.status || 'approved';
     return filter === 'all' || status === filter;
   });
+
+  // Helper to sanitize prompts for fallback generators
+  const getSafePrompt = (text: string) => {
+    return (text || "Digital Art").slice(0, 100).replace(/\n/g, ' ');
+  };
 
   const handleAction = (action: 'approve' | 'reject' | 'delete') => {
     if (selectedIds.size === 0) return;
@@ -156,50 +307,95 @@ const ContentCMS = () => {
       return;
     }
 
-    const timestamp = new Date().toLocaleString();
-    const adminName = 'Admin_Root';
+    // Perform updates
+    const targets: string[] = Array.from(selectedIds);
 
-    const newArtworks = artworks.map(a => {
-      if (selectedIds.has(a.id)) {
-        MOCK_NOTIFICATIONS.unshift({
-          id: `n_${Date.now()}_${a.id}`,
-          type: 'system',
-          title: action === 'approve' ? '作品审核通过' : action === 'reject' ? '作品被驳回' : '作品已被移除',
-          content: `您的作品《${a.title}》${
-            action === 'approve' ? '已通过平台审核，现已公开展示。' : 
-            action === 'reject' ? `审核未通过。原因：${rejectReason}` : 
-            '因违规已被平台移除。'
-          }`,
-          time: '刚刚',
-          isRead: false
-        });
-
-        MOCK_SYSTEM_LOGS.unshift({
-          id: `log_${Date.now()}_${a.id}`,
-          action: action === 'approve' ? '审核通过' : action === 'reject' ? '审核驳回' : '删除作品',
-          operator: adminName,
-          target: `Artwork #${a.id} (${a.title})`,
-          timestamp: timestamp,
-          ip: '192.168.1.1',
-          status: 'success'
-        });
-
-        if (action === 'delete') return null;
-        return { ...a, status: action === 'approve' ? 'approved' : 'rejected' };
-      }
-      return a;
-    }).filter(Boolean) as Artwork[];
+    if (action === 'delete') {
+       targets.forEach(id => DB.artworks.delete(id));
+    } else {
+       targets.forEach(id => {
+         DB.artworks.update(id, { status: action === 'approve' ? 'approved' : 'rejected' });
+       });
+    }
     
-    setArtworks(newArtworks);
+    // Update UI by re-fetching
+    setArtworks(DB.artworks.getAll());
     setSelectedIds(new Set());
     setRejectReason('');
     setShowRejectInput(false);
     
-    setToast({ 
-      msg: `成功${action === 'approve' ? '通过' : action === 'reject' ? '驳回' : '删除'}了 ${selectedIds.size} 个作品，并已发送通知。`, 
-      type: 'success' 
-    });
-    setTimeout(() => setToast(null), 3000);
+    showToast(`成功${action === 'approve' ? '通过' : action === 'reject' ? '驳回' : '删除'}了 ${targets.length} 个作品。`, 'success');
+  };
+
+  const handleAiRegenerate = async () => {
+    if (selectedIds.size === 0) {
+       showToast('请先勾选需要 AI 重绘的作品', 'warning');
+       return;
+    }
+
+    setIsRegenerating(true);
+    let successCount = 0;
+
+    const targets: string[] = Array.from(selectedIds);
+
+    for (const id of targets) {
+      const art = DB.artworks.findById(id);
+      if (art) {
+        try {
+          const safePrompt = getSafePrompt(art.description || art.title);
+          const persistableUrl = AIService.getPersistableUrl(
+            safePrompt,
+            { aspectRatio: '3:4', style: (art.tags && art.tags[0]) || 'Digital Art' }
+          );
+
+          await new Promise(r => setTimeout(r, 600));
+
+          DB.artworks.update(id, { 
+            imageUrl: persistableUrl,
+          });
+          successCount++;
+        } catch (e) {
+          console.error(`Failed to regenerate artwork ${id}`, e);
+        }
+      }
+    }
+
+    setArtworks(DB.artworks.getAll());
+    setIsRegenerating(false);
+    setSelectedIds(new Set());
+    showToast(`批量 AI 重绘完成，已优化存储，成功更新 ${successCount} 张配图。`, 'success');
+  };
+
+  const handleSingleAiRegenerate = async () => {
+    if (!editingArtwork) return;
+    
+    setIsRegeneratingSingle(true);
+    try {
+      const safeDesc = getSafePrompt(editingArtwork.description || editingArtwork.title);
+      const styleTags = editingArtwork.tags && editingArtwork.tags.length > 0 ? editingArtwork.tags.slice(0,3).join(', ') : "high quality";
+      const prompt = `${safeDesc}. ${styleTags}. 8k resolution.`;
+
+      const imageUrl = await AIService.generateImage(prompt, {
+        aspectRatio: '3:4',
+        style: 'Digital Art'
+      });
+
+      if (imageUrl) {
+        setEditingArtwork(prev => prev ? ({
+          ...prev,
+          imageUrl,
+        }) : null);
+        
+        showToast('配图重绘成功！点击“保存修改”以应用。', 'success');
+      } else {
+        throw new Error("No image URL returned");
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('重绘失败，请重试', 'error');
+    } finally {
+      setIsRegeneratingSingle(false);
+    }
   };
 
   const toggleSelect = (id: string) => {
@@ -209,12 +405,180 @@ const ContentCMS = () => {
     setSelectedIds(newSet);
   };
 
+  const handleEditSave = () => {
+    if (!editingArtwork) return;
+    
+    showToast('正在同步数据至服务器...', 'info');
+
+    setTimeout(() => {
+      try {
+        DB.artworks.update(editingArtwork.id, editingArtwork);
+        setArtworks(DB.artworks.getAll()); 
+        setEditingArtwork(null);
+        showToast('作品信息已更新', 'success');
+      } catch (e) {
+        console.warn("Storage Quota Exceeded. Attempting optimization...", e);
+        
+        if (editingArtwork.imageUrl && editingArtwork.imageUrl.startsWith('data:image')) {
+            const safePrompt = getSafePrompt(editingArtwork.description || editingArtwork.title);
+            const persistableUrl = AIService.getPersistableUrl(
+              safePrompt, 
+              { aspectRatio: '3:4', style: 'Digital Art' }
+            );
+            
+            try {
+              DB.artworks.update(editingArtwork.id, {
+                ...editingArtwork,
+                imageUrl: persistableUrl,
+              });
+              setArtworks(DB.artworks.getAll());
+              setEditingArtwork(null);
+              showToast('已优化图片存储并保存成功', 'success');
+            } catch (retryErr) {
+              console.error("Critical storage error", retryErr);
+              showToast('保存失败：浏览器存储空间已满', 'error');
+            }
+        } else {
+            showToast('保存失败：浏览器存储空间已满', 'error');
+        }
+      }
+    }, 600);
+  };
+
+  const handleDownloadImage = () => {
+    if (editingArtwork && editingArtwork.imageUrl) {
+      const link = document.createElement('a');
+      link.href = editingArtwork.imageUrl;
+      link.download = `${editingArtwork.title.replace(/\s+/g, '_')}_${editingArtwork.id}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('已开始下载图片', 'success');
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in relative">
-      {toast && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-800 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-2 animate-fade-in-up">
-          <CheckCircle className="w-5 h-5 text-green-400" />
-          {toast.msg}
+      {/* Edit Modal */}
+      {editingArtwork && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+           <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl overflow-hidden animate-scale-in flex flex-col md:flex-row max-h-[90vh]">
+              
+              {/* Left Column: Image Preview & Actions */}
+              <div className="w-full md:w-2/5 bg-slate-900 p-6 flex flex-col items-center justify-center relative group">
+                 <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-slate-800 shadow-lg mb-4 ring-1 ring-white/10">
+                    <img 
+                      key={editingArtwork.imageUrl} // FORCE RENDER when URL changes
+                      src={editingArtwork.imageUrl} 
+                      className="w-full h-full object-cover" 
+                      alt="Preview" 
+                      referrerPolicy="no-referrer"
+                    />
+                 </div>
+                 
+                 <div className="w-full grid grid-cols-2 gap-2">
+                   <button 
+                     onClick={handleSingleAiRegenerate}
+                     disabled={isRegeneratingSingle}
+                     className="py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                   >
+                     {isRegeneratingSingle ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                     {isRegeneratingSingle ? '重绘中...' : 'AI 重绘'}
+                   </button>
+                   <button 
+                     onClick={handleDownloadImage}
+                     className="py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 text-xs border border-white/10"
+                   >
+                     <Download className="w-4 h-4" />
+                     保存本地
+                   </button>
+                 </div>
+                 <p className="text-slate-400 text-[10px] mt-3 text-center px-2">
+                   左：AI 重新生成 | 右：下载到设备
+                 </p>
+              </div>
+
+              {/* Right Column: Form Fields */}
+              <div className="flex-1 flex flex-col h-full bg-white">
+                <div className="p-4 border-b flex justify-between items-center bg-slate-50">
+                   <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                     <Edit2 className="w-4 h-4 text-indigo-500" /> 编辑作品信息
+                   </h3>
+                   <button onClick={() => setEditingArtwork(null)} className="p-1 hover:bg-slate-200 rounded-full transition-colors">
+                     <XCircle className="w-5 h-5 text-slate-400" />
+                   </button>
+                </div>
+                
+                <div className="p-6 space-y-5 overflow-y-auto custom-scrollbar flex-1">
+                   <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">作品标题</label>
+                      <input 
+                        value={editingArtwork.title} 
+                        onChange={e => setEditingArtwork({...editingArtwork, title: e.target.value})}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      />
+                   </div>
+                   
+                   <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">作品描述 (用于生成配图)</label>
+                      <textarea 
+                        value={editingArtwork.description || ''} 
+                        onChange={e => setEditingArtwork({...editingArtwork, description: e.target.value})}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm h-32 focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none leading-relaxed"
+                        placeholder="请输入详细的画面描述..."
+                      />
+                   </div>
+                   
+                   <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">标签 (逗号分隔)</label>
+                      <input 
+                        value={editingArtwork.tags.join(', ')} 
+                        onChange={e => setEditingArtwork({...editingArtwork, tags: e.target.value.split(/[,，]/).map(t => t.trim()).filter(Boolean)})}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      />
+                   </div>
+                   
+                   <div className="grid grid-cols-2 gap-4">
+                      <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">审核状态</label>
+                          <select 
+                             value={editingArtwork.status || 'approved'} 
+                             onChange={e => setEditingArtwork({...editingArtwork, status: e.target.value as any})}
+                             className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                          >
+                             <option value="pending">待审核</option>
+                             <option value="approved">已发布</option>
+                             <option value="rejected">已驳回</option>
+                          </select>
+                      </div>
+                      <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">作者</label>
+                          <input 
+                            value={editingArtwork.artist} 
+                            onChange={e => setEditingArtwork({...editingArtwork, artist: e.target.value})}
+                            className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50"
+                            disabled
+                          />
+                      </div>
+                   </div>
+                </div>
+
+                <div className="p-4 border-t bg-slate-50 flex justify-end gap-3">
+                   <button 
+                     onClick={() => setEditingArtwork(null)} 
+                     className="px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
+                   >
+                     取消
+                   </button>
+                   <button 
+                     onClick={handleEditSave} 
+                     className="px-6 py-2.5 text-sm font-bold bg-slate-900 text-white rounded-lg hover:bg-indigo-600 transition-colors flex items-center gap-2 shadow-sm"
+                   >
+                     <Save className="w-4 h-4" /> 保存修改
+                   </button>
+                </div>
+              </div>
+           </div>
         </div>
       )}
 
@@ -260,6 +624,16 @@ const ContentCMS = () => {
           ) : (
             <div className="flex gap-2 w-full md:w-auto justify-end">
               <button 
+                onClick={handleAiRegenerate}
+                disabled={isRegenerating}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-bold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm whitespace-nowrap"
+                title="使用 Nano Banana 模型根据描述重新生成图片"
+              >
+                {isRegenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                {isRegenerating ? '批量重绘中...' : '批量 AI 重绘'}
+              </button>
+              <div className="w-px h-8 bg-slate-200 mx-1 hidden md:block"></div>
+              <button 
                 onClick={() => handleAction('approve')}
                 disabled={selectedIds.size === 0}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
@@ -299,9 +673,9 @@ const ContentCMS = () => {
                 <th className="px-6 py-4">作品预览</th>
                 <th className="px-6 py-4">标题 / ID</th>
                 <th className="px-6 py-4">创作者</th>
-                <th className="px-6 py-4">AI 检测</th>
                 <th className="px-6 py-4">状态</th>
                 <th className="px-6 py-4">数据</th>
+                <th className="px-6 py-4">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -311,8 +685,15 @@ const ContentCMS = () => {
                     <input type="checkbox" checked={selectedIds.has(art.id)} onChange={() => toggleSelect(art.id)} />
                   </td>
                   <td className="px-6 py-4">
-                    <div className="w-20 h-14 bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
-                      <img src={art.imageUrl} className="w-full h-full object-cover" alt="" loading="lazy" />
+                    <div className="w-20 h-14 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 relative group">
+                      <img 
+                        src={art.imageUrl} 
+                        className="w-full h-full object-cover" 
+                        alt="" 
+                        loading="lazy" 
+                        key={art.imageUrl} // Force re-render if URL changes
+                        referrerPolicy="no-referrer"
+                      />
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -324,17 +705,6 @@ const ContentCMS = () => {
                       <img src={art.artistAvatar} className="w-6 h-6 rounded-full border border-slate-100" alt="" />
                       <span className="truncate max-w-[100px]">{art.artist}</span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    {art.isAiGenerated ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">
-                        AIGC
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-500">
-                        原创
-                      </span>
-                    )}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase ${
@@ -349,126 +719,14 @@ const ContentCMS = () => {
                     <div className="flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Likes: {art.likes}</div>
                     <div className="flex items-center gap-1 mt-1"><Eye className="w-3 h-3" /> Views: {art.views}</div>
                   </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const SystemSettings = () => {
-  const [config, setConfig] = useState<SystemConfig>({
-    maintenanceMode: false,
-    allowRegistration: true,
-    contentAuditLevel: 'medium',
-    maxUploadSize: 50
-  });
-
-  const logs = MOCK_SYSTEM_LOGS;
-
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
-      
-      {/* Config Panel */}
-      <div className="lg:col-span-1 space-y-6">
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-          <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
-            <Settings className="w-5 h-5 text-slate-500" /> 全局配置
-          </h3>
-          
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium text-slate-800">系统维护模式</div>
-                <div className="text-xs text-slate-500">开启后仅管理员可访问</div>
-              </div>
-              <button 
-                onClick={() => setConfig({...config, maintenanceMode: !config.maintenanceMode})}
-                className={`w-12 h-6 rounded-full p-1 transition-colors ${config.maintenanceMode ? 'bg-indigo-600' : 'bg-slate-200'}`}
-              >
-                <div className={`w-4 h-4 bg-white rounded-full transition-transform ${config.maintenanceMode ? 'translate-x-6' : ''}`}></div>
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium text-slate-800">开放新用户注册</div>
-                <div className="text-xs text-slate-500">关闭后停止所有注册入口</div>
-              </div>
-              <button 
-                onClick={() => setConfig({...config, allowRegistration: !config.allowRegistration})}
-                className={`w-12 h-6 rounded-full p-1 transition-colors ${config.allowRegistration ? 'bg-green-500' : 'bg-slate-200'}`}
-              >
-                <div className={`w-4 h-4 bg-white rounded-full transition-transform ${config.allowRegistration ? 'translate-x-6' : ''}`}></div>
-              </button>
-            </div>
-
-            <div>
-              <div className="font-medium text-slate-800 mb-2">内容审核等级</div>
-              <select 
-                value={config.contentAuditLevel}
-                onChange={(e) => setConfig({...config, contentAuditLevel: e.target.value as any})}
-                className="w-full border border-slate-200 rounded-lg p-2 text-sm"
-              >
-                <option value="low">低 (仅AI过滤)</option>
-                <option value="medium">中 (AI + 抽检)</option>
-                <option value="high">高 (AI + 人工复审)</option>
-                <option value="strict">严格 (先审后发)</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl">
-           <h4 className="font-bold text-amber-800 text-sm mb-2 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> 敏感操作区</h4>
-           <div className="space-y-2">
-             <button className="w-full py-2 bg-white border border-amber-200 text-amber-700 text-sm font-medium rounded-lg hover:bg-amber-100">
-               清除系统缓存
-             </button>
-             <button className="w-full py-2 bg-white border border-amber-200 text-amber-700 text-sm font-medium rounded-lg hover:bg-amber-100">
-               重启服务节点
-             </button>
-           </div>
-        </div>
-      </div>
-
-      {/* Logs Panel */}
-      <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-          <h3 className="font-bold text-slate-800 flex items-center gap-2">
-            <List className="w-5 h-5 text-slate-500" /> 操作审计日志
-          </h3>
-          <button className="text-xs text-indigo-600 hover:underline">导出 CSV</button>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-500 text-xs uppercase">
-              <tr>
-                <th className="px-4 py-3">时间</th>
-                <th className="px-4 py-3">操作人</th>
-                <th className="px-4 py-3">行为</th>
-                <th className="px-4 py-3">对象</th>
-                <th className="px-4 py-3">IP</th>
-                <th className="px-4 py-3">状态</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {logs.map((log) => (
-                <tr key={log.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-mono text-slate-500 text-xs">{log.timestamp}</td>
-                  <td className="px-4 py-3 font-medium text-slate-800">{log.operator}</td>
-                  <td className="px-4 py-3">{log.action}</td>
-                  <td className="px-4 py-3 text-slate-600 truncate max-w-[200px]">{log.target}</td>
-                  <td className="px-4 py-3 text-slate-400 text-xs">{log.ip}</td>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      log.status === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                    }`}>
-                      {log.status === 'success' ? '成功' : '失败'}
-                    </span>
+                  <td className="px-6 py-4">
+                    <button 
+                      onClick={() => setEditingArtwork(art)}
+                      className="p-1.5 hover:bg-slate-200 text-slate-500 hover:text-indigo-600 rounded-lg transition-colors flex items-center gap-1"
+                      title="编辑 / 重绘"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -480,532 +738,51 @@ const SystemSettings = () => {
   );
 };
 
-const AuthAuditModule = () => {
-  const [requests, setRequests] = useState<VerificationRequest[]>(MOCK_VERIFICATION_REQUESTS);
-  const [filterType, setFilterType] = useState<'all' | 'personal' | 'enterprise'>('all');
-  const [selectedRequest, setSelectedRequest] = useState<VerificationRequest | null>(null);
-  const [reviewModalOpen, setReviewModalOpen] = useState(false);
-  const [rejectReason, setRejectReason] = useState('');
-
-  const filteredRequests = requests.filter(req => 
-    (filterType === 'all' || req.type === filterType)
-  );
-
-  const pendingRequests = filteredRequests.filter(r => r.status === 'pending');
-  const processedRequests = filteredRequests.filter(r => r.status !== 'pending');
-
-  const openReview = (req: VerificationRequest) => {
-    setSelectedRequest(req);
-    setReviewModalOpen(true);
-    setRejectReason('');
-  };
-
-  const handleReview = (status: 'approved' | 'rejected') => {
-    if (!selectedRequest) return;
-    
-    setRequests(prev => prev.map(r => {
-      if (r.id === selectedRequest.id) {
-        return {
-          ...r,
-          status,
-          reviewTime: new Date().toLocaleString(),
-          reviewer: 'Admin_Root', // Mock current admin
-          rejectReason: status === 'rejected' ? rejectReason : undefined
-        };
-      }
-      return r;
-    }));
-    setReviewModalOpen(false);
-  };
-
-  const ReviewModal = () => {
-    if (!selectedRequest) return null;
-    const isPersonal = selectedRequest.type === 'personal';
-
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-          <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2">
-              {isPersonal ? <UserCheck className="w-5 h-5 text-pink-500" /> : <Briefcase className="w-5 h-5 text-indigo-500" />}
-              {isPersonal ? '个人实名认证审核' : '企业资质认证审核'}
-            </h3>
-            <button onClick={() => setReviewModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-              <XCircle className="w-6 h-6" />
-            </button>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-            <div className="flex items-center gap-4 mb-6 p-4 bg-slate-50 rounded-lg border border-slate-100">
-               <img src={selectedRequest.userAvatar} className="w-12 h-12 rounded-full border border-slate-200" alt="" />
-               <div>
-                 <div className="font-bold text-slate-800">{selectedRequest.userName}</div>
-                 <div className="text-xs text-slate-500">ID: {selectedRequest.userId}</div>
-               </div>
-               <div className="ml-auto text-xs text-slate-400">
-                 提交时间: {selectedRequest.submitTime}
-               </div>
-            </div>
-
-            <div className="space-y-6">
-              {isPersonal ? (
-                <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-bold text-slate-400 uppercase">真实姓名</label>
-                      <div className="mt-1 font-medium text-slate-800">{selectedRequest.realName}</div>
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-slate-400 uppercase">身份证号</label>
-                      <div className="mt-1 font-medium text-slate-800 font-mono">{selectedRequest.idCardNumber}</div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-bold text-slate-400 uppercase mb-2 block">身份证正面</label>
-                      <div className="bg-slate-100 rounded-lg aspect-[8/5] overflow-hidden border border-slate-200">
-                        <img src={selectedRequest.idCardFront} className="w-full h-full object-cover" alt="Front" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-slate-400 uppercase mb-2 block">身份证反面</label>
-                      <div className="bg-slate-100 rounded-lg aspect-[8/5] overflow-hidden border border-slate-200">
-                        <img src={selectedRequest.idCardBack} className="w-full h-full object-cover" alt="Back" />
-                      </div>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2">
-                      <label className="text-xs font-bold text-slate-400 uppercase">企业全称</label>
-                      <div className="mt-1 font-medium text-slate-800">{selectedRequest.companyName}</div>
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-slate-400 uppercase">统一社会信用代码</label>
-                      <div className="mt-1 font-medium text-slate-800 font-mono">{selectedRequest.creditCode}</div>
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-slate-400 uppercase">法人代表</label>
-                      <div className="mt-1 font-medium text-slate-800">{selectedRequest.legalRep}</div>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-400 uppercase mb-2 block">营业执照扫描件</label>
-                    <div className="bg-slate-100 rounded-lg aspect-[3/4] max-w-sm overflow-hidden border border-slate-200">
-                      <img src={selectedRequest.businessLicense} className="w-full h-full object-cover" alt="License" />
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="p-6 border-t border-slate-100 bg-slate-50">
-             {selectedRequest.status === 'pending' ? (
-               <div className="space-y-4">
-                 <div className="flex gap-4">
-                    <button 
-                      onClick={() => handleReview('approved')}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2"
-                    >
-                      <CheckCircle className="w-5 h-5" /> 通过认证
-                    </button>
-                    <div className="flex-1 flex gap-2">
-                       <input 
-                         type="text" 
-                         placeholder="若驳回，请填写原因"
-                         value={rejectReason}
-                         onChange={e => setRejectReason(e.target.value)}
-                         className="flex-1 border border-slate-200 rounded-xl px-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-                       />
-                       <button 
-                         onClick={() => handleReview('rejected')}
-                         disabled={!rejectReason}
-                         className="bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold px-4 rounded-xl transition-colors shadow-sm whitespace-nowrap"
-                       >
-                         驳回
-                       </button>
-                    </div>
-                 </div>
-               </div>
-             ) : (
-               <div className={`p-3 rounded-lg text-center font-bold ${selectedRequest.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                 该申请已{selectedRequest.status === 'approved' ? '通过' : '驳回'} 
-                 {selectedRequest.status === 'rejected' && ` (原因: ${selectedRequest.rejectReason})`}
-               </div>
-             )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="space-y-6 animate-fade-in">
-      {reviewModalOpen && <ReviewModal />}
-
-      {/* Filter Tabs */}
-      <div className="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm w-fit">
-        <button 
-          onClick={() => setFilterType('all')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filterType === 'all' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
-        >
-          全部申请
-        </button>
-        <button 
-          onClick={() => setFilterType('personal')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${filterType === 'personal' ? 'bg-pink-50 text-pink-600' : 'text-slate-500 hover:text-slate-700'}`}
-        >
-          <UserCheck className="w-4 h-4" /> 个人认证
-        </button>
-        <button 
-          onClick={() => setFilterType('enterprise')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${filterType === 'enterprise' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
-        >
-          <Building className="w-4 h-4" /> 企业认证
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Pending List */}
-        <div className="space-y-4">
-           <h3 className="font-bold text-slate-800 flex items-center gap-2">
-             <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-             待审核 ({pendingRequests.length})
-           </h3>
-           {pendingRequests.length > 0 ? pendingRequests.map(req => (
-             <div key={req.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all">
-                <div className="flex justify-between items-start mb-3">
-                   <div className="flex items-center gap-3">
-                      <img src={req.userAvatar} className="w-10 h-10 rounded-full bg-slate-100" alt="" />
-                      <div>
-                         <div className="font-bold text-slate-800 text-sm">{req.userName}</div>
-                         <div className="text-xs text-slate-500">{req.submitTime}</div>
-                      </div>
-                   </div>
-                   <span className={`text-[10px] px-2 py-1 rounded font-bold uppercase ${req.type === 'personal' ? 'bg-pink-100 text-pink-600' : 'bg-indigo-100 text-indigo-600'}`}>
-                      {req.type === 'personal' ? '个人' : '企业'}
-                   </span>
-                </div>
-                <div className="bg-slate-50 rounded-lg p-3 text-xs text-slate-600 space-y-1 mb-3">
-                   {req.type === 'personal' ? (
-                     <>
-                        <div className="flex items-center gap-2"><UserCheck className="w-3 h-3" /> 真实姓名: {req.realName}</div>
-                        <div className="flex items-center gap-2"><IdCard className="w-3 h-3" /> 身份证: {req.idCardNumber}</div>
-                     </>
-                   ) : (
-                     <>
-                        <div className="flex items-center gap-2"><Building className="w-3 h-3" /> 企业: {req.companyName}</div>
-                        <div className="flex items-center gap-2"><FileCheck className="w-3 h-3" /> 信用代码: {req.creditCode}</div>
-                     </>
-                   )}
-                </div>
-                <button 
-                  onClick={() => openReview(req)}
-                  className="w-full py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-indigo-600 transition-colors"
-                >
-                  开始审核
-                </button>
-             </div>
-           )) : (
-             <div className="p-8 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">暂无待审核申请</div>
-           )}
-        </div>
-
-        {/* History List */}
-        <div className="space-y-4">
-           <h3 className="font-bold text-slate-800 flex items-center gap-2">
-             <div className="w-2 h-2 rounded-full bg-slate-300"></div>
-             已处理历史
-           </h3>
-           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-              {processedRequests.length > 0 ? (
-                <div className="divide-y divide-slate-100">
-                   {processedRequests.map(req => (
-                     <div key={req.id} className="p-4 hover:bg-slate-50 transition-colors flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                           <div className={`p-2 rounded-full ${req.status === 'approved' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                              {req.status === 'approved' ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-                           </div>
-                           <div>
-                              <div className="font-bold text-sm text-slate-800">{req.userName}</div>
-                              <div className="text-xs text-slate-500">
-                                 {req.reviewTime} • 由 {req.reviewer} 处理
-                              </div>
-                           </div>
-                        </div>
-                        <button onClick={() => openReview(req)} className="text-xs text-indigo-600 hover:underline">查看详情</button>
-                     </div>
-                   ))}
-                </div>
-              ) : (
-                <div className="p-8 text-center text-slate-400">暂无历史记录</div>
-              )}
-           </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const DevDocs = () => {
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-fade-in h-[calc(100vh-200px)]">
-      {/* Sidebar */}
-      <div className="lg:col-span-1 bg-white border border-slate-200 rounded-xl p-4 h-full overflow-y-auto">
-        <h3 className="font-bold text-slate-900 mb-4 px-2">Developer Hub</h3>
-        <div className="space-y-1">
-          <div className="px-3 py-2 bg-indigo-50 text-indigo-700 rounded-lg text-sm font-medium cursor-pointer">API Reference</div>
-          <div className="px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg text-sm cursor-pointer">Authentication</div>
-          <div className="px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg text-sm cursor-pointer">Project Endpoints</div>
-          <div className="px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg text-sm cursor-pointer">Asset Management</div>
-          <div className="my-4 border-t border-slate-100"></div>
-          <div className="px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg text-sm cursor-pointer">Component Library</div>
-          <div className="px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg text-sm cursor-pointer">Design Tokens</div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="lg:col-span-3 bg-white border border-slate-200 rounded-xl p-8 h-full overflow-y-auto custom-scrollbar">
-        <div className="prose max-w-none">
-          <h1 className="text-3xl font-bold text-slate-900 mb-4">API Documentation v1.0</h1>
-          <p className="text-slate-600 mb-8">
-            Welcome to the Xinhuashe Platform API. All endpoints are prefixed with <code className="bg-slate-100 px-1 rounded text-sm text-pink-600">/api/v1</code>.
-            Authentication is handled via Bearer Tokens.
-          </p>
-
-          <div className="space-y-8">
-            <section>
-              <h3 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
-                <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">GET</span>
-                /projects
-              </h3>
-              <p className="text-sm text-slate-600 mb-3">Retrieve a list of projects with optional filtering.</p>
-              <div className="bg-slate-900 text-slate-300 p-4 rounded-xl font-mono text-xs overflow-x-auto">
-{`// Request
-GET /api/v1/projects?status=active&limit=10
-
-// Response 200 OK
-{
-  "data": [
-    {
-      "id": "p_123",
-      "title": "Summer Campaign",
-      "status": "in-progress",
-      "budget": 50000
-    }
-  ],
-  "meta": {
-    "total": 45,
-    "page": 1
-  }
-}`}
-              </div>
-            </section>
-
-            <section>
-              <h3 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
-                <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded">POST</span>
-                /auth/login
-              </h3>
-              <p className="text-sm text-slate-600 mb-3">Authenticate user and retrieve session token.</p>
-              <div className="bg-slate-900 text-slate-300 p-4 rounded-xl font-mono text-xs overflow-x-auto">
-{`// Request
-POST /api/v1/auth/login
-{
-  "email": "user@example.com",
-  "password": "hashed_password"
-}
-
-// Response 200 OK
-{
-  "token": "eyJhbGciOiJIUzI1NiIsIn...",
-  "user": {
-    "id": "u_1",
-    "role": "creator"
-  }
-}`}
-              </div>
-            </section>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const UserManagementModule = () => {
-  const [users, setUsers] = useState(MOCK_USERS_ADMIN_VIEW);
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const filteredUsers = users.filter(u => 
-    u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    u.roleName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const toggleStatus = (id: string) => {
-    setUsers(users.map(u => {
-      if (u.id === id) {
-        return { ...u, status: u.status === 'active' ? 'banned' : 'active' };
-      }
-      return u;
-    }));
-  };
-
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-fade-in">
-      <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-        <h3 className="font-bold text-slate-800">用户列表</h3>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-          <input 
-            type="text" 
-            placeholder="搜索用户名..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 w-64"
-          />
-        </div>
-      </div>
-      <table className="w-full text-sm text-left">
-        <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-100">
-          <tr>
-            <th className="px-6 py-3">用户</th>
-            <th className="px-6 py-3">角色</th>
-            <th className="px-6 py-3">邮箱</th>
-            <th className="px-6 py-3">状态</th>
-            <th className="px-6 py-3">操作</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-50">
-          {filteredUsers.map((user) => (
-            <tr key={user.id} className="hover:bg-slate-50/50">
-              <td className="px-6 py-4 flex items-center gap-3">
-                <img src={user.avatar} className="w-8 h-8 rounded-full border border-slate-200" alt="" />
-                <div>
-                  <div className="font-medium text-slate-900">{user.name}</div>
-                  <div className="text-xs text-slate-400">ID: {user.id}</div>
-                </div>
-              </td>
-              <td className="px-6 py-4">
-                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  user.role === 'root_admin' ? 'bg-red-100 text-red-700' :
-                  user.role === 'enterprise' ? 'bg-blue-100 text-blue-700' :
-                  user.role === 'creator' ? 'bg-pink-100 text-pink-700' :
-                  'bg-slate-100 text-slate-700'
-                }`}>
-                  {user.role === 'root_admin' && <Lock className="w-3 h-3" />}
-                  {user.roleName}
-                </span>
-              </td>
-              <td className="px-6 py-4 text-slate-500">{user.email || 'N/A'}</td>
-              <td className="px-6 py-4">
-                <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium w-fit ${
-                  user.status === 'active' ? 'bg-green-100 text-green-700' : 
-                  user.status === 'banned' ? 'bg-red-100 text-red-700' :
-                  'bg-slate-100 text-slate-500'
-                }`}>
-                  {user.status === 'active' ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                  {user.status === 'active' ? '正常' : user.status === 'banned' ? '已封禁' : '未激活'}
-                </span>
-              </td>
-              <td className="px-6 py-4">
-                <div className="flex gap-3">
-                  <button className="text-indigo-600 hover:text-indigo-800 font-medium text-xs flex items-center gap-1">
-                    <Key className="w-3 h-3" /> 重置密码
-                  </button>
-                  {user.role !== 'root_admin' && (
-                    <button 
-                      onClick={() => toggleStatus(user.id)}
-                      className={`${user.status === 'active' ? 'text-red-500 hover:text-red-700' : 'text-green-500 hover:text-green-700'} font-medium text-xs flex items-center gap-1`}
-                    >
-                      {user.status === 'active' ? <Power className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
-                      {user.status === 'active' ? '封禁' : '解封'}
-                    </button>
-                  )}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
-
-// --- MAIN ADMIN VIEW ---
-const AdminView: React.FC<AdminViewProps> = ({ initialTab = 'monitor' }) => {
+const AdminView: React.FC<AdminViewProps> = ({ initialTab = 'users' }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>(initialTab);
 
   useEffect(() => {
-    if (initialTab) {
-      setActiveTab(initialTab);
-    }
+    setActiveTab(initialTab);
   }, [initialTab]);
 
-  // Navigation Items
-  const navItems: { id: AdminTab; label: string; icon: any }[] = [
-    { id: 'monitor', label: '系统监控', icon: Activity },
-    { id: 'auth_audit', label: '认证审核', icon: UserCheck },
-    { id: 'content', label: '内容管理', icon: Layout },
-    { id: 'users', label: '用户与权限', icon: Users },
-    { id: 'settings', label: '系统设置', icon: Settings },
-    { id: 'dev', label: '开发者中心', icon: Code },
-  ];
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'monitor': return <SystemMonitor />;
-      case 'content': return <ContentCMS />;
-      case 'auth_audit': return <AuthAuditModule />; 
-      case 'settings': return <SystemSettings />;
-      case 'dev': return <DevDocs />;
-      case 'users': 
-      default:
-        return <UserManagementModule />;
-    }
-  };
-
   return (
-    <div className="space-y-6">
-      
-      {/* Header & Nav */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-2 rounded-xl shadow-sm border border-slate-200">
-        <div className="flex items-center gap-3 px-2">
-          <div className="bg-indigo-600 p-2 rounded-lg text-white">
-            <Shield className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-slate-800 leading-tight">系统指挥中心</h2>
-            <p className="text-xs text-slate-500">Admin Command Center v2.0</p>
-          </div>
-        </div>
-        
-        <div className="flex overflow-x-auto no-scrollbar gap-1 p-1">
-          {navItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                activeTab === item.id 
-                  ? 'bg-indigo-50 text-indigo-600 shadow-sm' 
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              <item.icon className="w-4 h-4" />
-              {item.label}
-            </button>
-          ))}
+    <div className="max-w-[1440px] mx-auto pb-10">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">
+            {activeTab === 'monitor' && '系统监控中心'}
+            {activeTab === 'content' && '内容审核管理'}
+            {activeTab === 'users' && '用户与权限管理'}
+            {activeTab === 'settings' && '系统全局设置'}
+            {activeTab === 'dev' && '开发者控制台'}
+            {activeTab === 'auth_audit' && '实名认证审核'}
+          </h2>
+          <p className="text-slate-500 text-sm mt-1">
+            {activeTab === 'monitor' ? '实时查看服务器负载与核心业务指标' :
+             activeTab === 'content' ? '管理全站创意内容，处理违规与投诉' :
+             activeTab === 'users' ? '管理注册用户、角色分配与组织架构' :
+             '管理平台核心配置与高级功能'}
+          </p>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="min-h-[600px]">
-        {renderContent()}
+      <div className="animate-fade-in">
+        {activeTab === 'monitor' && <SystemMonitor />}
+        {activeTab === 'content' && <ContentCMS />}
+        {activeTab === 'users' && <UserManagement />}
+        {/* Placeholders for other tabs */}
+        {['settings', 'dev', 'auth_audit'].includes(activeTab) && (
+           <div className="bg-white rounded-xl border border-dashed border-slate-300 p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
+              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+                 <Code className="w-10 h-10 text-slate-400" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-700 mb-2">模块建设中</h3>
+              <p className="text-slate-500 max-w-md">
+                 该管理模块正在开发中，后续版本将开放{activeTab === 'auth_audit' ? '实名认证审核' : '高级设置'}功能。
+              </p>
+           </div>
+        )}
       </div>
-
     </div>
   );
 };

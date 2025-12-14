@@ -10,6 +10,7 @@ import { Notification, NotificationType, ViewMode } from '../types';
 interface MessagesPageProps {
   onBack: () => void;
   onNavigate?: (mode: ViewMode) => void;
+  isEmbedded?: boolean;
 }
 
 const NotificationIcon = ({ type }: { type: NotificationType }) => {
@@ -22,7 +23,7 @@ const NotificationIcon = ({ type }: { type: NotificationType }) => {
   }
 };
 
-const MessagesPage: React.FC<MessagesPageProps> = ({ onBack, onNavigate }) => {
+const MessagesPage: React.FC<MessagesPageProps> = ({ onBack, onNavigate, isEmbedded = false }) => {
   const [activeTab, setActiveTab] = useState<NotificationType | 'all'>('all');
   const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
   const [searchQuery, setSearchQuery] = useState('');
@@ -58,19 +59,21 @@ const MessagesPage: React.FC<MessagesPageProps> = ({ onBack, onNavigate }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-20 pb-20 font-sans">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+    <div className={`font-sans ${isEmbedded ? 'h-full bg-transparent' : 'min-h-screen bg-slate-50 pt-20 pb-20'}`}>
+      <div className={`${isEmbedded ? '' : 'max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8'}`}>
         
         {/* Header */}
         <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <button 
-              onClick={onBack}
-              className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 mb-2 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" /> 返回上一页
-            </button>
-            <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+            {!isEmbedded && (
+              <button 
+                onClick={onBack}
+                className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 mb-2 transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" /> 返回上一页
+              </button>
+            )}
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 flex items-center gap-3">
               消息中心
               {unreadCount > 0 && (
                 <span className="text-sm font-bold bg-red-500 text-white px-2 py-0.5 rounded-full shadow-sm">
@@ -94,7 +97,7 @@ const MessagesPage: React.FC<MessagesPageProps> = ({ onBack, onNavigate }) => {
           
           {/* Left Sidebar: Categories */}
           <div className="lg:w-64 flex-shrink-0">
-             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden sticky top-24">
+             <div className={`bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden ${isEmbedded ? '' : 'sticky top-24'}`}>
                 <div className="p-2 space-y-1">
                    {TABS.map(tab => {
                      const count = tab.id === 'all' 

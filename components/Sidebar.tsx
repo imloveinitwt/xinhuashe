@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   LayoutDashboard, FolderOpen, Briefcase, Wallet, Settings, LogOut, 
   Hexagon, Palette, Users, PieChart, Shield, ChevronsUpDown, Check, CheckCircle2,
-  Crown, Globe, Building
+  Crown, Globe, Building, Activity, UserCheck, Layout, Code, MessageSquare, BarChart2
 } from 'lucide-react';
 import { WorkspaceTab, User, UserRole, ViewMode } from '../types';
 import { ROLE_DEFINITIONS } from '../constants';
@@ -77,23 +77,66 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onRole
       visible: hasPermission('TRANSACTION_VIEW')
     },
     {
+      id: 'messages',
+      label: '消息中心',
+      icon: MessageSquare,
+      visible: true
+    },
+    {
+      id: 'team',
+      label: '团队协作',
+      icon: Users,
+      visible: user.role === 'enterprise' || user.role === 'root_admin'
+    },
+    {
+      id: 'analytics',
+      label: '数据分析',
+      icon: BarChart2,
+      visible: user.role === 'enterprise' || (user.role === 'creator' && user.membershipLevel !== 'none')
+    },
+    {
       id: 'membership',
       label: '会员权益',
       icon: Crown,
       visible: user.role !== 'root_admin' // Admins don't need membership plans usually
     },
-    // Admin Sections
+    
+    // --- Admin Sections ---
+    {
+      id: 'admin_monitor',
+      label: '系统监控',
+      icon: Activity,
+      visible: user.role === 'root_admin'
+    },
+    {
+      id: 'admin_audit',
+      label: '认证审核',
+      icon: UserCheck,
+      visible: hasPermission('USER_AUTH_REVIEW')
+    },
+    {
+      id: 'admin_content',
+      label: '内容管理',
+      icon: Layout,
+      visible: hasPermission('CONTENT_REVIEW')
+    },
     {
       id: 'admin_users',
-      label: '用户管理',
+      label: '用户与权限',
       icon: Users,
       visible: hasPermission('USER_VIEW')
     },
     {
-      id: 'admin_roles',
-      label: '权限配置',
-      icon: Shield,
-      visible: hasPermission('ROLE_MANAGE')
+      id: 'admin_settings',
+      label: '系统设置',
+      icon: Settings,
+      visible: hasPermission('SYSTEM_CONFIG')
+    },
+    {
+      id: 'admin_dev',
+      label: '开发者中心',
+      icon: Code,
+      visible: user.role === 'root_admin'
     }
   ];
 
@@ -168,7 +211,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onRole
             key={item.id}
             onClick={() => setActiveTab(item.id as WorkspaceTab)}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
-              activeTab === item.id || (activeTab.startsWith('admin_') && item.id.startsWith('admin_'))
+              activeTab === item.id
                 ? 'bg-slate-800 text-white shadow-md'
                 : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
             }`}
@@ -190,7 +233,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onRole
                if (onNavigate) onNavigate('enterprise_profile');
              }}
            >
-             <Building className="w-5 h-5 text-slate-500 group-hover:text-white transition-colors" />
+             <Globe className="w-5 h-5 text-slate-500 group-hover:text-white transition-colors" />
              <span className="font-medium text-sm">企业主页预览</span>
            </a>
         )}

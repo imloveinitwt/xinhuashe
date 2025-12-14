@@ -1,12 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { 
   Briefcase, Share2, X, ShieldCheck, Building, CheckCircle2, Clock, MapPin, 
   DollarSign, Layers, Zap, Target, Download, Check, UploadCloud, FileText, 
-  Send, Paperclip, Heart
+  Send, Paperclip, Heart, Image as ImageIcon, File, CheckCheck
 } from 'lucide-react';
-import { Project, User } from '../types';
+import { Project, User, ChatMessage } from '../types';
 
 interface ProjectDrawerProps {
   project: Project;
@@ -29,14 +29,27 @@ const MOCK_FILES = [
   { name: 'Project_Brief.pdf', size: '1.2 MB', date: '10-01 10:00', uploader: 'Client' },
 ];
 
-const MOCK_COMMENTS = [
-  { id: 1, user: 'TechNova 科技', avatar: 'https://ui-avatars.com/api/?name=Tech&bg=random', text: '草稿 v2 的构图我很喜欢，但是希望能把背景的色调再压暗一点，突出人物。', time: '10-06 10:30', isMe: false },
-  { id: 2, user: 'NeonDreamer', avatar: 'https://ui-avatars.com/api/?name=Neon&bg=random', text: '收到，我会在细化阶段调整光影对比。', time: '10-06 11:00', isMe: true },
+// Enhanced Mock Messages
+const INITIAL_MESSAGES: ChatMessage[] = [
+  { id: 1, user: 'TechNova 科技', avatar: 'https://ui-avatars.com/api/?name=Tech&bg=random', content: '草稿 v2 的构图我很喜欢，但是希望能把背景的色调再压暗一点，突出人物。', time: '10-06 10:30', isMe: false, type: 'text' },
+  { id: 2, user: 'NeonDreamer', avatar: 'https://ui-avatars.com/api/?name=Neon&bg=random', content: '收到，我会在细化阶段调整光影对比。', time: '10-06 11:00', isMe: true, isRead: true, type: 'text' },
+  { id: 3, user: 'TechNova 科技', avatar: 'https://ui-avatars.com/api/?name=Tech&bg=random', content: '参考图_01.jpg', fileUrl: 'https://picsum.photos/seed/ref_01/300/200', type: 'image', time: '10-06 11:05', isMe: false },
+  { id: 4, user: 'NeonDreamer', avatar: 'https://ui-avatars.com/api/?name=Neon&bg=random', content: '好的，参考这个感觉做。', time: '10-06 11:10', isMe: true, isRead: true, type: 'text' },
 ];
 
 const ProjectDrawer: React.FC<ProjectDrawerProps> = ({ project, onClose, onApply, user }) => {
   const [activeTab, setActiveTab] = useState<'detail' | 'progress' | 'files' | 'chat'>('detail');
+  
+  // Chat State
+  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [newMessage, setNewMessage] = useState('');
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (activeTab === 'chat' && chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [activeTab, messages]);
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = 'https://placehold.co/800x400/f1f5f9/94a3b8?text=Project+Cover';
@@ -44,6 +57,30 @@ const ProjectDrawer: React.FC<ProjectDrawerProps> = ({ project, onClose, onApply
 
   const handleAvatarError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = 'https://ui-avatars.com/api/?name=User&background=cbd5e1&color=fff';
+  };
+
+  const handleSendMessage = (type: 'text' | 'image' | 'file' = 'text', content: string = newMessage) => {
+    if (!content.trim() && type === 'text') return;
+
+    const msg: ChatMessage = {
+      id: Date.now(),
+      user: user?.name || 'Me',
+      avatar: user?.avatar || 'https://ui-avatars.com/api/?name=Me',
+      content: content,
+      time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+      isMe: true,
+      isRead: false,
+      type: type,
+      fileUrl: type === 'image' ? 'https://picsum.photos/seed/new_upload/300/200' : undefined
+    };
+
+    setMessages([...messages, msg]);
+    setNewMessage('');
+
+    // Simulate Read Receipt & Reply
+    setTimeout(() => {
+      setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, isRead: true } : m));
+    }, 1500);
   };
 
   const renderTabContent = () => {
@@ -208,7 +245,7 @@ const ProjectDrawer: React.FC<ProjectDrawerProps> = ({ project, onClose, onApply
         return (
           <div className="flex flex-col h-[calc(100vh-200px)] animate-fade-in bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
              <div className="flex-1 overflow-y-auto space-y-6 p-4 custom-scrollbar">
-                {MOCK_COMMENTS.map((msg) => (
+                {messages.map((msg) => (
                    <div key={msg.id} className={`flex gap-3 ${msg.isMe ? 'flex-row-reverse' : ''}`}>
                       <img 
                         src={msg.avatar} 
@@ -221,33 +258,96 @@ const ProjectDrawer: React.FC<ProjectDrawerProps> = ({ project, onClose, onApply
                             <span className="font-bold text-xs text-slate-700">{msg.user}</span>
                             <span className="text-[10px] text-slate-400">{msg.time}</span>
                          </div>
-                         <div className={`p-3 rounded-2xl text-sm shadow-sm leading-relaxed ${
-                           msg.isMe 
-                             ? 'bg-indigo-600 text-white rounded-tr-none' 
-                             : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
-                         }`}>
-                            {msg.text}
-                         </div>
+                         
+                         {/* Text Message */}
+                         {msg.type === 'text' && (
+                           <div className={`p-3 rounded-2xl text-sm shadow-sm leading-relaxed ${
+                             msg.isMe 
+                               ? 'bg-indigo-600 text-white rounded-tr-none' 
+                               : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
+                           }`}>
+                              {msg.content}
+                           </div>
+                         )}
+
+                         {/* Image Message */}
+                         {msg.type === 'image' && msg.fileUrl && (
+                           <div className={`p-1.5 rounded-2xl shadow-sm border ${
+                             msg.isMe 
+                               ? 'bg-indigo-100 border-indigo-200 rounded-tr-none' 
+                               : 'bg-white border-slate-100 rounded-tl-none'
+                           }`}>
+                              <img src={msg.fileUrl} className="max-w-[200px] rounded-lg cursor-pointer hover:opacity-90" alt="Chat Image" />
+                           </div>
+                         )}
+
+                         {/* File Message */}
+                         {msg.type === 'file' && (
+                           <div className={`p-3 rounded-2xl shadow-sm border flex items-center gap-3 cursor-pointer hover:shadow-md transition-shadow ${
+                             msg.isMe 
+                               ? 'bg-indigo-50 border-indigo-100 rounded-tr-none' 
+                               : 'bg-white border-slate-100 rounded-tl-none'
+                           }`}>
+                              <div className="p-2 bg-indigo-200 rounded-lg text-indigo-700">
+                                <File className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <div className="text-sm font-bold text-slate-700">{msg.content}</div>
+                                <div className="text-xs text-slate-400">2.5 MB • Click to download</div>
+                              </div>
+                           </div>
+                         )}
+
+                         {/* Read Receipt */}
+                         {msg.isMe && (
+                           <div className="flex items-center gap-1 mt-1 px-1">
+                             {msg.isRead ? (
+                               <span className="flex items-center gap-0.5 text-[10px] text-indigo-400 font-medium"><CheckCheck className="w-3 h-3" /> 已读</span>
+                             ) : (
+                               <span className="flex items-center gap-0.5 text-[10px] text-slate-400"><Check className="w-3 h-3" /> 发送成功</span>
+                             )}
+                           </div>
+                         )}
                       </div>
                    </div>
                 ))}
+                <div ref={chatEndRef} />
              </div>
+             
+             {/* Chat Input */}
              <div className="p-3 bg-white border-t border-slate-200">
                 <div className="relative">
                    <input 
                      type="text" 
                      value={newMessage}
                      onChange={(e) => setNewMessage(e.target.value)}
+                     onKeyDown={(e) => e.key === 'Enter' && handleSendMessage('text')}
                      className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                      placeholder="输入消息..."
                    />
-                   <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
+                   <button 
+                     onClick={() => handleSendMessage('text')}
+                     disabled={!newMessage.trim()}
+                     className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50"
+                   >
                       <Send className="w-4 h-4" />
                    </button>
                 </div>
                 <div className="flex gap-2 mt-2 px-1">
-                   <button className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded transition-colors" title="添加附件"><Paperclip className="w-4 h-4" /></button>
-                   <button className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded transition-colors" title="上传图片"><UploadCloud className="w-4 h-4" /></button>
+                   <button 
+                     onClick={() => handleSendMessage('file', 'Design_Brief.pdf')}
+                     className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded transition-colors" 
+                     title="添加附件"
+                   >
+                     <Paperclip className="w-4 h-4" />
+                   </button>
+                   <button 
+                     onClick={() => handleSendMessage('image', 'Image.jpg')}
+                     className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded transition-colors" 
+                     title="上传图片"
+                   >
+                     <ImageIcon className="w-4 h-4" />
+                   </button>
                 </div>
              </div>
           </div>

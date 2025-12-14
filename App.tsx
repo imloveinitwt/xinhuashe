@@ -27,6 +27,8 @@ import MessagesPage from './components/MessagesPage';
 import MembershipPage from './components/MembershipPage'; 
 import CreditScorePage from './components/CreditScorePage';
 import ProjectCasesPage from './components/ProjectCasesPage'; 
+import TeamView from './components/TeamView'; // New
+import AnalyticsView from './components/AnalyticsView'; // New
 import Footer from './components/Footer';
 import { ViewMode, WorkspaceTab, UserRole, User, MembershipLevel } from './types';
 import { getProfileById } from './constants';
@@ -65,7 +67,7 @@ const AppContent: React.FC = () => {
     // Set default view based on role
     if (user?.role === 'root_admin' || user?.role === 'platform_admin') {
        changeViewMode('workspace');
-       setActiveWorkspaceTab('admin_users'); 
+       setActiveWorkspaceTab('admin_monitor'); 
     } else if (user?.role === 'enterprise') {
       changeViewMode('workspace');
       setActiveWorkspaceTab('dashboard');
@@ -275,9 +277,18 @@ const AppContent: React.FC = () => {
     if (isAuthenticated && user) {
       // Helper to map workspace tab to AdminView internal tab
       const getAdminTab = (): AdminTab => {
-        if (activeWorkspaceTab === 'admin_roles') return 'users'; // Map 'roles' to users tab for now as roles are managed there
-        return 'users'; // Default for admin_users
+        switch (activeWorkspaceTab) {
+          case 'admin_monitor': return 'monitor';
+          case 'admin_audit': return 'auth_audit';
+          case 'admin_content': return 'content';
+          case 'admin_users': return 'users';
+          case 'admin_settings': return 'settings';
+          case 'admin_dev': return 'dev';
+          default: return 'users';
+        }
       };
+
+      const isAdminTab = activeWorkspaceTab.startsWith('admin_');
 
       return (
         <div className="h-full p-6 md:p-8 overflow-y-auto custom-scrollbar animate-fade-in pb-20 md:pb-8">
@@ -290,9 +301,22 @@ const AppContent: React.FC = () => {
            {activeWorkspaceTab === 'dam' && <DAMView />}
            {activeWorkspaceTab === 'projects' && <ProjectsView />}
            {activeWorkspaceTab === 'finance' && <FinanceView user={user} />}
-           {(activeWorkspaceTab === 'admin_users' || activeWorkspaceTab === 'admin_roles') && (
+           
+           {/* New Workspace Modules */}
+           {activeWorkspaceTab === 'messages' && (
+             <MessagesPage 
+               onBack={() => {}} 
+               onNavigate={changeViewMode}
+               isEmbedded={true}
+             />
+           )}
+           {activeWorkspaceTab === 'team' && <TeamView />}
+           {activeWorkspaceTab === 'analytics' && <AnalyticsView />}
+           
+           {isAdminTab && (
              <AdminView initialTab={getAdminTab()} />
            )}
+           
            {activeWorkspaceTab === 'membership' && (
              <div className="-m-6 md:-m-8">
                <MembershipPage 

@@ -54,11 +54,6 @@ const ModernListItem: React.FC<ModernItemProps> = ({
        
        {/* 浮动标签 */}
        <div className="absolute top-3 left-3 flex gap-2">
-         {artwork.isAiGenerated && (
-            <div className="bg-black/60 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-bold flex items-center gap-1 border border-white/10 shadow-lg">
-               <Sparkles className="w-3 h-3 text-purple-300" /> AI
-            </div>
-         )}
          {artwork.likes > 2000 && (
             <div className="bg-rose-500/90 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-bold flex items-center gap-1 border border-white/10 shadow-lg">
                <Flame className="w-3 h-3 fill-current" /> HOT
@@ -183,13 +178,6 @@ const ModernGridItem: React.FC<ModernItemProps> = ({
              <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
           </button>
        </div>
-       
-       {/* AI 标记 (左上角) */}
-       {artwork.isAiGenerated && (
-          <div className="absolute top-3 left-3 bg-black/40 backdrop-blur-md text-white/90 text-[10px] px-2 py-1 rounded-full font-bold border border-white/10 flex items-center gap-1">
-             <Sparkles className="w-3 h-3 text-purple-300" /> AI
-          </div>
-       )}
     </div>
 
     {/* 底部极简信息 (Grid View External Info) */}
@@ -281,7 +269,8 @@ const ArtworksPage: React.FC<ArtworksPageProps> = ({ onBack, onNavigateToProfile
   const handleArtistClick = (e: React.MouseEvent, artistName: string) => {
     e.stopPropagation();
     if (onNavigateToProfile) {
-       const profileId = artistName === 'NeonDreamer' ? 'p_neon' : artistName === 'InkFlow' ? 'p_ink' : 'p_artmaster';
+       // Updated logic for Chinese names
+       const profileId = artistName === '夜色霓虹' ? 'p_neon' : artistName === '墨染流年' ? 'p_ink' : 'p_artmaster';
        onNavigateToProfile(profileId);
     }
   };
