@@ -180,7 +180,7 @@ const DashboardView: React.FC<DashboardProps> = ({ user, onNavigate }) => {
             {isClient ? '资金支出与活跃度趋势' : '收入与流量趋势'}
           </h3>
           <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorChart" x1="0" y1="0" x2="0" y2="1">

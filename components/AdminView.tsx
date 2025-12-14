@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Users, Shield, Settings, Search, Edit2, Trash2, CheckCircle, XCircle, 
@@ -105,7 +104,7 @@ const SystemMonitor = () => {
       <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
         <h3 className="font-bold text-slate-800 mb-6">系统负载趋势</h3>
         <div className="h-80 w-full">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <AreaChart data={data}>
               <defs>
                 <linearGradient id="colorCpu" x1="0" y1="0" x2="0" y2="1">
@@ -343,6 +342,7 @@ const ContentCMS = () => {
       if (art) {
         try {
           const safePrompt = getSafePrompt(art.description || art.title);
+          // Bulk uses fallback for quota reasons or consistency
           const persistableUrl = AIService.getPersistableUrl(
             safePrompt,
             { aspectRatio: '3:4', style: (art.tags && art.tags[0]) || 'Digital Art' }
@@ -372,12 +372,16 @@ const ContentCMS = () => {
     setIsRegeneratingSingle(true);
     try {
       const safeDesc = getSafePrompt(editingArtwork.description || editingArtwork.title);
+      // Explicitly include tags in prompt
       const styleTags = editingArtwork.tags && editingArtwork.tags.length > 0 ? editingArtwork.tags.slice(0,3).join(', ') : "high quality";
-      const prompt = `${safeDesc}. ${styleTags}. 8k resolution.`;
+      const prompt = `${safeDesc}. Style: ${styleTags}. 8k resolution, highly detailed.`;
+
+      // Use the first tag as style for the generator if available, else 'Digital Art'
+      const mainStyle = editingArtwork.tags && editingArtwork.tags.length > 0 ? editingArtwork.tags[0] : 'Digital Art';
 
       const imageUrl = await AIService.generateImage(prompt, {
         aspectRatio: '3:4',
-        style: 'Digital Art'
+        style: mainStyle
       });
 
       if (imageUrl) {
@@ -483,7 +487,7 @@ const ContentCMS = () => {
                      className="py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                    >
                      {isRegeneratingSingle ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                     {isRegeneratingSingle ? '重绘中...' : 'AI 重绘'}
+                     {isRegeneratingSingle ? '重绘中...' : '根据描述重绘'}
                    </button>
                    <button 
                      onClick={handleDownloadImage}
@@ -494,7 +498,7 @@ const ContentCMS = () => {
                    </button>
                  </div>
                  <p className="text-slate-400 text-[10px] mt-3 text-center px-2">
-                   左：AI 重新生成 | 右：下载到设备
+                   左：基于右侧“作品描述”生成新图 | 右：下载当前图片
                  </p>
               </div>
 
@@ -520,12 +524,12 @@ const ContentCMS = () => {
                    </div>
                    
                    <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">作品描述 (用于生成配图)</label>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">作品描述 (用于AI重绘)</label>
                       <textarea 
                         value={editingArtwork.description || ''} 
                         onChange={e => setEditingArtwork({...editingArtwork, description: e.target.value})}
                         className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm h-32 focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none leading-relaxed"
-                        placeholder="请输入详细的画面描述..."
+                        placeholder="请输入详细的画面描述，AI 将基于此描述重新生成配图..."
                       />
                    </div>
                    
@@ -583,6 +587,7 @@ const ContentCMS = () => {
       )}
 
       <div className="flex flex-col md:flex-row md:items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm gap-4">
+        {/* ... (rest of the file remains same, keeping list view controls) ... */}
         <div className="flex gap-2 overflow-x-auto no-scrollbar">
           {['all', 'pending', 'approved', 'rejected'].map(f => (
             <button
@@ -745,43 +750,58 @@ const AdminView: React.FC<AdminViewProps> = ({ initialTab = 'users' }) => {
     setActiveTab(initialTab);
   }, [initialTab]);
 
-  return (
-    <div className="max-w-[1440px] mx-auto pb-10">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800">
-            {activeTab === 'monitor' && '系统监控中心'}
-            {activeTab === 'content' && '内容审核管理'}
-            {activeTab === 'users' && '用户与权限管理'}
-            {activeTab === 'settings' && '系统全局设置'}
-            {activeTab === 'dev' && '开发者控制台'}
-            {activeTab === 'auth_audit' && '实名认证审核'}
-          </h2>
-          <p className="text-slate-500 text-sm mt-1">
-            {activeTab === 'monitor' ? '实时查看服务器负载与核心业务指标' :
-             activeTab === 'content' ? '管理全站创意内容，处理违规与投诉' :
-             activeTab === 'users' ? '管理注册用户、角色分配与组织架构' :
-             '管理平台核心配置与高级功能'}
-          </p>
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'monitor': return <SystemMonitor />;
+      case 'users': return <UserManagement />;
+      case 'content': return <ContentCMS />;
+      case 'settings': return (
+        <div className="flex flex-col items-center justify-center h-96 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+           <Settings className="w-12 h-12 mb-4 text-slate-300" />
+           <h3 className="text-lg font-bold text-slate-600">系统设置</h3>
+           <p className="text-sm">全局参数配置模块正在开发中...</p>
         </div>
-      </div>
+      );
+      case 'dev': return (
+        <div className="flex flex-col items-center justify-center h-96 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+           <Terminal className="w-12 h-12 mb-4 text-slate-300" />
+           <h3 className="text-lg font-bold text-slate-600">开发者中心</h3>
+           <p className="text-sm">API 管理与日志调试模块正在开发中...</p>
+        </div>
+      );
+      case 'auth_audit': return (
+        <div className="flex flex-col items-center justify-center h-96 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+           <UserCheck className="w-12 h-12 mb-4 text-slate-300" />
+           <h3 className="text-lg font-bold text-slate-600">认证审核</h3>
+           <p className="text-sm">实名认证审核模块正在开发中...</p>
+        </div>
+      );
+      default: return <UserManagement />;
+    }
+  };
 
-      <div className="animate-fade-in">
-        {activeTab === 'monitor' && <SystemMonitor />}
-        {activeTab === 'content' && <ContentCMS />}
-        {activeTab === 'users' && <UserManagement />}
-        {/* Placeholders for other tabs */}
-        {['settings', 'dev', 'auth_audit'].includes(activeTab) && (
-           <div className="bg-white rounded-xl border border-dashed border-slate-300 p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
-              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-                 <Code className="w-10 h-10 text-slate-400" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-700 mb-2">模块建设中</h3>
-              <p className="text-slate-500 max-w-md">
-                 该管理模块正在开发中，后续版本将开放{activeTab === 'auth_audit' ? '实名认证审核' : '高级设置'}功能。
-              </p>
-           </div>
-        )}
+  const getHeaderInfo = () => {
+    switch (activeTab) {
+      case 'monitor': return { title: '系统监控', desc: '实时服务器状态与性能指标' };
+      case 'users': return { title: '用户管理', desc: '全平台用户账号、角色与权限控制' };
+      case 'content': return { title: '内容管理 (CMS)', desc: '作品审核、推荐与违规处理' };
+      case 'settings': return { title: '系统设置', desc: '平台基础配置与参数' };
+      case 'dev': return { title: '开发者中心', desc: 'API 密钥与系统日志' };
+      case 'auth_audit': return { title: '认证审核', desc: '用户实名与企业资质审核' };
+      default: return { title: '管理后台', desc: '系统管理中心' };
+    }
+  }
+
+  const { title, desc } = getHeaderInfo();
+
+  return (
+    <div className="h-full flex flex-col space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-slate-800">{title}</h2>
+        <p className="text-slate-500 text-sm mt-1">{desc}</p>
+      </div>
+      <div className="flex-1">
+        {renderContent()}
       </div>
     </div>
   );

@@ -29,6 +29,15 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
   const [isUploading, setIsUploading] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
   
+  // Creator Form State
+  const [creatorForm, setCreatorForm] = useState({
+    title: '',
+    category: '插画',
+    visibility: 'public',
+    description: '',
+    tags: [] as string[]
+  });
+
   // AI Gen State
   const [prompt, setPrompt] = useState('');
   const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
@@ -75,6 +84,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
         setUploadComplete(false);
         onClose();
         // Reset state
+        setCreatorForm({ title: '', category: '插画', visibility: 'public', description: '', tags: [] });
         setProjectForm({ title: '', budget: '', deadline: '', description: '', deliverables: ['源文件', 'JPG导出'] });
         setEnterpriseCover(null);
         setActiveTab('upload');
@@ -221,11 +231,21 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1">作品标题</label>
-                  <input type="text" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 focus:outline-none" placeholder="给作品起个名字..." />
+                  <input 
+                    type="text" 
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 focus:outline-none" 
+                    placeholder="给作品起个名字..." 
+                    value={creatorForm.title}
+                    onChange={(e) => setCreatorForm({...creatorForm, title: e.target.value})}
+                  />
               </div>
               <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">分类</label>
-                  <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 focus:outline-none">
+                  <select 
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 focus:outline-none"
+                    value={creatorForm.category}
+                    onChange={(e) => setCreatorForm({...creatorForm, category: e.target.value})}
+                  >
                     <option>插画</option>
                     <option>UI 设计</option>
                     <option>3D 模型</option>
@@ -234,11 +254,24 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
               </div>
               <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">可见性</label>
-                  <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 focus:outline-none">
-                    <option>公开 (社区可见)</option>
-                    <option>私密 (仅自己可见)</option>
-                    <option>仅粉丝可见</option>
+                  <select 
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 focus:outline-none"
+                    value={creatorForm.visibility}
+                    onChange={(e) => setCreatorForm({...creatorForm, visibility: e.target.value})}
+                  >
+                    <option value="public">公开 (社区可见)</option>
+                    <option value="private">私密 (仅自己可见)</option>
+                    <option value="fans">仅粉丝可见</option>
                   </select>
+              </div>
+              <div className="col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">作品描述</label>
+                  <textarea 
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 focus:outline-none h-24 resize-none"
+                    placeholder="描述作品的创作灵感、使用工具或背后的故事..."
+                    value={creatorForm.description}
+                    onChange={(e) => setCreatorForm({...creatorForm, description: e.target.value})}
+                  ></textarea>
               </div>
               <div className="col-span-2">
                   <div className="flex justify-between items-center mb-1">
@@ -487,7 +520,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, userRole = '
               <button 
                 onClick={() => {
                    if(projectForm.description) {
-                      // Mock AI refinement for enterprise
                       setProjectForm({...projectForm, description: projectForm.description + "\n\n[AI 建议补充]: 建议明确具体的交付格式（如PSD分层文件）以及是否需要提供 mood board 参考图。"});
                    }
                 }}

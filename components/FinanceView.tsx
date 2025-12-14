@@ -147,7 +147,7 @@ const PersonalFinanceDashboard: React.FC = () => {
                     <PieChart className="w-5 h-5 text-indigo-500" /> 支出分析
                  </h3>
                  <div className="h-64 relative">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <RePieChart>
                         <Pie
                           data={CHART_DATA_PERSONAL_SPENDING}
@@ -261,7 +261,7 @@ const EnterpriseFinanceDashboard: React.FC = () => {
                </div>
             </div>
             <div className="h-72 w-full">
-               <ResponsiveContainer width="100%" height="100%">
+               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <AreaChart data={CHART_DATA_CASH_FLOW}>
                      <defs>
                         <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
@@ -323,8 +323,9 @@ const EnterpriseFinanceDashboard: React.FC = () => {
             <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
                <PieChart className="w-5 h-5 text-indigo-600" /> 成本结构分析
             </h3>
-            <div className="flex-1 min-h-[300px] relative">
-                <ResponsiveContainer width="100%" height="100%">
+            {/* Fixed height to prevent 0px rendering in flex container */}
+            <div className="h-[300px] relative">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <RePieChart>
                         <Pie
                             data={CHART_DATA_ENTERPRISE_COSTS}

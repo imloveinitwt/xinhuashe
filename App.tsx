@@ -27,9 +27,10 @@ import MessagesPage from './components/MessagesPage';
 import MembershipPage from './components/MembershipPage'; 
 import CreditScorePage from './components/CreditScorePage';
 import ProjectCasesPage from './components/ProjectCasesPage'; 
-import TeamView from './components/TeamView'; // New
-import AnalyticsView from './components/AnalyticsView'; // New
+import TeamView from './components/TeamView'; 
+import AnalyticsView from './components/AnalyticsView'; 
 import Footer from './components/Footer';
+import DebugConsole from './components/DebugConsole'; // New Import
 import { ViewMode, WorkspaceTab, UserRole, User, MembershipLevel } from './types';
 import { getProfileById } from './constants';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -367,6 +368,9 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
+      {/* GLOBAL DEBUG CONSOLE */}
+      <DebugConsole />
+
       <Header 
         viewMode={viewMode} 
         setViewMode={changeViewMode} 

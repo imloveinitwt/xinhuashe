@@ -111,7 +111,7 @@ const CreditScorePage: React.FC<CreditScorePageProps> = ({ onBack, user }) => {
               
               <div className="flex-1 flex items-center justify-center -ml-4">
                  <div className="w-full h-[250px]">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={CREDIT_DIMENSIONS}>
                           <PolarGrid stroke="#e2e8f0" />
                           <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12 }} />
