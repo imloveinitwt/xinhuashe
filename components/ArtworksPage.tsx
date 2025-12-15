@@ -4,7 +4,7 @@ import {
   Search, SlidersHorizontal, ArrowLeft, Heart, Eye, Zap, 
   Sparkles, TrendingUp, Filter, X, ImageOff, ChevronDown, 
   Compass, Grid, List, LayoutGrid, User as UserIcon, Clock, Calendar,
-  MoreHorizontal, Share2, Download, Flame, Hash
+  MoreHorizontal, Share2, Download, Flame, Hash, Activity
 } from 'lucide-react';
 import { MOCK_ARTWORKS } from '../constants';
 import { Artwork, User } from '../types';
@@ -288,52 +288,85 @@ const ArtworksPage: React.FC<ArtworksPageProps> = ({ onBack, onNavigateToProfile
 
       {/* 1. 沉浸式头部区域 */}
       <div className="relative bg-[#0B0F19] text-white pt-24 pb-20 overflow-hidden">
-        {/* Abstract Background Blobs */}
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-600/30 rounded-full blur-[120px] -mr-40 -mt-40 pointer-events-none animate-pulse" style={{animationDuration: '10s'}}></div>
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[100px] -ml-20 -mb-20 pointer-events-none animate-pulse" style={{animationDuration: '15s'}}></div>
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 pointer-events-none"></div>
+        {/* Abstract Background Blobs - Enhanced */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {/* Existing blobs */}
+            <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-600/30 rounded-full blur-[120px] -mr-40 -mt-40 animate-pulse" style={{animationDuration: '8s'}}></div>
+            <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[100px] -ml-20 -mb-20 animate-pulse" style={{animationDuration: '12s'}}></div>
+            {/* New: Rotating Pattern */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 animate-spin-slow" style={{animationDuration: '60s'}}></div>
+        </div>
 
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
            <div className="flex flex-col md:flex-row justify-between items-end gap-8">
-             <div>
+             <div className="max-w-2xl">
                 <button 
                   onClick={onBack}
-                  className="flex items-center gap-2 text-indigo-300 hover:text-white mb-6 transition-colors font-medium text-sm group"
+                  className="flex items-center gap-2 text-indigo-300 hover:text-white mb-6 transition-colors font-medium text-sm group animate-fade-in"
                 >
                   <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> 返回社区
                 </button>
-                <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-4">
-                  发现<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">无限灵感</span>
+                
+                {/* Title with staggered animation */}
+                <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                  发现<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">无限灵感</span>
                 </h1>
-                <p className="text-indigo-200/80 text-lg max-w-2xl">
-                  汇聚全球 10w+ 顶尖创作者的 {MOCK_ARTWORKS.length}+ 精选作品。探索、收藏、并与未来的合作伙伴相遇。
+                
+                {/* Subtitle */}
+                <p className="text-indigo-200/80 text-lg max-w-2xl leading-relaxed animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+                  汇聚全球 10w+ 顶尖创作者的 {MOCK_ARTWORKS.length}+ 精选作品。
+                  <br />探索风格、收藏佳作，让每一次浏览都成为创意的起点。
                 </p>
+                
+                {/* New: Quick Stats */}
+                <div className="flex gap-6 mt-8 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+                    <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div> 12k+ 今日新增
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
+                        <div className="w-2 h-2 rounded-full bg-blue-500"></div> 认证画师推荐
+                    </div>
+                </div>
              </div>
              
-             {/* 悬浮搜索栏 */}
-             <div className="w-full md:w-[420px]">
+             {/* 悬浮搜索栏 - Enhanced */}
+             <div className="w-full md:w-[480px] animate-fade-in-up" style={{ animationDelay: '400ms' }}>
                 <div className="relative group">
-                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Search className="h-5 w-5 text-indigo-300 group-focus-within:text-white transition-colors" />
+                   <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+                   <div className="relative flex items-center bg-[#0F172A] border border-white/10 rounded-2xl p-1 transition-all focus-within:ring-2 focus-within:ring-indigo-500/50">
+                       <div className="pl-4 pr-3 text-indigo-400">
+                          <Search className="h-6 w-6" />
+                       </div>
+                       <input 
+                         type="text" 
+                         placeholder="搜索风格 (如: 赛博朋克)、标签或创作者..." 
+                         value={searchQuery}
+                         onChange={(e) => setSearchQuery(e.target.value)}
+                         className="block w-full bg-transparent border-none text-white placeholder-slate-500 focus:outline-none focus:ring-0 py-4 text-base"
+                       />
+                       {searchQuery && (
+                         <button onClick={() => setSearchQuery('')} className="p-2 mr-1 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+                           <X className="w-5 h-5" />
+                         </button>
+                       )}
+                       <button className="hidden sm:block bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-indigo-900/20 mr-1 hover:scale-105 active:scale-95">
+                          搜索
+                       </button>
                    </div>
-                   <input 
-                     type="text" 
-                     placeholder="搜索风格、标签或创作者..." 
-                     value={searchQuery}
-                     onChange={(e) => setSearchQuery(e.target.value)}
-                     className="block w-full pl-12 pr-4 py-4 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl text-white placeholder-indigo-200/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:bg-white/20 transition-all shadow-xl"
-                   />
-                   {searchQuery && (
-                     <button onClick={() => setSearchQuery('')} className="absolute inset-y-0 right-0 pr-4 flex items-center text-indigo-300 hover:text-white transition-colors">
-                       <X className="w-5 h-5" />
-                     </button>
-                   )}
                 </div>
-                <div className="flex gap-2 mt-3 text-xs text-indigo-300/70 pl-2">
-                   <span>热门搜索:</span>
-                   <span className="hover:text-white cursor-pointer transition-colors">赛博朋克</span>
-                   <span className="hover:text-white cursor-pointer transition-colors">水墨国风</span>
-                   <span className="hover:text-white cursor-pointer transition-colors">3D 盲盒</span>
+                
+                {/* Popular Tags with Interaction */}
+                <div className="flex flex-wrap gap-2 mt-4 text-sm text-indigo-200/60 pl-1">
+                   <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3" /> 热门:</span>
+                   {['赛博朋克', '水墨国风', '3D 盲盒', '极简 UI'].map((tag, i) => (
+                      <button 
+                        key={tag} 
+                        onClick={() => setSearchQuery(tag)}
+                        className="hover:text-white hover:underline cursor-pointer transition-colors focus:outline-none"
+                      >
+                        {tag}
+                      </button>
+                   ))}
                 </div>
              </div>
            </div>

@@ -6,7 +6,7 @@ import {
   Info, Briefcase, Wallet, Crown, Building
 } from 'lucide-react';
 import { ViewMode, UserRole, User, Notification } from '../types';
-import { MOCK_NOTIFICATIONS } from '../constants'; // Import notifications to check unread count
+import { MOCK_NOTIFICATIONS, getAvatar } from '../constants'; // Import getAvatar
 
 interface HeaderProps {
   viewMode: ViewMode;
@@ -57,7 +57,7 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   const handleAvatarError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = 'https://ui-avatars.com/api/?name=User&background=cbd5e1&color=fff';
+    e.currentTarget.src = getAvatar(currentUser?.name || 'User');
   };
 
   // Mock Unread Count
@@ -65,6 +65,29 @@ const Header: React.FC<HeaderProps> = ({
 
   const isWorkspace = viewMode === 'workspace';
   const isCommunityMode = !isWorkspace;
+
+  // --- Dynamic Styles based on Role ---
+  const getWorkspaceActiveColor = () => {
+    switch (userRole) {
+      case 'creator': return 'text-pink-600';
+      case 'enterprise': return 'text-indigo-600';
+      case 'root_admin': return 'text-red-600';
+      default: return 'text-indigo-600';
+    }
+  };
+
+  const getPrimaryButtonClass = () => {
+    switch (userRole) {
+      case 'creator': 
+        return 'bg-gradient-to-r from-pink-500 to-rose-600 shadow-pink-500/30 hover:shadow-pink-500/50';
+      case 'enterprise': 
+        return 'bg-gradient-to-r from-indigo-600 to-blue-600 shadow-indigo-500/30 hover:shadow-indigo-500/50';
+      case 'root_admin':
+        return 'bg-gradient-to-r from-slate-700 to-slate-900 shadow-slate-500/30 hover:shadow-slate-500/50';
+      default: 
+        return 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 shadow-indigo-500/30 hover:shadow-indigo-500/50';
+    }
+  };
 
   return (
     <header className={`fixed top-0 w-full z-30 transition-all duration-300 font-sans ${
@@ -158,7 +181,7 @@ const Header: React.FC<HeaderProps> = ({
                 onClick={() => setViewMode('discovery')}
                 className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all ${
                   isCommunityMode
-                    ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200' 
+                    ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200' 
                     : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
@@ -168,7 +191,7 @@ const Header: React.FC<HeaderProps> = ({
                 onClick={() => setViewMode('workspace')}
                 className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all ${
                   isWorkspace 
-                    ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200' 
+                    ? `bg-white shadow-sm ring-1 ring-slate-200 ${getWorkspaceActiveColor()}` 
                     : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
@@ -184,7 +207,7 @@ const Header: React.FC<HeaderProps> = ({
           {/* Create/Upload Button (Primary CTA) */}
           <button 
             onClick={onUploadClick}
-            className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 btn-gradient-animate text-white rounded-full text-sm font-bold transition-all shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 border border-white/10 hover:scale-105 active:scale-95"
+            className={`hidden md:flex items-center gap-2 px-5 py-2.5 text-white rounded-full text-sm font-bold transition-all border border-white/10 hover:scale-105 active:scale-95 ${getPrimaryButtonClass()}`}
           >
             {userRole === 'creator' ? <Upload className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
             {userRole === 'creator' ? '发布作品' : '发布需求'}

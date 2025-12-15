@@ -5,6 +5,7 @@ import {
   ArrowRight, Heart, MapPin, Calendar, Flame
 } from 'lucide-react';
 import { Project } from '../types';
+import { getImage } from '../mockData'; // Import local helper
 
 interface ProjectCardProps {
   project?: Project;
@@ -16,7 +17,7 @@ interface ProjectCardProps {
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, className = '', style, isLoading = false }) => {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = 'https://placehold.co/800x400/f1f5f9/94a3b8?text=Project+Cover';
+    e.currentTarget.src = getImage(project?.title || 'Project Fallback', 800, 400);
   };
 
   // === HIGH FIDELITY SKELETON ===
@@ -84,7 +85,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, className =
       {/* Cover Image */}
       <div className="h-44 bg-slate-100 relative overflow-hidden">
         <img 
-          src={project.coverImage || `https://placehold.co/800x400/f1f5f9/94a3b8?text=${project.title}`} 
+          src={project.coverImage || getImage(project.title)} 
           className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" 
           alt={project.title}
           onError={handleImageError}

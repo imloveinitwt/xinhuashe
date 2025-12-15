@@ -10,7 +10,6 @@ import ProjectsView from './components/ProjectsView';
 import FinanceView from './components/FinanceView';
 import UploadModal from './components/UploadModal';
 import LoginModal from './components/LoginModal'; 
-import LoginScreen from './components/LoginScreen';
 import AdminView, { AdminTab } from './components/AdminView'; // Import AdminTab type
 import PersonalSpaceView from './components/PersonalSpaceView'; 
 import ArtworksPage from './components/ArtworksPage'; 
@@ -42,7 +41,6 @@ const AppContent: React.FC = () => {
   const { user, isAuthenticated, isLoading: isAuthLoading, login, logout, updateUser } = useAuth();
   
   // UI State
-  const [showSplash, setShowSplash] = useState(true); 
   const [viewMode, setViewMode] = useState<ViewMode>('discovery');
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<WorkspaceTab>('dashboard');
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
@@ -52,17 +50,7 @@ const AppContent: React.FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Sync Splash State with Auth
-  useEffect(() => {
-    if (!isAuthLoading) {
-      if (isAuthenticated) {
-        setShowSplash(false);
-      }
-    }
-  }, [isAuthLoading, isAuthenticated]);
-
   const handleLoginSuccess = () => {
-    setShowSplash(false);
     setIsLoginModalOpen(false);
 
     // Set default view based on role
@@ -75,6 +63,11 @@ const AppContent: React.FC = () => {
     } else {
       changeViewMode('discovery'); 
     }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setViewMode('discovery');
   };
 
   const handleSetUserRole = async (role: UserRole) => {
@@ -354,18 +347,6 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // Splash Screen
-  if (!isAuthenticated && showSplash) {
-    return (
-      <LoginScreen 
-        onLogin={(role) => {
-          login(`${role}_demo@xinhuashe.com`, role).then(handleLoginSuccess);
-        }} 
-        onGuestEnter={() => setShowSplash(false)}
-      />
-    );
-  }
-
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
       {/* GLOBAL DEBUG CONSOLE */}
@@ -379,7 +360,7 @@ const AppContent: React.FC = () => {
         currentUser={user}
         onNavigateToProfile={handleNavigateToProfile}
         onLoginClick={handleTriggerLogin}
-        onLogout={logout}
+        onLogout={handleLogout}
       />
 
       {viewMode === 'workspace' && isAuthenticated && user && (
@@ -390,6 +371,7 @@ const AppContent: React.FC = () => {
             user={user}
             onRoleChange={handleSetUserRole}
             onNavigate={changeViewMode}
+            onLogout={handleLogout}
           />
           <BottomNav 
             activeTab={activeWorkspaceTab}

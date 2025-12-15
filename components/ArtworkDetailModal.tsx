@@ -9,6 +9,8 @@ import {
 import { Artwork } from '../types';
 import { ArtworkService } from '../services/ArtworkService';
 import { useToast } from '../contexts/ToastContext';
+import CommissionModal from './CommissionModal'; 
+import ShareModal from './ShareModal'; // Import ShareModal
 
 interface ArtworkDetailModalProps {
   artworkId: string | null;
@@ -18,7 +20,7 @@ interface ArtworkDetailModalProps {
   currentUser?: any;
 }
 
-// --- Mock Data for Dynamic Comments ---
+// ... existing imports and MOCK_COMMENTS ...
 const MOCK_COMMENT_USERS_RAW = [
   'Alex Chen', 'Sarah Wu', 'Mike Ross', 'DesignPro', 'ArtLover99', 'PixelGod', 
   'CreativeSoul', 'NeonVibe', 'CyberPunk_X', 'WatercolorFan', '3D_Master', 
@@ -95,6 +97,8 @@ const ArtworkDetailModal: React.FC<ArtworkDetailModalProps> = ({
   // Interaction States
   const [isLiked, setIsLiked] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isCommissionOpen, setIsCommissionOpen] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false); // Share Modal State
   
   // Comment State
   const [comments, setComments] = useState<Comment[]>([]);
@@ -104,7 +108,6 @@ const ArtworkDetailModal: React.FC<ArtworkDetailModalProps> = ({
   useEffect(() => {
     if (artworkId) {
       loadArtwork(artworkId);
-      // Generate random comments for this session
       setComments(generateComments(Math.floor(Math.random() * 6) + 5)); 
       document.body.style.overflow = 'hidden';
     }
@@ -113,7 +116,6 @@ const ArtworkDetailModal: React.FC<ArtworkDetailModalProps> = ({
     };
   }, [artworkId]);
 
-  // Scroll to bottom when new comment added
   useEffect(() => {
     if (commentsEndRef.current) {
       commentsEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -164,12 +166,11 @@ const ArtworkDetailModal: React.FC<ArtworkDetailModalProps> = ({
       onTriggerLogin();
       return;
     }
-    showToast(`已向 ${artwork?.artist} 发送合作意向，请留意私信`, 'success');
+    setIsCommissionOpen(true); 
   };
 
   const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    showToast('链接已复制到剪贴板', 'success');
+    setIsShareOpen(true);
   };
 
   const handleProfileClick = () => {
@@ -199,7 +200,7 @@ const ArtworkDetailModal: React.FC<ArtworkDetailModalProps> = ({
       isLiked: false
     };
 
-    setComments([...comments, comment]); // Add to end
+    setComments([...comments, comment]);
     setNewComment('');
     showToast('评论发表成功', 'success');
   };
@@ -231,6 +232,31 @@ const ArtworkDetailModal: React.FC<ArtworkDetailModalProps> = ({
         onClick={onClose}
       ></div>
       
+      {/* Modals Injection */}
+      {artwork && (
+        <>
+          <CommissionModal 
+            isOpen={isCommissionOpen}
+            onClose={() => setIsCommissionOpen(false)}
+            targetUser={{ name: artwork.artist, avatar: artwork.artistAvatar }}
+            currentUser={currentUser}
+            onTriggerLogin={onTriggerLogin}
+          />
+          <ShareModal 
+            isOpen={isShareOpen}
+            onClose={() => setIsShareOpen(false)}
+            data={{
+              title: artwork.title,
+              cover: artwork.imageUrl,
+              author: artwork.artist,
+              desc: artwork.description,
+              type: 'artwork',
+              id: artwork.id
+            }}
+          />
+        </>
+      )}
+
       <div 
         className="relative bg-white w-full h-full md:h-[90vh] md:max-w-7xl md:rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row animate-scale-in z-10"
         onClick={(e) => e.stopPropagation()}

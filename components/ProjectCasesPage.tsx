@@ -4,7 +4,7 @@ import {
   ArrowLeft, Building, ChevronRight, Star, TrendingUp, 
   Users, Zap, Quote, Tag, ArrowUpRight, CheckCircle2, ArrowRight
 } from 'lucide-react';
-import { MOCK_PROJECT_CASES } from '../constants';
+import { MOCK_PROJECT_CASES, getImage } from '../constants'; // Import getImage
 import { User, ViewMode } from '../types';
 
 interface ProjectCasesPageProps {
@@ -30,7 +30,11 @@ const ProjectCasesPage: React.FC<ProjectCasesPageProps> = ({ onBack, onNavigate,
          {/* Background Decoration */}
          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-900/30 rounded-full blur-[100px] -mr-20 -mt-20 pointer-events-none"></div>
          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-900/20 rounded-full blur-[80px] -ml-20 -mb-20 pointer-events-none"></div>
-         <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/abstract_tech_bg/1600/900')] opacity-10 pointer-events-none mix-blend-overlay bg-cover bg-center"></div>
+         {/* Use consistent generated image for background */}
+         <div 
+            className="absolute inset-0 opacity-10 pointer-events-none mix-blend-overlay bg-cover bg-center"
+            style={{ backgroundImage: `url(${getImage('Technology Network Background', 1920, 1080)})` }}
+         ></div>
 
          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <button 
@@ -161,7 +165,11 @@ const ProjectCasesPage: React.FC<ProjectCasesPageProps> = ({ onBack, onNavigate,
 
       {/* 4. CTA Section */}
       <div className="bg-slate-900 py-20 mt-12 relative overflow-hidden">
-         <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/business_handshake/1600/900')] opacity-5 bg-cover bg-center"></div>
+         {/* Replace external image with generated pattern */}
+         <div 
+            className="absolute inset-0 opacity-5 bg-cover bg-center"
+            style={{ backgroundImage: `url(${getImage('Business Handshake Pattern', 1920, 1080)})` }}
+         ></div>
          <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
             <h2 className="text-3xl font-bold text-white mb-6">准备好书写您的成功故事了吗？</h2>
             <p className="text-slate-400 mb-8 text-lg">

@@ -6,7 +6,7 @@ import {
   Crown, Globe, Building, Activity, UserCheck, Layout, Code, MessageSquare, BarChart2
 } from 'lucide-react';
 import { WorkspaceTab, User, UserRole, ViewMode } from '../types';
-import { ROLE_DEFINITIONS } from '../constants';
+import { ROLE_DEFINITIONS, getAvatar } from '../constants'; // Import getAvatar
 import { useToast } from '../contexts/ToastContext';
 
 interface SidebarProps {
@@ -15,9 +15,10 @@ interface SidebarProps {
   user: User;
   onRoleChange: (role: UserRole) => void;
   onNavigate?: (mode: ViewMode) => void;
+  onLogout?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onRoleChange, onNavigate }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onRoleChange, onNavigate, onLogout }) => {
   const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
@@ -244,8 +245,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onRole
         <div className="px-6 py-4">
            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">团队成员</p>
            <div className="flex -space-x-2 overflow-hidden pl-1">
-             <img className="inline-block h-8 w-8 rounded-full ring-2 ring-slate-900 bg-slate-700" src="https://ui-avatars.com/api/?name=Team+A&background=random" alt=""/>
-             <img className="inline-block h-8 w-8 rounded-full ring-2 ring-slate-900 bg-slate-700" src="https://ui-avatars.com/api/?name=Team+B&background=random" alt=""/>
+             <img className="inline-block h-8 w-8 rounded-full ring-2 ring-slate-900 bg-slate-700" src={getAvatar('Team A')} alt=""/>
+             <img className="inline-block h-8 w-8 rounded-full ring-2 ring-slate-900 bg-slate-700" src={getAvatar('Team B')} alt=""/>
              <div className="h-8 w-8 rounded-full ring-2 ring-slate-900 bg-slate-800 border border-slate-700 flex items-center justify-center text-xs text-slate-400 font-medium">+5</div>
            </div>
         </div>
@@ -257,7 +258,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onRole
           <Settings className="w-5 h-5" />
           <span className="text-sm font-medium">设置</span>
         </button>
-        <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-colors">
+        <button 
+          onClick={onLogout}
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-colors"
+        >
           <LogOut className="w-5 h-5" />
           <span className="text-sm font-medium">退出登录</span>
         </button>

@@ -4,9 +4,12 @@ import { createPortal } from 'react-dom';
 import { 
   Briefcase, Share2, X, ShieldCheck, Building, CheckCircle2, Clock, MapPin, 
   DollarSign, Layers, Zap, Target, Download, Check, UploadCloud, FileText, 
-  Send, Paperclip, Heart, Image as ImageIcon, File, CheckCheck
+  Send, Paperclip, Heart, Image as ImageIcon, File, CheckCheck, Users, 
+  ThumbsDown, MessageSquare, Star
 } from 'lucide-react';
 import { Project, User, ChatMessage } from '../types';
+import { getAvatar, getImage } from '../mockData'; 
+import ShareModal from './ShareModal'; // Import
 
 interface ProjectDrawerProps {
   project: Project;
@@ -29,21 +32,59 @@ const MOCK_FILES = [
   { name: 'Project_Brief.pdf', size: '1.2 MB', date: '10-01 10:00', uploader: 'Client' },
 ];
 
-// Enhanced Mock Messages
+// Mock Applicants Data
+const INITIAL_APPLICANTS = [
+  { 
+    id: 'a1', 
+    name: '夜色霓虹', 
+    avatar: getAvatar('夜色霓虹'), 
+    matchScore: 98, 
+    quote: 15000, 
+    message: '擅长赛博朋克风格，曾在类似项目中负责核心场景设计。附上近期作品集链接。', 
+    status: 'pending', 
+    tags: ['Cyberpunk', 'Concept'] 
+  },
+  { 
+    id: 'a2', 
+    name: '绘梦师', 
+    avatar: getAvatar('绘梦师'), 
+    matchScore: 85, 
+    quote: 14000, 
+    message: '对这个项目很感兴趣，排期合适，可以立即开始。', 
+    status: 'pending', 
+    tags: ['Illustration', '2D'] 
+  },
+  { 
+    id: 'a3', 
+    name: '造梦铁匠铺', 
+    avatar: getAvatar('造梦铁匠铺'), 
+    matchScore: 72, 
+    quote: 12000, 
+    message: '希望能有合作机会，虽然主要是做游戏美术，但也能驾驭插画。', 
+    status: 'pending', 
+    tags: ['Game Art', '3D'] 
+  },
+];
+
+// Enhanced Mock Messages with Local Avatars
 const INITIAL_MESSAGES: ChatMessage[] = [
-  { id: 1, user: 'TechNova 科技', avatar: 'https://ui-avatars.com/api/?name=Tech&bg=random', content: '草稿 v2 的构图我很喜欢，但是希望能把背景的色调再压暗一点，突出人物。', time: '10-06 10:30', isMe: false, type: 'text' },
-  { id: 2, user: 'NeonDreamer', avatar: 'https://ui-avatars.com/api/?name=Neon&bg=random', content: '收到，我会在细化阶段调整光影对比。', time: '10-06 11:00', isMe: true, isRead: true, type: 'text' },
-  { id: 3, user: 'TechNova 科技', avatar: 'https://ui-avatars.com/api/?name=Tech&bg=random', content: '参考图_01.jpg', fileUrl: 'https://picsum.photos/seed/ref_01/300/200', type: 'image', time: '10-06 11:05', isMe: false },
-  { id: 4, user: 'NeonDreamer', avatar: 'https://ui-avatars.com/api/?name=Neon&bg=random', content: '好的，参考这个感觉做。', time: '10-06 11:10', isMe: true, isRead: true, type: 'text' },
+  { id: 1, user: 'TechNova 科技', avatar: getAvatar('TechNova'), content: '草稿 v2 的构图我很喜欢，但是希望能把背景的色调再压暗一点，突出人物。', time: '10-06 10:30', isMe: false, type: 'text' },
+  { id: 2, user: 'NeonDreamer', avatar: getAvatar('NeonDreamer'), content: '收到，我会在细化阶段调整光影对比。', time: '10-06 11:00', isMe: true, isRead: true, type: 'text' },
+  { id: 3, user: 'TechNova 科技', avatar: getAvatar('TechNova'), content: '参考图_01.jpg', fileUrl: getImage('Reference Image'), type: 'image', time: '10-06 11:05', isMe: false },
+  { id: 4, user: 'NeonDreamer', avatar: getAvatar('NeonDreamer'), content: '好的，参考这个感觉做。', time: '10-06 11:10', isMe: true, isRead: true, type: 'text' },
 ];
 
 const ProjectDrawer: React.FC<ProjectDrawerProps> = ({ project, onClose, onApply, user }) => {
-  const [activeTab, setActiveTab] = useState<'detail' | 'progress' | 'files' | 'chat'>('detail');
+  const [activeTab, setActiveTab] = useState<'detail' | 'progress' | 'files' | 'chat' | 'applicants'>('detail');
+  const [isShareOpen, setIsShareOpen] = useState(false); // Share state
   
   // Chat State
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [newMessage, setNewMessage] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Applicants State
+  const [applicants, setApplicants] = useState(INITIAL_APPLICANTS);
 
   useEffect(() => {
     if (activeTab === 'chat' && chatEndRef.current) {
@@ -52,11 +93,11 @@ const ProjectDrawer: React.FC<ProjectDrawerProps> = ({ project, onClose, onApply
   }, [activeTab, messages]);
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = 'https://placehold.co/800x400/f1f5f9/94a3b8?text=Project+Cover';
+    e.currentTarget.src = getImage('Project Cover');
   };
 
   const handleAvatarError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = 'https://ui-avatars.com/api/?name=User&background=cbd5e1&color=fff';
+    e.currentTarget.src = getAvatar('User');
   };
 
   const handleSendMessage = (type: 'text' | 'image' | 'file' = 'text', content: string = newMessage) => {
@@ -65,13 +106,13 @@ const ProjectDrawer: React.FC<ProjectDrawerProps> = ({ project, onClose, onApply
     const msg: ChatMessage = {
       id: Date.now(),
       user: user?.name || 'Me',
-      avatar: user?.avatar || 'https://ui-avatars.com/api/?name=Me',
+      avatar: user?.avatar || getAvatar('Me'),
       content: content,
       time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
       isMe: true,
       isRead: false,
       type: type,
-      fileUrl: type === 'image' ? 'https://picsum.photos/seed/new_upload/300/200' : undefined
+      fileUrl: type === 'image' ? getImage('New Upload') : undefined
     };
 
     setMessages([...messages, msg]);
@@ -83,6 +124,16 @@ const ProjectDrawer: React.FC<ProjectDrawerProps> = ({ project, onClose, onApply
     }, 1500);
   };
 
+  const handleApplicantAction = (id: string, action: 'hire' | 'reject') => {
+    setApplicants(prev => prev.map(app => {
+      if (app.id === id) {
+        return { ...app, status: action === 'hire' ? 'hired' : 'rejected' };
+      }
+      return app;
+    }));
+  };
+
+  // ... renderTabContent implementation ...
   const renderTabContent = () => {
     switch (activeTab) {
       case 'detail':
@@ -91,7 +142,7 @@ const ProjectDrawer: React.FC<ProjectDrawerProps> = ({ project, onClose, onApply
             {/* Banner Area */}
             <div className="relative h-64 rounded-2xl overflow-hidden group shadow-sm border border-slate-100">
                <img 
-                 src={project.coverImage || 'https://placehold.co/800x400/f1f5f9/94a3b8?text=Project+Cover'} 
+                 src={project.coverImage || getImage('Project Cover')} 
                  className="w-full h-full object-cover" 
                  alt="" 
                  onError={handleImageError}
@@ -352,11 +403,123 @@ const ProjectDrawer: React.FC<ProjectDrawerProps> = ({ project, onClose, onApply
              </div>
           </div>
         );
+
+      case 'applicants':
+        return (
+          <div className="animate-fade-in pb-24">
+             <h3 className="font-bold text-slate-900 mb-6 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                   <div className="w-1 h-5 bg-indigo-600 rounded-full"></div> 
+                   应征者列表 ({applicants.length})
+                </div>
+                <span className="text-xs text-slate-500 font-normal">基于智能匹配推荐</span>
+             </h3>
+             <div className="space-y-4">
+                {applicants.map((app) => (
+                   <div 
+                     key={app.id} 
+                     className={`p-5 rounded-2xl border transition-all ${
+                       app.status === 'hired' ? 'bg-indigo-50 border-indigo-200 ring-1 ring-indigo-200' :
+                       app.status === 'rejected' ? 'bg-slate-50 border-slate-200 opacity-60' :
+                       'bg-white border-slate-200 shadow-sm hover:shadow-md'
+                     }`}
+                   >
+                      <div className="flex items-start justify-between mb-3">
+                         <div className="flex items-center gap-3">
+                            <img src={app.avatar} className="w-12 h-12 rounded-full border border-slate-200 object-cover" alt={app.name} />
+                            <div>
+                               <div className="font-bold text-slate-900 flex items-center gap-2">
+                                  {app.name}
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                                     app.matchScore >= 90 ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                  }`}>
+                                     匹配度 {app.matchScore}%
+                                  </span>
+                               </div>
+                               <div className="flex gap-1 mt-1">
+                                  {app.tags.map(t => (
+                                     <span key={t} className="text-[10px] bg-slate-100 text-slate-500 px-1.5 rounded">{t}</span>
+                                  ))}
+                               </div>
+                            </div>
+                         </div>
+                         <div className="text-right">
+                            <div className="font-bold text-lg text-slate-900">¥{app.quote.toLocaleString()}</div>
+                            <div className="text-xs text-slate-400">报价</div>
+                         </div>
+                      </div>
+                      
+                      <div className="bg-slate-50 p-3 rounded-lg text-sm text-slate-600 mb-4 border border-slate-100">
+                         <MessageSquare className="w-3 h-3 inline mr-1 text-slate-400" />
+                         "{app.message}"
+                      </div>
+
+                      {app.status === 'pending' && (
+                         <div className="flex gap-2">
+                            <button 
+                              onClick={() => { setActiveTab('chat'); /* Open chat context in real app */ }}
+                              className="flex-1 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                            >
+                               沟通详情
+                            </button>
+                            <button 
+                              onClick={() => handleApplicantAction(app.id, 'hire')}
+                              className="flex-1 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors shadow-sm"
+                            >
+                               确认合作
+                            </button>
+                            <button 
+                              onClick={() => handleApplicantAction(app.id, 'reject')}
+                              className="px-3 py-2 border border-slate-200 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                              title="不合适"
+                            >
+                               <ThumbsDown className="w-4 h-4" />
+                            </button>
+                         </div>
+                      )}
+                      {app.status === 'hired' && (
+                         <div className="flex items-center justify-center gap-2 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-bold">
+                            <Star className="w-4 h-4 fill-current" /> 已录用合作
+                         </div>
+                      )}
+                      {app.status === 'rejected' && (
+                         <div className="text-center py-2 text-xs text-slate-400 font-medium">已标记为不合适</div>
+                      )}
+                   </div>
+                ))}
+             </div>
+          </div>
+        );
     }
   };
 
+  const navItems = [
+    { id: 'detail', label: '详情概览' },
+    { id: 'progress', label: '进度追踪' },
+    { id: 'files', label: '交付文件' },
+    { id: 'chat', label: '协作讨论' }
+  ];
+
+  // Add Applicants tab for Enterprise users
+  if (user?.role === 'enterprise') {
+    navItems.push({ id: 'applicants', label: '应征管理' });
+  }
+
   return createPortal(
     <>
+      <ShareModal 
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        data={{
+          title: project.title,
+          cover: project.coverImage || getImage(project.title),
+          author: project.client,
+          desc: project.description,
+          type: 'project',
+          id: project.id
+        }}
+      />
+
       <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-[100] animate-fade-in" onClick={onClose}></div>
       <div className="fixed top-0 right-0 h-full w-full md:w-[720px] bg-white shadow-2xl z-[101] animate-slide-in-right flex flex-col">
          
@@ -369,19 +532,19 @@ const ProjectDrawer: React.FC<ProjectDrawerProps> = ({ project, onClose, onApply
               项目详情
             </h2>
             <div className="flex items-center gap-2">
-               <button className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"><Share2 className="w-5 h-5"/></button>
+               <button 
+                 onClick={() => setIsShareOpen(true)}
+                 className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"
+               >
+                 <Share2 className="w-5 h-5"/>
+               </button>
                <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"><X className="w-5 h-5"/></button>
             </div>
          </div>
 
          {/* Tabs */}
          <div className="px-6 border-b border-slate-100 flex gap-8 overflow-x-auto no-scrollbar bg-white z-10 sticky top-[69px]">
-            {[
-              { id: 'detail', label: '详情概览' },
-              { id: 'progress', label: '进度追踪' },
-              { id: 'files', label: '交付文件' },
-              { id: 'chat', label: '协作讨论' }
-            ].map(tab => (
+            {navItems.map(tab => (
                <button 
                  key={tab.id}
                  onClick={() => setActiveTab(tab.id as any)}
@@ -392,6 +555,11 @@ const ProjectDrawer: React.FC<ProjectDrawerProps> = ({ project, onClose, onApply
                  }`}
                >
                  {tab.label}
+                 {tab.id === 'applicants' && (
+                    <span className="ml-1.5 bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">
+                       {applicants.filter(a => a.status === 'pending').length}
+                    </span>
+                 )}
                </button>
             ))}
          </div>
@@ -422,8 +590,12 @@ const ProjectDrawer: React.FC<ProjectDrawerProps> = ({ project, onClose, onApply
                   <button className="flex-1 py-3 border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors">
                      结束企划
                   </button>
-                  <button className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-md transition-colors">
-                     管理应征者 (3)
+                  <button 
+                    onClick={() => setActiveTab('applicants')}
+                    className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-md transition-colors flex items-center justify-center gap-2"
+                  >
+                     <Users className="w-4 h-4" />
+                     管理应征者 ({applicants.filter(a => a.status === 'pending').length})
                   </button>
                </div>
             )}

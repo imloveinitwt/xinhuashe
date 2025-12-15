@@ -4,15 +4,19 @@ import {
   MapPin, Link as LinkIcon, Calendar, BadgeCheck, Settings, 
   UserPlus, Mail, Share2, Grid, Image as ImageIcon,
   MoreHorizontal, MessageCircle, Filter, Search, Zap, Heart, Eye,
-  Check
+  Check, Briefcase
 } from 'lucide-react';
 import { User, UserProfile, ViewMode, Artwork } from '../types';
-import { MOCK_ARTWORKS } from '../constants';
+import { MOCK_ARTWORKS, getImage } from '../constants'; 
 import ArtworkDetailModal from './ArtworkDetailModal';
 import ArtworkCard from './ArtworkCard';
 import Avatar from './Avatar';
 import AvatarUploadModal from './AvatarUploadModal';
+import EditProfileModal from './EditProfileModal';
+import CommissionModal from './CommissionModal'; 
+import ShareModal from './ShareModal'; // Import
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 
 interface PersonalSpaceViewProps {
   profile: UserProfile;
@@ -20,15 +24,29 @@ interface PersonalSpaceViewProps {
   onNavigate?: (mode: ViewMode) => void;
 }
 
-const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentUser, onNavigate }) => {
+const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile: initialProfile, currentUser, onNavigate }) => {
   const { updateUser } = useAuth();
+  const { showToast } = useToast();
   
   // -- State --
+  // Use local state for profile to allow instant updates after editing
+  const [profile, setProfile] = useState<UserProfile>(initialProfile);
   const [activeTab, setActiveTab] = useState<'works' | 'likes' | 'about'>('works');
   const [filterTag, setFilterTag] = useState('全部');
   const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
+  
+  // Modals
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [isCommissionOpen, setIsCommissionOpen] = useState(false); 
+  const [isShareOpen, setIsShareOpen] = useState(false); // Share state
+  
   const [isFollowing, setIsFollowing] = useState(false);
+
+  // Sync prop changes to local state if the prop changes (e.g. navigation)
+  useEffect(() => {
+    setProfile(initialProfile);
+  }, [initialProfile]);
 
   // -- Derived Data --
   const isOwner = currentUser?.id && (profile.userId === currentUser.id || profile.displayName === currentUser.name);
@@ -52,12 +70,31 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
   }, [activeTab, filterTag, userArtworks, likedArtworks]);
 
   const handleAvatarSave = async (base64Image: string) => {
+    // Update Global Auth State
     updateUser({ avatar: base64Image });
+    // Update Local Profile State
+    setProfile(prev => ({ ...prev, avatar: base64Image }));
     setIsAvatarModalOpen(false);
+    showToast('头像更新成功', 'success');
+  };
+
+  const handleProfileUpdate = async (data: Partial<UserProfile>) => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Update Local Profile State
+    setProfile(prev => ({ ...prev, ...data }));
+    
+    // Update Global Auth State (Name sync)
+    if (data.displayName) {
+      updateUser({ name: data.displayName });
+    }
+    
+    showToast('个人资料已更新', 'success');
   };
 
   const handleCoverError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = 'https://placehold.co/1920x400/1e293b/64748b?text=Cover+Image';
+    e.currentTarget.src = getImage('Cover Image', 1920, 400);
   };
 
   const formatNumber = (num: number) => {
@@ -73,10 +110,38 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
         onClose={() => setSelectedArtworkId(null)}
         currentUser={currentUser}
       />
+      
       <AvatarUploadModal 
         isOpen={isAvatarModalOpen}
         onClose={() => setIsAvatarModalOpen(false)}
         onSave={handleAvatarSave}
+      />
+
+      <EditProfileModal
+        isOpen={isEditProfileOpen}
+        onClose={() => setIsEditProfileOpen(false)}
+        initialData={profile}
+        onSave={handleProfileUpdate}
+      />
+
+      <CommissionModal 
+        isOpen={isCommissionOpen}
+        onClose={() => setIsCommissionOpen(false)}
+        targetUser={{ name: profile.displayName, avatar: profile.avatar }}
+        currentUser={currentUser}
+      />
+
+      <ShareModal 
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        data={{
+          title: profile.displayName,
+          cover: profile.avatar,
+          author: profile.location,
+          desc: profile.bio,
+          type: 'profile',
+          id: profile.id
+        }}
       />
 
       {/* --- 1. Header Area --- */}
@@ -150,27 +215,38 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
               {/* Action Buttons */}
               <div className="flex gap-3 pb-4 w-full md:w-auto">
                  {isOwner ? (
-                    <button className="flex-1 md:flex-none px-5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-colors flex items-center justify-center gap-2">
+                    <button 
+                      onClick={() => setIsEditProfileOpen(true)}
+                      className="flex-1 md:flex-none px-5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-colors flex items-center justify-center gap-2"
+                    >
                        <Settings className="w-4 h-4" /> 编辑资料
                     </button>
                  ) : (
                     <>
+                       {/* Commission Button (New) */}
+                       <button 
+                         onClick={() => setIsCommissionOpen(true)}
+                         className="flex-1 md:flex-none px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
+                       >
+                          <Briefcase className="w-4 h-4" /> 约稿
+                       </button>
+
                        <button 
                          onClick={() => setIsFollowing(!isFollowing)}
-                         className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-sm ${
+                         className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 border ${
                             isFollowing 
-                              ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' 
-                              : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200'
+                              ? 'bg-slate-100 text-slate-600 hover:bg-slate-200 border-transparent' 
+                              : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400'
                          }`}
                        >
                           {isFollowing ? <Check className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
                           {isFollowing ? '已关注' : '关注'}
                        </button>
-                       <button className="px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors">
-                          <MessageCircle className="w-5 h-5" />
-                       </button>
-                       <button className="px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors">
-                          <MoreHorizontal className="w-5 h-5" />
+                       <button 
+                         onClick={() => setIsShareOpen(true)}
+                         className="px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors"
+                       >
+                          <Share2 className="w-5 h-5" />
                        </button>
                     </>
                  )}
@@ -227,8 +303,8 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
                      {profile.website && (
                         <div className="flex items-center gap-3 text-slate-600 truncate">
                            <LinkIcon className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                           <a href={`https://${profile.website}`} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline truncate">
-                              {profile.website}
+                           <a href={profile.website} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline truncate">
+                              {profile.website.replace(/^https?:\/\//, '')}
                            </a>
                         </div>
                      )}
@@ -239,11 +315,11 @@ const PersonalSpaceView: React.FC<PersonalSpaceViewProps> = ({ profile, currentU
                <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
                   <h3 className="font-bold text-slate-900 text-sm mb-4">擅长技能</h3>
                   <div className="flex flex-wrap gap-2">
-                     {profile.skills.map(skill => (
+                     {profile.skills.length > 0 ? profile.skills.map(skill => (
                         <span key={skill} className="px-2.5 py-1 bg-slate-50 border border-slate-200 text-slate-600 text-xs rounded-md hover:border-indigo-200 hover:text-indigo-600 transition-colors cursor-default">
                            {skill}
                         </span>
-                     ))}
+                     )) : <span className="text-xs text-slate-400">暂无标签</span>}
                   </div>
                </div>
 

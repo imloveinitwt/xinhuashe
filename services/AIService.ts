@@ -1,5 +1,6 @@
 
 import { GoogleGenAI } from "@google/genai";
+import { getImage } from '../mockData'; // Import the local generator
 
 // Initialize the Gemini API client
 // Note: In a real production app, ensure your API key is secure.
@@ -11,17 +12,18 @@ export interface ImageGenerationOptions {
   style?: string;
 }
 
-// Helper to generate a fallback image URL if AI fails or for persistence optimization
+// Helper to generate a fallback image using local SVG generator
 const getFallbackImageUrl = (prompt: string, options: ImageGenerationOptions = {}) => {
-  const { aspectRatio = '1:1', style } = options;
-  const width = aspectRatio === '16:9' ? 1024 : aspectRatio === '9:16' ? 576 : 768;
-  const height = aspectRatio === '16:9' ? 576 : aspectRatio === '9:16' ? 1024 : 768;
+  const { aspectRatio = '1:1' } = options;
+  // Map aspect ratio to rough dimensions for the SVG generator (though it scales)
+  let w = 800;
+  let h = 800;
+  if (aspectRatio === '16:9') { w = 1024; h = 576; }
+  else if (aspectRatio === '9:16') { w = 576; h = 1024; }
+  else if (aspectRatio === '3:4') { w = 600; h = 800; }
+  else if (aspectRatio === '4:3') { w = 800; h = 600; }
   
-  // Clean prompt for URL
-  const cleanPrompt = (prompt + (style ? ` ${style} style` : '')).substring(0, 150);
-  const seed = Math.floor(Math.random() * 10000);
-  
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=${width}&height=${height}&nologo=true&seed=${seed}`;
+  return getImage(prompt, w, h);
 };
 
 export const AIService = {

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Users, Shield, Settings, Search, Edit2, Trash2, CheckCircle, XCircle, 
@@ -371,17 +372,20 @@ const ContentCMS = () => {
     
     setIsRegeneratingSingle(true);
     try {
-      const safeDesc = getSafePrompt(editingArtwork.description || editingArtwork.title);
-      // Explicitly include tags in prompt
-      const styleTags = editingArtwork.tags && editingArtwork.tags.length > 0 ? editingArtwork.tags.slice(0,3).join(', ') : "high quality";
-      const prompt = `${safeDesc}. Style: ${styleTags}. 8k resolution, highly detailed.`;
+      const baseDesc = editingArtwork.description || editingArtwork.title;
+      // Filter out '全部' if it exists in tags
+      const cleanTags = editingArtwork.tags?.filter(t => t !== '全部') || [];
+      const styleTags = cleanTags.length > 0 ? cleanTags.join(', ') : 'Digital Art';
+      
+      // Use the first tag as the primary style for the generator configuration, ensuring it's not '全部'
+      const primaryStyle = cleanTags.length > 0 ? cleanTags[0] : 'Digital Art';
 
-      // Use the first tag as style for the generator if available, else 'Digital Art'
-      const mainStyle = editingArtwork.tags && editingArtwork.tags.length > 0 ? editingArtwork.tags[0] : 'Digital Art';
+      // Enhanced prompt construction for professionalism
+      const enhancedPrompt = `Professional artwork of ${baseDesc}. Theme: ${styleTags}. Composition: Cinematic, Highly Detailed, 8k resolution, Masterpiece.`;
 
-      const imageUrl = await AIService.generateImage(prompt, {
-        aspectRatio: '3:4',
-        style: mainStyle
+      const imageUrl = await AIService.generateImage(enhancedPrompt, {
+        aspectRatio: '3:4', // Portrait standard for artwork cards
+        style: primaryStyle
       });
 
       if (imageUrl) {
@@ -498,7 +502,7 @@ const ContentCMS = () => {
                    </button>
                  </div>
                  <p className="text-slate-400 text-[10px] mt-3 text-center px-2">
-                   左：基于右侧“作品描述”生成新图 | 右：下载当前图片
+                   左：基于右侧“作品描述”AI生成新图 | 右：下载当前图片
                  </p>
               </div>
 
@@ -587,7 +591,6 @@ const ContentCMS = () => {
       )}
 
       <div className="flex flex-col md:flex-row md:items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm gap-4">
-        {/* ... (rest of the file remains same, keeping list view controls) ... */}
         <div className="flex gap-2 overflow-x-auto no-scrollbar">
           {['all', 'pending', 'approved', 'rejected'].map(f => (
             <button

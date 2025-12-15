@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, Eye, BadgeCheck, Sparkles, Flame } from 'lucide-react';
 import { Artwork } from '../types';
+import { getImage } from '../mockData'; // Import local helper
 
 interface ArtworkCardProps {
   artwork?: Artwork;
@@ -49,7 +50,8 @@ const ArtworkCard: React.FC<ArtworkCardProps> = ({
   }, [isLiked]);
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = 'https://placehold.co/600x400/f1f5f9/94a3b8?text=Image+Load+Error';
+    // Fallback to locally generated SVG based on title
+    e.currentTarget.src = getImage(artwork?.title || 'Artwork Fallback', 600, 400);
   };
 
   const handleLikeClick = (e: React.MouseEvent) => {
@@ -156,7 +158,7 @@ const ArtworkCard: React.FC<ArtworkCardProps> = ({
              onClick={handleLikeClick}
              className={`p-2.5 rounded-full shadow-lg transition-all active:scale-90 border border-white/20 backdrop-blur-md ${
                currentLiked 
-                 ? 'bg-rose-500 text-white hover:bg-rose-600' 
+                 ? 'bg-rose-50 text-white hover:bg-rose-600' 
                  : 'bg-black/30 text-white hover:bg-white hover:text-rose-500'
              }`}
            >

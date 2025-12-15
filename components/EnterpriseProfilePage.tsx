@@ -1,27 +1,110 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   ArrowLeft, MapPin, Globe, Users, Building, Flag, CheckCircle2, Briefcase, 
   Star, Shield, Clock, Award, ChevronRight, Link as LinkIcon, Image as ImageIcon,
-  Share2, MoreHorizontal, Filter, Search, Zap, Check, BookOpen, Quote
+  Share2, MoreHorizontal, Filter, Search, Zap, Check, BookOpen, Quote,
+  GitFork, ZoomIn, ZoomOut, Maximize, User
 } from 'lucide-react';
-import { MOCK_ENTERPRISE_PROFILE, MOCK_PROJECTS, MOCK_PROJECT_CASES } from '../constants';
-import { User, ViewMode } from '../types';
+import { MOCK_ENTERPRISE_PROFILE, MOCK_PROJECTS, MOCK_PROJECT_CASES, getImage } from '../constants'; // Import getImage
+import { User as UserType, ViewMode, OrgNode } from '../types';
 
 interface EnterpriseProfilePageProps {
   onBack: () => void;
   onTriggerLogin?: () => void;
-  user?: User | null;
+  user?: UserType | null;
   onNavigate?: (mode: ViewMode) => void;
 }
 
+// --- Org Chart Components ---
+
+const OrgNodeCard: React.FC<{ node: OrgNode; isRoot?: boolean }> = ({ node, isRoot }) => {
+  return (
+    <div className={`
+      relative flex flex-col items-center p-3 rounded-xl border shadow-sm transition-all hover:-translate-y-1 hover:shadow-md cursor-default min-w-[140px]
+      ${isRoot 
+        ? 'bg-indigo-600 border-indigo-600 text-white shadow-indigo-200' 
+        : 'bg-white border-slate-200 text-slate-800'
+      }
+    `}>
+      <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 overflow-hidden border-2 ${isRoot ? 'border-white/30 bg-white/10' : 'border-slate-100 bg-slate-50'}`}>
+        {node.avatar ? (
+          <img src={node.avatar} alt={node.name} className="w-full h-full object-cover" />
+        ) : (
+          <User className={`w-5 h-5 ${isRoot ? 'text-white' : 'text-slate-400'}`} />
+        )}
+      </div>
+      <div className="text-sm font-bold text-center leading-tight mb-0.5">{node.name}</div>
+      <div className={`text-[10px] font-medium text-center uppercase tracking-wider ${isRoot ? 'text-indigo-200' : 'text-slate-500'}`}>
+        {node.role}
+      </div>
+      
+      {/* Node Connector Point (Bottom) */}
+      {node.children && node.children.length > 0 && (
+        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-slate-300 border-2 border-slate-50 z-10"></div>
+      )}
+    </div>
+  );
+};
+
+const OrgTree: React.FC<{ node: OrgNode; isRoot?: boolean }> = ({ node, isRoot = false }) => {
+  const hasChildren = node.children && node.children.length > 0;
+
+  return (
+    <div className="flex flex-col items-center">
+      <OrgNodeCard node={node} isRoot={isRoot} />
+      
+      {hasChildren && (
+        <>
+          {/* Vertical line from parent down */}
+          <div className="w-px h-8 bg-slate-300"></div>
+          
+          <div className="flex relative">
+             {node.children!.map((child, index) => {
+               const isFirst = index === 0;
+               const isLast = index === node.children!.length - 1;
+               const isOnly = node.children!.length === 1;
+
+               return (
+                 <div key={child.id} className="flex flex-col items-center relative px-4">
+                    {/* Top Connecting Lines Logic */}
+                    {!isOnly && (
+                      <>
+                        {/* Horizontal Line: Connects siblings */}
+                        <div className={`absolute top-0 h-px bg-slate-300 ${
+                          isFirst ? 'left-1/2 right-0' : 
+                          isLast ? 'left-0 right-1/2' : 
+                          'left-0 right-0'
+                        }`}></div>
+                      </>
+                    )}
+                    
+                    {/* Vertical line from horizontal bus down to child */}
+                    <div className="w-px h-8 bg-slate-300"></div>
+                    
+                    {/* Recursive Render */}
+                    <OrgTree node={child} />
+                 </div>
+               );
+             })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// --- Main Page ---
+
 const EnterpriseProfilePage: React.FC<EnterpriseProfilePageProps> = ({ onBack, onTriggerLogin, user, onNavigate }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'projects' | 'cases' | 'culture'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'projects' | 'cases' | 'structure' | 'culture'>('overview');
   const [projectFilter, setProjectFilter] = useState<'all' | 'recruiting' | 'progress' | 'finished'>('all');
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
   
   const profile = MOCK_ENTERPRISE_PROFILE;
   
-  // Filter projects for this specific enterprise (Mock logic: matching name or just using a subset)
+  // Filter projects for this specific enterprise
   const allCompanyProjects = MOCK_PROJECTS.filter(p => p.client === profile.name || p.client.includes('Tech') || Math.random() > 0.7);
   
   const displayedProjects = allCompanyProjects.filter(p => {
@@ -31,12 +114,16 @@ const EnterpriseProfilePage: React.FC<EnterpriseProfilePageProps> = ({ onBack, o
     return true;
   });
 
+  const handleZoom = (delta: number) => {
+    setZoomLevel(prev => Math.min(Math.max(prev + delta, 0.5), 2));
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-20 pt-16">
        {/* Hero Cover */}
        <div className="h-64 md:h-80 w-full relative bg-slate-900 group overflow-hidden">
           <img 
-            src="https://picsum.photos/seed/tech_office_cover/1600/600" 
+            src={getImage('Tech Office', 1600, 600)} 
             alt="Cover" 
             className="w-full h-full object-cover opacity-80 transition-transform duration-1000 group-hover:scale-105"
           />
@@ -132,6 +219,7 @@ const EnterpriseProfilePage: React.FC<EnterpriseProfilePageProps> = ({ onBack, o
                       { id: 'overview', label: '企业概况', icon: Building },
                       { id: 'projects', label: `企划列表 (${allCompanyProjects.length})`, icon: Briefcase },
                       { id: 'cases', label: '成功案例', icon: BookOpen },
+                      { id: 'structure', label: '组织架构', icon: GitFork },
                       { id: 'culture', label: '团队文化', icon: Users }
                    ].map(tab => (
                       <button
@@ -197,7 +285,7 @@ const EnterpriseProfilePage: React.FC<EnterpriseProfilePageProps> = ({ onBack, o
                             </div>
                          </div>
 
-                         {/* Featured Case Preview (Expanded to 2 cards) */}
+                         {/* Featured Case Preview */}
                          <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
                              <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -365,71 +453,32 @@ const EnterpriseProfilePage: React.FC<EnterpriseProfilePageProps> = ({ onBack, o
                       </div>
                    )}
 
-                   {activeTab === 'cases' && (
-                      <div className="space-y-6 animate-fade-in">
-                          {MOCK_PROJECT_CASES.length === 0 ? (
-                             <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-200">
-                                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                   <BookOpen className="w-8 h-8 text-slate-300" />
-                                </div>
-                                <h3 className="text-lg font-bold text-slate-700 mb-1">暂无成功案例</h3>
-                                <p className="text-slate-500 text-sm">该企业尚未展示相关案例</p>
-                             </div>
-                          ) : (
-                              MOCK_PROJECT_CASES.map(caseItem => (
-                                  <div key={caseItem.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow group">
-                                      {/* Image & Header */}
-                                      <div className="h-60 w-full relative overflow-hidden">
-                                          <img 
-                                            src={caseItem.coverImage} 
-                                            alt={caseItem.title} 
-                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                                          />
-                                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                                          <div className="absolute bottom-6 left-6 right-6 text-white">
-                                              <div className="flex items-center gap-2 text-xs font-bold mb-2">
-                                                  <span className="bg-white/20 backdrop-blur-md px-2 py-0.5 rounded border border-white/20">{caseItem.year}</span>
-                                                  <span className="bg-indigo-500 px-2 py-0.5 rounded shadow-sm">{caseItem.category}</span>
-                                              </div>
-                                              <h3 className="text-2xl font-bold leading-tight">{caseItem.title}</h3>
-                                          </div>
-                                      </div>
-                                      
-                                      <div className="p-8">
-                                          <div className="mb-8">
-                                            <h4 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-2">
-                                              <div className="w-1 h-4 bg-indigo-500 rounded-full"></div> 项目背景
-                                            </h4>
-                                            <p className="text-slate-600 leading-relaxed text-sm">{caseItem.description}</p>
-                                          </div>
-                                          
-                                          {/* Key Results */}
-                                          <div className="grid grid-cols-2 gap-4 mb-8">
-                                              {caseItem.results.map((res, idx) => (
-                                                  <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col justify-center">
-                                                      <div className="text-3xl font-extrabold text-indigo-600 mb-1">{res.value}</div>
-                                                      <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">{res.label}</div>
-                                                  </div>
-                                              ))}
-                                          </div>
-
-                                          {/* Testimonial */}
-                                          {caseItem.clientTestimonial && (
-                                              <div className="bg-indigo-50/50 p-6 rounded-xl border border-indigo-100 relative">
-                                                  <Quote className="w-8 h-8 text-indigo-200 absolute top-4 right-4 rotate-180" />
-                                                  <p className="text-slate-700 italic relative z-10 mb-4 text-sm leading-relaxed">"{caseItem.clientTestimonial.text}"</p>
-                                                  <div className="flex items-center gap-2">
-                                                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs">
-                                                      {caseItem.clientTestimonial.author[0]}
-                                                    </div>
-                                                    <div className="text-xs font-bold text-indigo-900">{caseItem.clientTestimonial.author}</div>
-                                                  </div>
-                                              </div>
-                                          )}
-                                      </div>
-                                  </div>
-                              ))
-                          )}
+                   {activeTab === 'structure' && (
+                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 animate-fade-in relative overflow-hidden">
+                         <div className="flex items-center justify-between mb-8">
+                            <div>
+                               <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                  <GitFork className="w-5 h-5 text-indigo-600" /> 组织架构
+                               </h3>
+                               <p className="text-xs text-slate-500 mt-1">可视化展示公司部门结构与汇报关系</p>
+                            </div>
+                            <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg">
+                               <button onClick={() => handleZoom(-0.1)} className="p-1.5 hover:bg-white rounded-md text-slate-500 transition-colors shadow-sm"><ZoomOut className="w-4 h-4" /></button>
+                               <span className="text-xs font-mono text-slate-500 w-12 text-center">{Math.round(zoomLevel * 100)}%</span>
+                               <button onClick={() => handleZoom(0.1)} className="p-1.5 hover:bg-white rounded-md text-slate-500 transition-colors shadow-sm"><ZoomIn className="w-4 h-4" /></button>
+                               <button onClick={() => setZoomLevel(1)} className="p-1.5 hover:bg-white rounded-md text-slate-500 transition-colors shadow-sm" title="重置"><Maximize className="w-4 h-4" /></button>
+                            </div>
+                         </div>
+                         
+                         <div className="overflow-auto border border-slate-100 rounded-xl bg-slate-50/50 relative" style={{ height: '500px' }} ref={chartContainerRef}>
+                            <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px] opacity-50"></div>
+                            <div 
+                              className="min-w-full min-h-full flex items-center justify-center p-12 transition-transform duration-300 origin-top"
+                              style={{ transform: `scale(${zoomLevel})` }}
+                            >
+                               <OrgTree node={profile.structure} isRoot />
+                            </div>
+                         </div>
                       </div>
                    )}
 
@@ -437,7 +486,7 @@ const EnterpriseProfilePage: React.FC<EnterpriseProfilePageProps> = ({ onBack, o
                       <div className="animate-fade-in space-y-6">
                          <div className="grid grid-cols-2 gap-4">
                             <div className="col-span-2 aspect-[21/9] bg-slate-200 rounded-2xl overflow-hidden relative group">
-                               <img src="https://picsum.photos/seed/office_culture/800/400" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Office Life" />
+                               <img src={getImage('Office Life')} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Office Life" />
                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-8">
                                   <div className="text-white">
                                      <h4 className="font-bold text-2xl mb-2">开放协作的办公环境</h4>
@@ -446,12 +495,12 @@ const EnterpriseProfilePage: React.FC<EnterpriseProfilePageProps> = ({ onBack, o
                                </div>
                             </div>
                             <div className="aspect-square bg-slate-200 rounded-2xl overflow-hidden relative group">
-                               <img src="https://picsum.photos/seed/team_building/400/400" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Team Building" />
+                               <img src={getImage('Team Building')} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Team Building" />
                                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>
                                <div className="absolute bottom-4 left-4 text-white font-bold text-lg drop-shadow-md">季度团建</div>
                             </div>
                             <div className="aspect-square bg-slate-200 rounded-2xl overflow-hidden relative group">
-                               <img src="https://picsum.photos/seed/tech_conference/400/400" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Conference" />
+                               <img src={getImage('Tech Conference')} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Conference" />
                                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>
                                <div className="absolute bottom-4 left-4 text-white font-bold text-lg drop-shadow-md">技术分享会</div>
                             </div>

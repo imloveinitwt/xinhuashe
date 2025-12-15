@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Search, Sparkles, TrendingUp, ArrowRight, Zap, 
   Briefcase, Clock, 
-  Crown, ChevronRight, SlidersHorizontal, CheckCircle2, Monitor,
-  Heart, Eye, User as UserIcon, Building
+  Crown, ChevronRight, ChevronLeft, SlidersHorizontal, CheckCircle2, Monitor,
+  Heart, Eye, User as UserIcon, Building, Activity, Star, DollarSign
 } from 'lucide-react';
 import { MOCK_PROJECTS, MOCK_ARTWORKS } from '../constants';
 import { User, Artwork, ViewMode, Project } from '../types';
@@ -188,6 +188,9 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
   const [likedArtworks, setLikedArtworks] = useState<Set<string>>(new Set());
   const [isScrolled, setIsScrolled] = useState(false);
   const [heroIndex, setHeroIndex] = useState(0);
+  
+  // New state for Card Slider
+  const [cardIndex, setCardIndex] = useState(0);
 
   // Constants
   const CATEGORIES = ['全部', 'UI/UX', '插画', '3D模型', '概念设计', '二次元', '场景', '科幻', '像素画', '国风', '素材'];
@@ -210,25 +213,29 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
     } as Artwork;
   };
 
+  // Prepare card artworks (Top 5)
+  const cardArtworks = MOCK_ARTWORKS.slice(0, 5);
+  const activeCardArtwork = cardArtworks[cardIndex] || getSafeArtwork(0);
+
   // Hero Slides Data
   const HERO_SLIDES = [
     {
       image: getSafeArtwork(0).imageUrl, // Cyberpunk
       title: "连接无限创意",
       subtitle: "汇聚全球 10w+ 顶尖创作者",
-      color: "from-blue-600 to-purple-600"
+      color: "from-blue-400 via-indigo-400 to-purple-400"
     },
     {
       image: getSafeArtwork(5).imageUrl, // Ink
       title: "驱动商业价值",
       subtitle: "为企业打造智能化的创意供应链",
-      color: "from-emerald-600 to-teal-600"
+      color: "from-emerald-400 via-teal-400 to-cyan-400"
     },
     {
       image: getSafeArtwork(12).imageUrl, // 3D
       title: "管理数字资产",
       subtitle: "AI 赋能的 DAM 系统，让资产复用更简单",
-      color: "from-orange-600 to-rose-600"
+      color: "from-orange-400 via-rose-400 to-pink-400"
     }
   ];
 
@@ -247,6 +254,14 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
     }, 6000);
     return () => clearInterval(interval);
   }, [HERO_SLIDES.length]);
+
+  // Card Auto-play
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCardIndex((prev) => (prev + 1) % cardArtworks.length);
+    }, 4000); 
+    return () => clearInterval(timer);
+  }, [cardArtworks.length]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -295,7 +310,15 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
     }
   };
 
-  const currentHeroArtwork = getSafeArtwork(heroIndex);
+  const nextCard = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setCardIndex((prev) => (prev + 1) % cardArtworks.length);
+  };
+
+  const prevCard = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setCardIndex((prev) => (prev - 1 + cardArtworks.length) % cardArtworks.length);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-20 pt-16">
@@ -322,9 +345,9 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
         />
       )}
 
-      {/* 1. Immersive Hero Section (New Design) */}
-      <div className="relative bg-slate-900 overflow-hidden h-[600px] lg:h-[680px]">
-        {/* Background Slides */}
+      {/* 1. Responsive Immersive Hero Section */}
+      <div className="relative bg-[#0F172A] overflow-hidden min-h-[640px] lg:h-[800px] flex flex-col justify-center">
+        {/* Background Slides with Slow Zoom */}
         {HERO_SLIDES.map((slide, idx) => (
           <div 
             key={idx}
@@ -335,38 +358,45 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
             <img 
               src={slide.image} 
               alt="" 
-              className="w-full h-full object-cover opacity-60 scale-105 animate-float" // Slight movement
-              style={{ animationDuration: '20s' }}
+              className={`w-full h-full object-cover opacity-40 transition-transform duration-[20s] ease-linear ${idx === heroIndex ? 'scale-110' : 'scale-100'}`}
             />
-            {/* Overlay Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/80 to-slate-900/20 md:to-transparent"></div>
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
+            {/* Overlay Gradients for Depth */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A] via-[#0F172A]/90 to-[#0F172A]/30 lg:to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-transparent to-transparent"></div>
           </div>
         ))}
 
-        <div className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        {/* Hero Content */}
+        <div className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 w-full pt-10 pb-20 lg:py-0">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
-            {/* Left Content */}
-            <div className="max-w-2xl space-y-8 pt-10">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white text-xs font-bold backdrop-blur-md animate-fade-in-up">
-                <Sparkles className="w-3 h-3 text-yellow-400" />
+            {/* Left: Text Content (Spans 7 cols on desktop) */}
+            <div className="lg:col-span-7 space-y-8 lg:space-y-10">
+              
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-white text-xs md:text-sm font-bold backdrop-blur-md animate-fade-in-up shadow-lg">
+                <div className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                </div>
                 薪画社 2.0 全新上线
               </div>
               
+              {/* Headings */}
               <div className="space-y-4">
-                <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight leading-tight">
+                <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.1]">
                   <span className="block animate-fade-in-up" style={{ animationDelay: '100ms' }}>
                     {HERO_SLIDES[heroIndex].title}
                   </span>
-                  <span className={`text-transparent bg-clip-text bg-gradient-to-r ${HERO_SLIDES[heroIndex].color} block text-4xl md:text-6xl mt-2 animate-fade-in-up transition-colors duration-1000`} style={{ animationDelay: '200ms' }}>
+                  <span className={`text-transparent bg-clip-text bg-gradient-to-r ${HERO_SLIDES[heroIndex].color} block mt-2 animate-fade-in-up transition-all duration-1000`} style={{ animationDelay: '200ms' }}>
                     {heroIndex === 0 && "落地商业价值"}
                     {heroIndex === 1 && "释放设计潜能"}
                     {heroIndex === 2 && "加速创意流转"}
                   </span>
                 </h1>
-                <p className="text-lg text-slate-300 max-w-lg leading-relaxed animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+                <p className="text-base sm:text-lg text-slate-300 max-w-xl leading-relaxed animate-fade-in-up font-light" style={{ animationDelay: '300ms' }}>
                   {HERO_SLIDES[heroIndex].subtitle}。
+                  <br className="hidden md:block"/>
                   无论是寻找灵感的独立创作者，还是寻求高效方案的企业主，这里都是最佳起点。
                 </p>
               </div>
@@ -375,7 +405,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
               <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
                 <button 
                   onClick={() => onNavigate?.('enterprise_showcase')}
-                  className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 group"
+                  className="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold transition-all shadow-[0_0_20px_-5px_rgba(79,70,229,0.5)] hover:shadow-[0_0_30px_-5px_rgba(79,70,229,0.6)] hover:-translate-y-1 flex items-center justify-center gap-2 group w-full sm:w-auto"
                 >
                   <Briefcase className="w-5 h-5" />
                   我是企业主
@@ -383,7 +413,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
                 </button>
                 <button 
                   onClick={() => onNavigate?.('artworks')}
-                  className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl font-bold transition-all backdrop-blur-md flex items-center justify-center gap-2"
+                  className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-2xl font-bold transition-all backdrop-blur-md flex items-center justify-center gap-2 w-full sm:w-auto hover:-translate-y-1"
                 >
                   <Sparkles className="w-5 h-5" />
                   我是创作者
@@ -391,76 +421,143 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
               </div>
 
               {/* Search Bar (Integrated) */}
-              <div className="pt-4 max-w-md animate-fade-in-up" style={{ animationDelay: '500ms' }}>
+              <div className="pt-2 max-w-lg animate-fade-in-up" style={{ animationDelay: '500ms' }}>
                  <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-xl blur-md group-hover:blur-lg transition-all"></div>
-                    <div className="relative flex items-center bg-slate-800/80 backdrop-blur-md rounded-xl border border-white/10 focus-within:border-indigo-500/50 transition-colors">
-                       <Search className="w-5 h-5 text-slate-400 ml-4" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/30 to-purple-500/30 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="relative flex items-center bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/10 focus-within:border-indigo-500/50 focus-within:bg-slate-800/80 transition-all shadow-lg">
+                       <Search className="w-5 h-5 text-slate-400 ml-5" />
                        <input 
                          type="text" 
-                         className="w-full bg-transparent border-none outline-none px-4 py-3 text-white placeholder:text-slate-500"
-                         placeholder="搜索灵感、画师或企划..."
+                         className="w-full bg-transparent border-none outline-none px-4 py-4 text-white placeholder:text-slate-500 text-sm md:text-base"
+                         placeholder="搜索灵感、画师或企划 (例如: 赛博朋克)..."
                          value={searchQuery}
                          onChange={(e) => setSearchQuery(e.target.value)}
                        />
+                       <div className="pr-2 hidden sm:block">
+                          <span className="text-[10px] text-slate-500 border border-slate-700 rounded px-1.5 py-0.5">⌘K</span>
+                       </div>
                     </div>
                  </div>
               </div>
             </div>
 
-            {/* Right: Floating Card (Desktop Only) */}
-            <div className="hidden lg:flex justify-end items-center h-full relative">
-               <div className="relative w-[400px] h-[500px] perspective-1000">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-3xl opacity-20 blur-3xl animate-pulse"></div>
+            {/* Right: Floating Card (Desktop Only - Spans 5 cols) */}
+            <div className="hidden lg:flex lg:col-span-5 justify-end items-center h-full relative perspective-1000">
+               {/* Decorative Background Blobs */}
+               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 rounded-full blur-[100px] animate-pulse"></div>
+               
+               {/* Main Floating Card */}
+               <div className="relative w-[380px] h-[520px] transform transition-transform duration-500 hover:rotate-y-12 hover:rotate-x-12 animate-float">
                   
-                  {/* Floating Glass Card */}
-                  <div className="relative w-full h-full bg-slate-800/40 backdrop-blur-xl border border-white/10 rounded-3xl p-6 flex flex-col shadow-2xl animate-float">
+                  {/* Floating Elements - Behind */}
+                  <div className="absolute -top-12 -right-12 p-4 bg-slate-800/80 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl animate-bounce" style={{ animationDuration: '3s' }}>
+                     <Activity className="w-8 h-8 text-green-400" />
+                  </div>
+
+                  {/* Glass Card */}
+                  <div className="relative w-full h-full bg-slate-800/40 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-6 flex flex-col shadow-[0_0_50px_-10px_rgba(0,0,0,0.5)] overflow-hidden group">
+                     {/* Glossy Reflection */}
+                     <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none"></div>
+                     
                      {/* Card Header */}
-                     <div className="flex justify-between items-center mb-4">
-                        <div className="flex items-center gap-2">
-                           <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-                           <span className="text-white text-xs font-bold uppercase tracking-wider">Trending Now</span>
+                     <div className="flex justify-between items-center mb-6 relative z-10">
+                        <div className="flex items-center gap-2 bg-black/40 rounded-full px-3 py-1 border border-white/5">
+                           <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></div>
+                           <span className="text-white text-xs font-bold uppercase tracking-wider">Trending</span>
                         </div>
-                        <span className="text-white/50 text-xs">Top Rated</span>
-                     </div>
-
-                     {/* Featured Image */}
-                     <div className="flex-1 rounded-2xl overflow-hidden relative group mb-4 cursor-pointer" onClick={() => setSelectedArtworkId(currentHeroArtwork.id)}>
-                        <img 
-                          src={currentHeroArtwork.imageUrl} 
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                          alt="Featured" 
-                        />
-                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>
-                        <div className="absolute bottom-4 left-4 right-4">
-                           <div className="bg-black/60 backdrop-blur-md p-3 rounded-xl border border-white/10">
-                              <h3 className="text-white font-bold text-sm truncate">{currentHeroArtwork.title}</h3>
-                              <p className="text-white/70 text-xs mt-1 flex items-center gap-1">
-                                 <UserIcon className="w-3 h-3" /> {currentHeroArtwork.artist}
-                              </p>
-                           </div>
+                        <div className="flex -space-x-2">
+                           {[1,2,3].map(i => (
+                              <div key={i} className="w-6 h-6 rounded-full bg-slate-600 border border-slate-800"></div>
+                           ))}
                         </div>
                      </div>
 
-                     {/* Mini Stats */}
-                     <div className="grid grid-cols-3 gap-2">
-                        <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
-                           <div className="text-indigo-400 font-bold text-lg">{currentHeroArtwork.likes}</div>
-                           <div className="text-white/40 text-[10px]">Likes</div>
+                     {/* Featured Image Area */}
+                     <div className="flex-1 rounded-2xl overflow-hidden relative group cursor-pointer border border-white/5" onClick={() => setSelectedArtworkId(activeCardArtwork.id)}>
+                        {/* Image Carousel */}
+                        {cardArtworks.map((art, idx) => (
+                            <div 
+                                key={art.id}
+                                className={`absolute inset-0 transition-all duration-700 ease-in-out ${
+                                    idx === cardIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-110'
+                                }`}
+                            >
+                                <img 
+                                  src={art.imageUrl} 
+                                  className="w-full h-full object-cover" 
+                                  alt={art.title} 
+                                />
+                                {/* Gradient Overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                            </div>
+                        ))}
+
+                        {/* Navigation Controls (Visible on Hover) */}
+                        <div className="absolute inset-0 flex items-center justify-between px-2 opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none">
+                            <button 
+                                onClick={prevCard} 
+                                className="p-1.5 rounded-full bg-black/40 text-white/80 hover:bg-black/60 hover:text-white backdrop-blur-md pointer-events-auto transition-all hover:scale-110"
+                            >
+                                <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            <button 
+                                onClick={nextCard} 
+                                className="p-1.5 rounded-full bg-black/40 text-white/80 hover:bg-black/60 hover:text-white backdrop-blur-md pointer-events-auto transition-all hover:scale-110"
+                            >
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
                         </div>
-                        <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
-                           <div className="text-pink-400 font-bold text-lg">{(currentHeroArtwork.views / 1000).toFixed(1)}k</div>
-                           <div className="text-white/40 text-[10px]">Views</div>
+
+                        {/* Info Overlay */}
+                        <div className="absolute bottom-5 left-5 right-5 z-10">
+                            <div className="transform transition-all duration-500 translate-y-0">
+                                <h3 className="text-white font-bold text-lg truncate mb-1 drop-shadow-md">{activeCardArtwork.title}</h3>
+                                <p className="text-white/70 text-xs flex items-center gap-1.5">
+                                    <img src={activeCardArtwork.artistAvatar} className="w-4 h-4 rounded-full border border-white/20" alt=""/>
+                                    {activeCardArtwork.artist}
+                                </p>
+                            </div>
                         </div>
-                        <div className="bg-indigo-600 rounded-lg p-2 flex items-center justify-center cursor-pointer hover:bg-indigo-700 transition-colors">
+
+                        {/* Progress Indicators */}
+                        <div className="absolute top-4 left-0 right-0 flex justify-center gap-1.5 z-20">
+                            {cardArtworks.map((_, idx) => (
+                                <div 
+                                    key={idx} 
+                                    className={`h-1 rounded-full transition-all duration-300 ${
+                                        idx === cardIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/30'
+                                    }`}
+                                ></div>
+                            ))}
+                        </div>
+                     </div>
+
+                     {/* Mini Stats Row */}
+                     <div className="grid grid-cols-3 gap-3 mt-5 relative z-10">
+                        <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5 hover:bg-white/10 transition-colors cursor-default">
+                           <Heart className="w-4 h-4 text-rose-400 mx-auto mb-1" />
+                           <div className="text-white font-bold text-xs">{activeCardArtwork.likes}</div>
+                        </div>
+                        <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5 hover:bg-white/10 transition-colors cursor-default">
+                           <Eye className="w-4 h-4 text-blue-400 mx-auto mb-1" />
+                           <div className="text-white font-bold text-xs">{(activeCardArtwork.views/1000).toFixed(1)}k</div>
+                        </div>
+                        <button className="bg-indigo-600 rounded-xl p-3 flex items-center justify-center hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-500/20">
                            <ArrowRight className="w-5 h-5 text-white" />
-                        </div>
+                        </button>
                      </div>
                   </div>
 
-                  {/* Decorative Elements */}
-                  <div className="absolute -top-6 -right-6 w-20 h-20 bg-yellow-400 rounded-full blur-2xl opacity-20"></div>
-                  <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-600 rounded-full blur-3xl opacity-20"></div>
+                  {/* Floating Elements - Front */}
+                  <div className="absolute -bottom-8 -left-8 bg-white rounded-2xl p-4 shadow-2xl border border-slate-100 flex items-center gap-3 animate-float" style={{ animationDelay: '1s' }}>
+                     <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                        <DollarSign className="w-5 h-5" />
+                     </div>
+                     <div>
+                        <div className="text-xs text-slate-500 font-bold uppercase">最新成交</div>
+                        <div className="text-slate-900 font-bold font-mono">¥12,500</div>
+                     </div>
+                  </div>
                </div>
             </div>
 
@@ -468,37 +565,25 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
         </div>
 
         {/* Integrated Stats Bar (Glassmorphism) */}
-        <div className="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-slate-900/60 backdrop-blur-md z-20">
+        <div className="absolute bottom-0 left-0 right-0 border-t border-white/5 bg-[#0F172A]/80 backdrop-blur-md z-20">
            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <div className="flex flex-wrap justify-center md:justify-between items-center gap-6 md:gap-12">
-                 <div className="flex items-center gap-3 group cursor-pointer hover:scale-105 transition-transform">
-                    <div className="p-2 bg-indigo-500/20 rounded-lg text-indigo-400 group-hover:bg-indigo-50 group-hover:text-white transition-colors"><Monitor className="w-5 h-5" /></div>
-                    <div>
-                       <div className="font-bold text-white text-lg leading-none">120k+</div>
-                       <div className="text-xs text-slate-400 font-medium mt-1">优质原创作品</div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12">
+                 {[
+                    { label: '优质原创作品', value: '120k+', icon: Monitor, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
+                    { label: '认证创作者', value: '8,500+', icon: Crown, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+                    { label: '累计交易总额', value: '¥50M+', icon: Briefcase, color: 'text-green-400', bg: 'bg-green-500/10' },
+                    { label: '资金托管保障', value: '100%', icon: CheckCircle2, color: 'text-blue-400', bg: 'bg-blue-500/10' }
+                 ].map((stat, i) => (
+                    <div key={i} className="flex items-center gap-4 group cursor-pointer hover:bg-white/5 p-2 rounded-xl transition-colors">
+                       <div className={`p-3 rounded-xl ${stat.bg} ${stat.color} group-hover:scale-110 transition-transform`}>
+                          <stat.icon className="w-6 h-6" />
+                       </div>
+                       <div>
+                          <div className="font-bold text-white text-xl leading-none mb-1 group-hover:text-indigo-300 transition-colors">{stat.value}</div>
+                          <div className="text-xs text-slate-400 font-medium">{stat.label}</div>
+                       </div>
                     </div>
-                 </div>
-                 <div className="flex items-center gap-3 group cursor-pointer hover:scale-105 transition-transform">
-                    <div className="p-2 bg-purple-500/20 rounded-lg text-purple-400 group-hover:bg-purple-50 group-hover:text-white transition-colors"><Crown className="w-5 h-5" /></div>
-                    <div>
-                       <div className="font-bold text-white text-lg leading-none">8,500+</div>
-                       <div className="text-xs text-slate-400 font-medium mt-1">认证创作者</div>
-                    </div>
-                 </div>
-                 <div className="flex items-center gap-3 group cursor-pointer hover:scale-105 transition-transform">
-                    <div className="p-2 bg-green-500/20 rounded-lg text-green-400 group-hover:bg-green-50 group-hover:text-white transition-colors"><Briefcase className="w-5 h-5" /></div>
-                    <div>
-                       <div className="font-bold text-white text-lg leading-none">¥50M+</div>
-                       <div className="text-xs text-slate-400 font-medium mt-1">累计交易总额</div>
-                    </div>
-                 </div>
-                 <div className="flex items-center gap-3 group cursor-pointer hover:scale-105 transition-transform">
-                    <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400 group-hover:bg-blue-50 group-hover:text-white transition-colors"><CheckCircle2 className="w-5 h-5" /></div>
-                    <div>
-                       <div className="font-bold text-white text-lg leading-none">100%</div>
-                       <div className="text-xs text-slate-400 font-medium mt-1">资金托管保障</div>
-                    </div>
-                 </div>
+                 ))}
               </div>
            </div>
         </div>
@@ -687,7 +772,7 @@ const DiscoveryView: React.FC<DiscoveryViewProps> = ({ onNavigateToProfile, onTr
            </div>
 
            {/* Waterfall Grid - Masonry Layout */}
-           <div className="mt-6 columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+           <div className="mt-6 columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6">
               {isLoading ? (
                  Array.from({ length: 8 }).map((_, i) => (
                     <div key={i} className="break-inside-avoid mb-6">

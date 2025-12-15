@@ -5,6 +5,7 @@ import {
   Mail, Search, Filter, CheckCircle2 
 } from 'lucide-react';
 import { UserRole } from '../types';
+import { getAvatar } from '../mockData'; // Import local avatar generator
 
 interface TeamMember {
   id: string;
@@ -17,10 +18,10 @@ interface TeamMember {
 }
 
 const MOCK_TEAM_MEMBERS: TeamMember[] = [
-  { id: '1', name: 'Alex Chen', email: 'alex@technova.com', avatar: 'https://ui-avatars.com/api/?name=Alex+Chen&background=random', role: 'admin', status: 'active', lastActive: '5分钟前' },
-  { id: '2', name: 'Sarah Wu', email: 'sarah@technova.com', avatar: 'https://ui-avatars.com/api/?name=Sarah+Wu&background=random', role: 'editor', status: 'active', lastActive: '1小时前' },
-  { id: '3', name: 'Mike Ross', email: 'mike@technova.com', avatar: 'https://ui-avatars.com/api/?name=Mike+Ross&background=random', role: 'editor', status: 'active', lastActive: '2天前' },
-  { id: '4', name: 'Emily Zhang', email: 'emily@technova.com', avatar: 'https://ui-avatars.com/api/?name=Emily+Z&background=random', role: 'viewer', status: 'invited', lastActive: '-' },
+  { id: '1', name: 'Alex Chen', email: 'alex@technova.com', avatar: getAvatar('Alex Chen'), role: 'admin', status: 'active', lastActive: '5分钟前' },
+  { id: '2', name: 'Sarah Wu', email: 'sarah@technova.com', avatar: getAvatar('Sarah Wu'), role: 'editor', status: 'active', lastActive: '1小时前' },
+  { id: '3', name: 'Mike Ross', email: 'mike@technova.com', avatar: getAvatar('Mike Ross'), role: 'editor', status: 'active', lastActive: '2天前' },
+  { id: '4', name: 'Emily Zhang', email: 'emily@technova.com', avatar: getAvatar('Emily Zhang'), role: 'viewer', status: 'invited', lastActive: '-' },
 ];
 
 const TeamView: React.FC = () => {

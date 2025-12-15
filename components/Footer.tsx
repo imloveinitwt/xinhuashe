@@ -711,7 +711,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate, onTriggerUpload }) => {
               &copy; {currentYear} 薪画社 (Xinhuashe). 保留所有权利.
             </p>
             <div className="flex flex-wrap justify-center gap-6 text-sm text-slate-400">
-              <span className="hover:text-slate-600 cursor-pointer">京ICP备12345678号-1</span>
+              <a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" className="hover:text-slate-600 cursor-pointer transition-colors">鲁ICP备2025202238号</a>
               <span className="flex items-center gap-1.5 hover:text-slate-600 cursor-pointer">
                 <span className="w-2 h-2 rounded-full bg-green-500"></span>
                 系统运行正常

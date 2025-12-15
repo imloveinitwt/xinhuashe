@@ -7,9 +7,9 @@ import {
   Layers, MessageSquare, FileText, UploadCloud, MoreHorizontal, User as UserIcon,
   Check, Send, Paperclip, Download, ChevronRight, TrendingUp, Zap, Target,
   Heart, Share2, Star, ShieldCheck, Flame, ChevronDown, SlidersHorizontal, MousePointerClick,
-  Loader2
+  Loader2, Sparkles, Activity
 } from 'lucide-react';
-import { MOCK_PROJECTS } from '../constants';
+import { MOCK_PROJECTS, BUDGET_RANGES, CATEGORIES } from '../constants';
 import { Project, User } from '../types';
 import ProjectDrawer from './ProjectDrawer';
 import ProjectCard from './ProjectCard';
@@ -19,17 +19,6 @@ interface ProjectsHubPageProps {
   onTriggerLogin?: () => void;
   user?: User | null;
 }
-
-// --- Configuration Constants ---
-const CATEGORIES = ['全部', 'UI/UX', '插画', '3D/动画', '平面设计', '游戏原画', '网站设计', '品牌全案'];
-
-const BUDGET_RANGES = [
-  { id: 'all', label: '不限预算', min: 0, max: Infinity },
-  { id: 'low', label: '5k以下', min: 0, max: 5000 },
-  { id: 'mid', label: '5k - 20k', min: 5000, max: 20000 },
-  { id: 'high', label: '20k - 50k', min: 20000, max: 50000 },
-  { id: 'premium', label: '50k以上', min: 50000, max: Infinity },
-];
 
 const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
   e.currentTarget.src = 'https://placehold.co/800x400/f1f5f9/94a3b8?text=Project+Cover';
@@ -81,7 +70,7 @@ const ProjectsHubPage: React.FC<ProjectsHubPageProps> = ({ onBack, onTriggerLogi
     setVisibleCount(9);
   }, [filterStatus, searchQuery, selectedCategory, selectedBudgetRange, sortOrder]);
 
-  const featuredProjects = MOCK_PROJECTS.filter(p => p.status === '招募中' && p.budget > 10000).slice(0, 3);
+  const featuredProjects = MOCK_PROJECTS.filter(p => p.status === '招募中' && p.budget > 10000).slice(0, 5);
 
   // Mock Stats
   const stats = {
@@ -115,19 +104,6 @@ const ProjectsHubPage: React.FC<ProjectsHubPageProps> = ({ onBack, onTriggerLogi
     }, 600); // Simulate network delay
   };
 
-  // Interactive tag click
-  const handleTagClick = (tag: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    // Check if tag is in categories, otherwise set search
-    if (CATEGORIES.includes(tag)) {
-      setSelectedCategory(tag);
-    } else {
-      setSearchQuery(tag);
-    }
-    // Scroll to filter bar
-    window.scrollTo({ top: 400, behavior: 'smooth' });
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-20 pt-16">
       {selectedProject && (
@@ -139,89 +115,134 @@ const ProjectsHubPage: React.FC<ProjectsHubPageProps> = ({ onBack, onTriggerLogi
         />
       )}
 
-      {/* 1. Enhanced Hero Section */}
-      <div className="bg-white border-b border-slate-200 relative overflow-hidden">
-         {/* Decorative Background */}
-         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-indigo-50 to-blue-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
-         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-to-tr from-purple-50 to-pink-50 rounded-full blur-3xl opacity-40 pointer-events-none"></div>
+      {/* 1. Enhanced Hero Section (Rich Dark Theme) */}
+      <div className="relative bg-[#0F172A] text-white overflow-hidden pt-12 pb-24 border-b border-slate-800">
+         {/* Animated Background Effects */}
+         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-600/20 rounded-full blur-[120px] -mr-40 -mt-40 pointer-events-none animate-pulse" style={{animationDuration: '8s'}}></div>
+         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[100px] -ml-20 -mb-20 pointer-events-none animate-pulse" style={{animationDuration: '10s'}}></div>
+         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none"></div>
          
-         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">
-            <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 mb-6 transition-colors font-medium text-sm">
-               <ArrowLeft className="w-4 h-4" /> 返回社区
-            </button>
-            <div className="flex flex-col lg:flex-row justify-between items-end gap-8 mb-10">
-               <div className="max-w-2xl">
-                  <h1 className="text-4xl font-extrabold text-slate-900 mb-4 flex items-center gap-3 tracking-tight">
-                    <div className="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-200">
-                       <Briefcase className="w-8 h-8" />
-                    </div>
-                    企划大厅
+         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            {/* Top Bar */}
+            <div className="flex justify-between items-center mb-12">
+               <button 
+                 onClick={onBack} 
+                 className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm font-medium group animate-fade-in"
+               >
+                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> 返回社区
+               </button>
+               
+               <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-400 animate-fade-in">
+                  <span className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-emerald-500" /> 资金全额托管</span>
+                  <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> 企业实名认证</span>
+               </div>
+            </div>
+
+            <div className="flex flex-col lg:flex-row justify-between items-end gap-16 mb-16">
+               <div className="max-w-3xl">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-bold mb-6 backdrop-blur-md animate-fade-in-up">
+                     <Sparkles className="w-3.5 h-3.5 fill-current" /> 连接商业需求与顶尖创意
+                  </div>
+                  <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                    <span className="block mb-2">激发创意潜能</span>
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-blue-400 to-cyan-400">
+                       交付商业价值
+                    </span>
                   </h1>
-                  <p className="text-slate-500 text-lg leading-relaxed">
-                     汇聚全网优质商业需求，提供 <span className="text-indigo-700 font-bold bg-indigo-50 px-1 rounded">100% 资金托管</span> 保障。
-                     <br className="hidden md:block" />让每一次创作都有价值，让每一次交付都更安心。
+                  <p className="text-slate-400 text-lg leading-relaxed max-w-2xl animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+                     汇聚游戏、品牌、互联网行业的优质外包企划。
+                     <br className="hidden md:block" />透明报价，标准合约，让每一次交付都值得信赖。
                   </p>
                   
-                  {/* Quick Stats Strip */}
-                  <div className="flex gap-6 mt-6 pt-6 border-t border-slate-100">
+                  {/* Data Dashboard Strip */}
+                  <div className="flex flex-wrap gap-8 mt-10 pt-8 border-t border-white/10 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
                      <div>
-                        <div className="text-2xl font-bold text-slate-900">{stats.activeProjects}</div>
-                        <div className="text-xs text-slate-500 font-medium uppercase tracking-wider">招募中企划</div>
+                        <div className="text-3xl font-bold text-white font-mono flex items-baseline gap-1">
+                           {stats.activeProjects}
+                           <span className="text-sm text-green-500 font-medium ml-2 flex items-center"><TrendingUp className="w-3 h-3 mr-0.5" /> +12%</span>
+                        </div>
+                        <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">招募中企划</div>
                      </div>
-                     <div className="w-px bg-slate-200 h-10"></div>
+                     <div className="w-px h-10 bg-white/10 hidden md:block"></div>
                      <div>
-                        <div className="text-2xl font-bold text-slate-900">¥{(stats.avgBudget/1000).toFixed(1)}k</div>
-                        <div className="text-xs text-slate-500 font-medium uppercase tracking-wider">平均预算</div>
+                        <div className="text-3xl font-bold text-white font-mono">¥{(stats.avgBudget/1000).toFixed(1)}k</div>
+                        <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">平均项目预算</div>
                      </div>
-                     <div className="w-px bg-slate-200 h-10"></div>
+                     <div className="w-px h-10 bg-white/10 hidden md:block"></div>
                      <div>
-                        <div className="text-2xl font-bold text-green-600">+{stats.newToday}</div>
-                        <div className="text-xs text-slate-500 font-medium uppercase tracking-wider">今日新增</div>
+                        <div className="text-3xl font-bold text-emerald-400 font-mono">+{stats.newToday}</div>
+                        <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">今日新增</div>
                      </div>
                   </div>
                </div>
                
-               <div className="flex gap-3">
+               <div className="w-full lg:w-auto flex flex-col gap-4 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
                  <button 
                    onClick={handlePostProject}
-                   className="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-600 transition-all shadow-xl hover:shadow-indigo-200 hover:-translate-y-1 flex items-center justify-center gap-2 group"
+                   className="bg-white text-slate-900 px-10 py-4 rounded-xl font-bold text-lg hover:bg-slate-200 transition-all shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)] hover:-translate-y-1 flex items-center justify-center gap-2 group w-full lg:w-auto min-w-[240px]"
                  >
-                   <UploadCloud className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                   发布新企划
+                   <UploadCloud className="w-5 h-5 group-hover:scale-110 transition-transform text-indigo-600" />
+                   立即发布需求
                  </button>
+                 <p className="text-xs text-slate-500 text-center lg:text-right flex items-center justify-center lg:justify-end gap-1">
+                    <Activity className="w-3 h-3" /> 平均 10 分钟内获得响应
+                 </p>
                </div>
             </div>
 
-            {/* Featured Projects Scroll */}
-            <div className="mb-2">
-               <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2 text-sm font-bold text-slate-800">
-                     <div className="p-1 bg-rose-100 text-rose-600 rounded"><Flame className="w-3.5 h-3.5" /></div>
+            {/* Featured Projects Horizontal Scroll (Glassmorphism) */}
+            <div className="relative animate-fade-in-up" style={{ animationDelay: '500ms' }}>
+               <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-2 text-white font-bold text-lg">
+                     <div className="p-1.5 bg-orange-500/20 rounded-lg">
+                        <Flame className="w-5 h-5 text-orange-500 fill-current animate-pulse" />
+                     </div>
                      急需人才 / 高薪项目
                   </div>
+                  <div className="flex gap-2">
+                     {/* Optional arrows could go here */}
+                  </div>
                </div>
-               <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 -mx-4 px-4 md:mx-0 md:px-0">
-                  {featuredProjects.map(p => (
+               
+               <div className="flex gap-5 overflow-x-auto no-scrollbar pb-6 -mx-4 px-4 md:mx-0 md:px-0">
+                  {featuredProjects.map((p, idx) => (
                      <div 
                         key={`feat-${p.id}`} 
                         onClick={() => setSelectedProject(p)}
-                        className="min-w-[280px] bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl p-5 text-white shadow-lg cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all relative overflow-hidden group"
+                        className="min-w-[320px] w-[320px] bg-slate-800/40 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:bg-slate-800/60 transition-all cursor-pointer group relative overflow-hidden flex flex-col hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-500/10"
+                        style={{ animationDelay: `${500 + idx * 50}ms` }}
                      >
-                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity"><Zap className="w-24 h-24" /></div>
+                        {/* Decorative Background Icon */}
+                        <div className="absolute -right-6 -top-6 text-white/5 group-hover:text-white/10 transition-colors transform rotate-12">
+                           <Zap className="w-32 h-32" />
+                        </div>
+                        
                         <div className="relative z-10 flex flex-col h-full">
-                           <div className="flex justify-between items-start mb-2">
-                              <span className="text-[10px] bg-white/10 border border-white/10 px-2 py-0.5 rounded font-medium text-indigo-100 backdrop-blur-sm">{p.client}</span>
-                              <span className="text-[10px] text-amber-300 font-bold bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/30">急招</span>
+                           <div className="flex justify-between items-start mb-4">
+                              <span className="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-1 rounded-md font-bold uppercase tracking-wide">
+                                {p.category}
+                              </span>
+                              <span className="text-[10px] text-orange-300 font-bold bg-orange-500/20 px-2 py-1 rounded-md border border-orange-500/30 flex items-center gap-1">
+                                <Clock className="w-3 h-3" /> 急招
+                              </span>
                            </div>
-                           <h4 className="font-bold text-lg mb-1 line-clamp-1 group-hover:text-indigo-200 transition-colors">{p.title}</h4>
-                           <div className="text-xs text-slate-400 mb-6 line-clamp-1">{p.description}</div>
                            
-                           <div className="mt-auto flex justify-between items-end border-t border-white/10 pt-3">
+                           <h4 className="text-white font-bold text-lg mb-3 line-clamp-2 group-hover:text-indigo-400 transition-colors leading-snug h-[3.5rem]">
+                             {p.title}
+                           </h4>
+                           
+                           <div className="flex items-center gap-2 text-slate-400 text-xs mb-5">
+                              <Building className="w-3.5 h-3.5" /> 
+                              <span className="truncate max-w-[180px]">{p.client}</span>
+                              <CheckCircle2 className="w-3 h-3 text-blue-500" />
+                           </div>
+                           
+                           <div className="mt-auto pt-4 border-t border-white/5 flex items-end justify-between">
                               <div>
-                                 <p className="text-[10px] text-slate-400 uppercase font-bold">预算</p>
-                                 <p className="text-xl font-bold tracking-tight">¥{p.budget.toLocaleString()}</p>
+                                 <p className="text-[10px] text-slate-500 uppercase font-bold mb-0.5">项目预算</p>
+                                 <p className="text-xl font-bold text-emerald-400 font-mono tracking-tight">¥{p.budget.toLocaleString()}</p>
                               </div>
-                              <div className="w-8 h-8 rounded-full bg-white text-indigo-900 flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all transform group-hover:rotate-[-45deg]">
                                  <ArrowRight className="w-4 h-4" />
                               </div>
                            </div>

@@ -6,11 +6,92 @@ import {
 } from './types';
 import { Target, Palette } from 'lucide-react';
 
-// --- ASSET HELPERS ---
-// 使用稳定的头像服务 (Notion 风格)
-export const getAvatar = (seed: string) => `https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(seed)}&backgroundColor=e5e7eb,b6e3f4,c0aede,d1d4f9,ffd5dc`;
-// 使用 Picsum 作为更稳定的图片源 (替代 Unsplash)
-export const getImage = (id: string, w = 800, h = 600) => `https://picsum.photos/seed/${id}/${w}/${h}`;
+// --- ASSET HELPERS (LOCAL SVG GENERATION) ---
+
+/**
+ * 确定性颜色生成器
+ */
+const stringToColor = (str: string) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const h = Math.abs(hash % 360);
+  return {
+    h,
+    s: 60 + (hash % 20), // 60-80%
+    l: 50 + (hash % 10), // 50-60%
+    color: `hsl(${h}, ${60 + (hash % 20)}%, ${50 + (hash % 10)}%)`,
+    bg: `hsl(${h}, ${60 + (hash % 20)}%, ${90 + (hash % 5)}%)`,
+    gradient1: `hsl(${h}, 70%, 60%)`,
+    gradient2: `hsl(${(h + 45) % 360}, 70%, 50%)`
+  };
+};
+
+/**
+ * 本地生成 SVG 头像 (Local SVG Avatar)
+ * 完全不依赖外部网络，支持中文字符，加载极快
+ */
+export const getAvatar = (name: string) => {
+  const { color, bg } = stringToColor(name);
+  const initial = name.slice(0, 1).toUpperCase();
+  
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+      <rect width="128" height="128" fill="${bg}" />
+      <text x="64" y="64" dy=".35em" text-anchor="middle" font-family="Arial, sans-serif" font-size="60" fill="${color}" font-weight="bold">
+        ${initial}
+      </text>
+    </svg>
+  `;
+  return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
+};
+
+/**
+ * 本地生成高质量抽象背景图 (Local SVG Image)
+ * 替代不稳定的 AI 图床，确保中国地区访问速度
+ */
+export const getImage = (prompt: string, w = 800, h = 600) => {
+  const { gradient1, gradient2, h: hue } = stringToColor(prompt);
+  
+  // 生成一些随机但确定的形状
+  let shapes = '';
+  const seed = prompt.length;
+  for (let i = 0; i < 5; i++) {
+    const cx = ((seed * (i + 1) * 37) % 100);
+    const cy = ((seed * (i + 1) * 73) % 100);
+    const r = 20 + ((seed * (i + 1) * 13) % 40);
+    const opacity = 0.1 + (((seed * i) % 20) / 100);
+    shapes += `<circle cx="${cx}%" cy="${cy}%" r="${r}%" fill="white" fill-opacity="${opacity}" />`;
+  }
+
+  // 添加简单的文字（可选）
+  // 提取prompt中的关键词，避免过长
+  const label = prompt.split(',')[0].slice(0, 10);
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:${gradient1};stop-opacity:1" />
+          <stop offset="100%" style="stop-color:${gradient2};stop-opacity:1" />
+        </linearGradient>
+        <filter id="noise">
+          <feTurbulence type="fractalNoise" baseFrequency="0.6" stitchTiles="stitch" />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grad)" />
+      ${shapes}
+      <rect width="100%" height="100%" filter="url(#noise)" opacity="0.05" />
+      <text x="50%" y="50%" dy=".35em" text-anchor="middle" font-family="Arial, sans-serif" font-size="${Math.min(w, h) * 0.05}" fill="white" font-weight="bold" opacity="0.8" letter-spacing="2">
+        ${label}
+      </text>
+    </svg>
+  `;
+  
+  return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
+};
 
 export const MOCK_PROJECT_CASES: ProjectCase[] = [
   {
@@ -19,14 +100,14 @@ export const MOCK_PROJECT_CASES: ProjectCase[] = [
     year: '2023',
     category: '游戏娱乐',
     description: '协助某头部游戏厂商，在 2 个月内完成了 50+ 个核心角色的概念设计与立绘细化，统一了美术风格，确保了项目如期上线。',
-    coverImage: getImage('game_art_fantasy', 800, 600),
+    coverImage: getImage('Fantasy Game Art'),
     results: [
       { label: '产能提升', value: '200%' },
       { label: '美术定档', value: '提前2周' }
     ],
     clientTestimonial: {
       text: "薪画社的画师资源非常丰富，且质量极高。不仅解决了我们的产能缺口，还提供了许多极具创意的设计方案。",
-      author: "陈制作, 《幻界》项目组"
+      author: "陈制作"
     }
   },
   {
@@ -35,14 +116,14 @@ export const MOCK_PROJECT_CASES: ProjectCase[] = [
     year: '2023',
     category: '品牌设计',
     description: '为新锐护肤品牌 Bloom 打造全新的品牌视觉识别系统 (VI)，包括 Logo、包装、线下门店物料及社交媒体规范。',
-    coverImage: getImage('brand_minimal', 800, 600),
+    coverImage: getImage('Skincare Brand'),
     results: [
       { label: '品牌溢价', value: '+35%' },
       { label: '点击率', value: '2.5x' }
     ],
     clientTestimonial: {
       text: "设计师精准地捕捉到了我们要传达的‘自然、纯粹’理念，新包装上市后销量显著增长。",
-      author: "Sarah, 品牌总监"
+      author: "Sarah"
     }
   },
   {
@@ -51,14 +132,14 @@ export const MOCK_PROJECT_CASES: ProjectCase[] = [
     year: '2023',
     category: '3D/动画',
     description: '为 2023 未来科技峰会制作了开场 CG 及全套 3D 动态视觉物料，营造了极具沉浸感的科技氛围。',
-    coverImage: getImage('3d_abstract_tech', 800, 600),
+    coverImage: getImage('Tech Conference 3D'),
     results: [
       { label: '视觉震撼', value: 'S级' },
       { label: '传播声量', value: '10w+' }
     ],
     clientTestimonial: {
       text: "非常高效的团队，在极短的时间内交付了电影级品质的 3D 动画，现场效果非常震撼。",
-      author: "李经理, 市场部"
+      author: "李经理"
     }
   },
   {
@@ -67,14 +148,14 @@ export const MOCK_PROJECT_CASES: ProjectCase[] = [
     year: '2023',
     category: '插画绘本',
     description: '为知名儿童文学作家的新作创作全套 20 幅手绘风格插画，细腻温馨的画风深受读者喜爱，助力新书首月销量破 5 万册。',
-    coverImage: getImage('illustration_book', 800, 600),
+    coverImage: getImage('Children Book Art'),
     results: [
       { label: '销量增长', value: '150%' },
       { label: '读者评分', value: '9.8' }
     ],
     clientTestimonial: {
       text: "画师不仅技法出色，更重要的是读懂了故事的内核，每一幅画都充满了想象力。",
-      author: "林编辑, 出版社"
+      author: "林编辑"
     }
   },
   {
@@ -83,14 +164,14 @@ export const MOCK_PROJECT_CASES: ProjectCase[] = [
     year: '2023',
     category: 'UI/UX',
     description: '对拥有百万用户的金融 App 进行全站体验升级。通过构建设计系统与优化交互流程，显著提升了用户留存率与转化率。',
-    coverImage: getImage('ui_app_interface', 800, 600),
+    coverImage: getImage('Fintech UI Design'),
     results: [
       { label: '转化率', value: '+40%' },
       { label: '用户留存', value: '+25%' }
     ],
     clientTestimonial: {
       text: "非常专业的 UX 团队，新的设计系统极大地提高了我们的开发效率，用户反馈也非常好。",
-      author: "David, 产品总监"
+      author: "David"
     }
   },
   {
@@ -99,14 +180,14 @@ export const MOCK_PROJECT_CASES: ProjectCase[] = [
     year: '2023',
     category: '营销素材',
     description: '为头部电商平台打造双 11 全渠道营销视觉。包含 C4D 场景搭建、动态海报及 H5 页面设计，营造了极具冲击力的消费氛围。',
-    coverImage: getImage('3d_commerce_neon', 800, 600),
+    coverImage: getImage('Ecommerce 3D Poster'),
     results: [
       { label: '点击率', value: '3.8%' },
       { label: 'GMV贡献', value: '2亿+' }
     ],
     clientTestimonial: {
       text: "视觉效果非常震撼，完美契合了我们要传达的‘未来消费’理念，为大促带来了巨大的流量。",
-      author: "赵经理, 运营部"
+      author: "赵经理"
     }
   }
 ];
@@ -162,7 +243,7 @@ export const MOCK_PROJECTS: Project[] = [
     description: '寻找擅长国潮风格的插画师，设计一套新年礼盒的包装主视觉。需要包含龙年元素，色彩喜庆但不俗气。',
     category: '插画',
     tags: ['国潮', '包装设计', '节日'],
-    coverImage: getImage('pkg_red_festive', 800, 600)
+    coverImage: getImage('New Year Box')
   },
   {
     id: 'p2',
@@ -176,7 +257,7 @@ export const MOCK_PROJECTS: Project[] = [
     description: '手游项目，需求赛博朋克风格的女性角色立绘，需要拆分图层，用于Live2D制作。',
     category: '游戏原画',
     tags: ['二次元', '赛博朋克', '角色设计'],
-    coverImage: getImage('game_cyberpunk_char', 800, 600)
+    coverImage: getImage('Cyberpunk Character')
   },
   {
     id: 'p3',
@@ -190,7 +271,7 @@ export const MOCK_PROJECTS: Project[] = [
     description: '对现有官网进行改版，要求风格简洁大气，符合国际化咨询公司的定位。包含首页、关于我们、服务案例等 10+ 页面。',
     category: 'UI/UX',
     tags: ['Web设计', 'B端', '极简'],
-    coverImage: getImage('ui_web_clean', 800, 600)
+    coverImage: getImage('Corporate Website UI')
   },
   {
     id: 'p4',
@@ -204,7 +285,7 @@ export const MOCK_PROJECTS: Project[] = [
     description: '运动健康类 APP，需要一个 5秒 的 3D 启动动画，体现活力与科技感。',
     category: '3D/动画',
     tags: ['C4D', '动态设计', '运动'],
-    coverImage: getImage('3d_motion_abstract', 800, 600)
+    coverImage: getImage('Fitness App 3D')
   },
   {
     id: 'p5',
@@ -218,7 +299,7 @@ export const MOCK_PROJECTS: Project[] = [
     description: '为生鲜超市设计一个亲民、可爱的吉祥物形象，需延展 3 个动作表情。',
     category: '品牌设计',
     tags: ['IP设计', '卡通', '吉祥物'],
-    coverImage: getImage('mascot_cute_toy', 800, 600)
+    coverImage: getImage('Cute Mascot Design')
   },
   {
     id: 'p6',
@@ -232,7 +313,7 @@ export const MOCK_PROJECTS: Project[] = [
     description: '双11大促主会场头图背景，需要搭建高精度的 C4D 场景，风格梦幻唯美。',
     category: '3D/动画',
     tags: ['电商设计', 'C4D', '合成'],
-    coverImage: getImage('3d_scene_stage', 800, 600)
+    coverImage: getImage('Ecommerce 3D Stage')
   },
   {
     id: 'p7',
@@ -246,7 +327,7 @@ export const MOCK_PROJECTS: Project[] = [
     description: '需要一位经验丰富的画师+建模师（或团队），制作一套高精度的虚拟主播皮套。风格参考 Hololive，需要包含 5 种表情和 3 种发型切换。',
     category: '游戏原画',
     tags: ['Live2D', '虚拟主播', '二次元'],
-    coverImage: getImage('vtuber_live2d', 800, 600)
+    coverImage: getImage('Vtuber Model')
   },
   {
     id: 'p8',
@@ -260,7 +341,119 @@ export const MOCK_PROJECTS: Project[] = [
     description: '为我们的圣诞季和春节季设计两款限定杯套。风格需温馨治愈，符合品牌调性。',
     category: '插画',
     tags: ['包装设计', '节日', '治愈系'],
-    coverImage: getImage('coffee_cup_art', 800, 600)
+    coverImage: getImage('Coffee Cup Design')
+  },
+  {
+    id: 'p9',
+    title: 'SaaS 系统图标库设计',
+    client: '云图科技',
+    status: '招募中',
+    budget: 8000,
+    deadline: '2023-11-30',
+    progress: 0,
+    phase: '报名筛选',
+    description: '设计一套适用于 B 端后台管理系统的线性图标，需包含 200+ 个常用图标（如导航、操作、状态等），风格需统一、简洁。',
+    category: 'UI/UX',
+    tags: ['图标设计', '系统规范', '线性'],
+    coverImage: getImage('SaaS Icon Set')
+  },
+  {
+    id: 'p10',
+    title: '科幻小说《星渊》封面插画',
+    client: '磨铁图书',
+    status: '已完结',
+    budget: 4000,
+    deadline: '2023-10-15',
+    progress: 100,
+    phase: '交付完成',
+    description: '实体书封面，画面需展现深空探索的孤独感与宏大感。核心元素：宇航员、黑洞、远古遗迹。',
+    category: '插画',
+    tags: ['书籍装帧', '科幻', '厚涂'],
+    coverImage: getImage('SciFi Book Cover')
+  },
+  {
+    id: 'p11',
+    title: '智能耳机新品宣发短片剪辑',
+    client: 'SonicGear',
+    status: '招募中',
+    budget: 22000,
+    deadline: '2023-12-05',
+    progress: 0,
+    phase: '报名筛选',
+    description: '根据提供的拍摄素材，剪辑一支 30秒 的快节奏产品预告片。需要制作片头特效和卡点转场，体现产品的降噪功能。',
+    category: '视频/后期',
+    tags: ['视频剪辑', '特效包装', '数码'],
+    coverImage: getImage('Video Editing Interface')
+  },
+  {
+    id: 'p12',
+    title: '开放世界游戏环境概念图',
+    client: '游族网络',
+    status: '进行中',
+    budget: 12000,
+    deadline: '2023-12-10',
+    progress: 30,
+    phase: '草图探索',
+    description: '绘制一张废土风格的城市遗迹概念图，用于确定场景美术基调。要求表现出植被覆盖废墟的氛围感。',
+    category: '游戏原画',
+    tags: ['场景原画', '废土', '概念设计'],
+    coverImage: getImage('Wasteland Concept Art')
+  },
+  {
+    id: 'p13',
+    title: '新中式茶饮品牌 Logo 升级',
+    client: '茗刻',
+    status: '招募中',
+    budget: 10000,
+    deadline: '2023-11-18',
+    progress: 0,
+    phase: '报名筛选',
+    description: '原有 Logo 形象老化，需要结合现代审美进行品牌升级。保留“茶”字元素，风格需简约、高级，带有东方韵味。',
+    category: '品牌设计',
+    tags: ['Logo设计', '品牌VI', '新中式'],
+    coverImage: getImage('Tea Brand Logo')
+  },
+  {
+    id: 'p14',
+    title: '社交 APP 动态表情包绘制',
+    client: '连信',
+    status: '已完结',
+    budget: 3500,
+    deadline: '2023-09-20',
+    progress: 100,
+    phase: '交付完成',
+    description: '设计一组（16个）萌宠主题的动态表情包，画风需可爱、夸张，易于传播。',
+    category: '插画',
+    tags: ['表情包', 'Q版', '逐帧动画'],
+    coverImage: getImage('Emoji Stickers')
+  },
+  {
+    id: 'p15',
+    title: 'Web3 数字藏品平台首页设计',
+    client: 'MetaArt',
+    status: '招募中',
+    budget: 20000,
+    deadline: '2023-12-01',
+    progress: 0,
+    phase: '报名筛选',
+    description: '打造极具未来感和科技感的 NFT 交易平台首页，需适配深色模式，注重交互动效的设计。',
+    category: 'UI/UX',
+    tags: ['Web3', 'UI设计', '暗黑风'],
+    coverImage: getImage('NFT Marketplace UI')
+  },
+  {
+    id: 'p16',
+    title: '智能手表 3D 产品渲染图',
+    client: '极客数码',
+    status: '招募中',
+    budget: 10000,
+    deadline: '2023-11-12',
+    progress: 0,
+    phase: '报名筛选',
+    description: '制作 5 张智能手表的高精度产品渲染图，用于电商详情页。需体现金属质感与屏幕的高级感，包含 2 张场景图。',
+    category: '3D/动画',
+    tags: ['产品渲染', 'C4D', 'OC渲染'],
+    coverImage: getImage('Smartwatch Render')
   }
 ];
 
@@ -344,7 +537,8 @@ export const MOCK_ARTWORKS: Artwork[] = RAW_ARTWORK_DATA.map((item, index) => ({
   title: item.title,
   artist: item.artist,
   artistAvatar: getAvatar(item.artist),
-  imageUrl: getImage(item.id, item.dims.w, item.dims.h),
+  // Pass title + tags as prompt to generate relevant image
+  imageUrl: getImage(`${item.title}, ${item.tags.join(', ')}`, item.dims.w, item.dims.h),
   likes: Math.floor(Math.random() * 5000) + 100,
   views: Math.floor(Math.random() * 50000) + 1000,
   tags: item.tags,
@@ -382,7 +576,7 @@ export const MOCK_ENTERPRISE_PROFILE: EnterpriseProfile = {
   size: '500-1000人',
   founded: '2015年',
   website: 'www.technova.com',
-  logo: getImage('tech_office_building', 256, 256),
+  logo: getAvatar('TechNova'),
   coreBusiness: ['SaaS 平台', '移动应用开发', 'AI 解决方案', '数据可视化'],
   history: [
     { year: '2015', title: '公司成立', description: 'TechNova 在北京中关村成立，获得天使轮融资。' },
@@ -430,10 +624,10 @@ export const MOCK_ASSETS: Asset[] = [
     modified: '2023-10-27', 
     version: 'v2.1', 
     tags: ['KV', 'Draft'],
-    url: 'https://picsum.photos/seed/kv_draft/1920/1080',
+    url: getImage('Key Visual Draft'),
     versions: [
-      { id: 'v1', version: 'v1.0', url: 'https://picsum.photos/seed/kv_draft_v1/1920/1080', size: '8.0 MB', createdAt: '2023-10-20', author: 'Admin' },
-      { id: 'v2', version: 'v2.0', url: 'https://picsum.photos/seed/kv_draft/1920/1080', size: '8.5 MB', createdAt: '2023-10-25', author: 'Designer_A', changeLog: 'Adjusted color balance' }
+      { id: 'v1', version: 'v1.0', url: getImage('Key Visual Draft v1'), size: '8.0 MB', createdAt: '2023-10-20', author: 'Admin' },
+      { id: 'v2', version: 'v2.0', url: getImage('Key Visual Draft v2'), size: '8.5 MB', createdAt: '2023-10-25', author: 'Designer_A', changeLog: 'Adjusted color balance' }
     ],
     annotations: [
       { id: 'a1', x: 20, y: 30, content: "Logo 位置太靠左了，建议居中", author: "Product Manager", createdAt: "2023-10-27 10:00" },
@@ -447,16 +641,16 @@ export const MOCK_ASSETS: Asset[] = [
   { id: '5', parentId: 'f3', name: 'Brand_Guidelines.pdf', type: 'doc', size: '15 MB', modified: '2023-09-10', version: 'v2.0', tags: ['VI'] },
 
   // FILES IN Marketing/2024_Q1_Campaign/Social_Media
-  { id: '6', parentId: 'f4', name: 'Instagram_Post_01.jpg', type: 'image', size: '2.1 MB', modified: '2023-10-26', version: 'v1.0', tags: ['Social'], url: 'https://picsum.photos/seed/insta_1/1080/1080' },
-  { id: '7', parentId: 'f4', name: 'Instagram_Post_02.jpg', type: 'image', size: '2.3 MB', modified: '2023-10-26', version: 'v1.0', tags: ['Social'], url: 'https://picsum.photos/seed/insta_2/1080/1080' },
+  { id: '6', parentId: 'f4', name: 'Instagram_Post_01.jpg', type: 'image', size: '2.1 MB', modified: '2023-10-26', version: 'v1.0', tags: ['Social'], url: getImage('Social Media Post 1') },
+  { id: '7', parentId: 'f4', name: 'Instagram_Post_02.jpg', type: 'image', size: '2.3 MB', modified: '2023-10-26', version: 'v1.0', tags: ['Social'], url: getImage('Social Media Post 2') },
 
   // NEW FILES IN Development/UI_Assets
-  { id: '8', parentId: 'f6', name: 'Login_Screen.png', type: 'image', size: '3.2 MB', modified: '2023-10-28', version: 'v1.0', tags: ['UI'], url: 'https://picsum.photos/seed/login_ui/1280/800' },
-  { id: '9', parentId: 'f6', name: 'Dashboard_Mockup.png', type: 'image', size: '4.5 MB', modified: '2023-10-28', version: 'v2.0', tags: ['UI', 'Dashboard'], url: 'https://picsum.photos/seed/dashboard_ui/1920/1080' },
+  { id: '8', parentId: 'f6', name: 'Login_Screen.png', type: 'image', size: '3.2 MB', modified: '2023-10-28', version: 'v1.0', tags: ['UI'], url: getImage('Login UI') },
+  { id: '9', parentId: 'f6', name: 'Dashboard_Mockup.png', type: 'image', size: '4.5 MB', modified: '2023-10-28', version: 'v2.0', tags: ['UI', 'Dashboard'], url: getImage('Dashboard UI') },
 
   // NEW FILES IN Development/Sprites
-  { id: '10', parentId: 'f7', name: 'Hero_Idle.gif', type: 'image', size: '1.2 MB', modified: '2023-10-29', version: 'v1.0', tags: ['Sprite'], url: 'https://picsum.photos/seed/hero_idle/256/256' },
-  { id: '11', parentId: 'f7', name: 'Enemy_Run.gif', type: 'image', size: '1.1 MB', modified: '2023-10-29', version: 'v1.0', tags: ['Sprite'], url: 'https://picsum.photos/seed/enemy_run/256/256' },
+  { id: '10', parentId: 'f7', name: 'Hero_Idle.gif', type: 'image', size: '1.2 MB', modified: '2023-10-29', version: 'v1.0', tags: ['Sprite'], url: getImage('Pixel Sprite Hero') },
+  { id: '11', parentId: 'f7', name: 'Enemy_Run.gif', type: 'image', size: '1.1 MB', modified: '2023-10-29', version: 'v1.0', tags: ['Sprite'], url: getImage('Pixel Sprite Enemy') },
 ];
 
 export const MOCK_TASKS: Task[] = [
@@ -509,7 +703,7 @@ export const CHART_DATA_PERSONAL_SPENDING = [
 
 export const MOCK_USERS_ADMIN_VIEW: User[] = [
   { id: 'u1', name: '系统管理员', email: 'admin@xinhuashe.com', role: 'root_admin', roleName: '超级管理员', status: 'active', avatar: getAvatar('Admin'), permissions: [], isAuthenticated: true, creditScore: 999 },
-  { id: 'u2', name: '科技创造', email: 'contact@technova.com', role: 'enterprise', roleName: '企业主', status: 'active', avatar: getImage('company_avatar', 128, 128), permissions: [], isAuthenticated: true, creditScore: 850 },
+  { id: 'u2', name: '科技创造', email: 'contact@technova.com', role: 'enterprise', roleName: '企业主', status: 'active', avatar: getAvatar('TechNova'), permissions: [], isAuthenticated: true, creditScore: 850 },
   { id: 'u3', name: '夜色霓虹', email: 'neon@art.com', role: 'creator', roleName: '创作者', status: 'active', avatar: getAvatar('夜色霓虹'), permissions: [], isAuthenticated: true, creditScore: 720 },
   { id: 'u4', name: '违规账号', email: 'spam@bot.com', role: 'general', roleName: '普通用户', status: 'banned', avatar: getAvatar('SpamUser'), permissions: [], isAuthenticated: true, creditScore: 300 },
 ];
@@ -525,14 +719,14 @@ export const MOCK_VERIFICATION_REQUESTS: VerificationRequest[] = [
     id: 'v1', userId: 'u5', userName: '张三 (申请中)', userAvatar: getAvatar('ZhangSan'), 
     type: 'personal', status: 'pending', submitTime: '2023-10-25 10:00',
     realName: '张三', idCardNumber: '110101199001011234', 
-    idCardFront: 'https://placehold.co/400x250/e2e8f0/64748b?text=ID+Front', 
-    idCardBack: 'https://placehold.co/400x250/e2e8f0/64748b?text=ID+Back'
+    idCardFront: getImage('ID Front', 400, 250), 
+    idCardBack: getImage('ID Back', 400, 250)
   },
   {
     id: 'v2', userId: 'u6', userName: '创意工作室', userAvatar: getAvatar('CreativeStudio'),
     type: 'enterprise', status: 'pending', submitTime: '2023-10-24 16:30',
     companyName: '北京创意无限科技有限公司', creditCode: '91110105MA000000XX', legalRep: '李四',
-    businessLicense: 'https://placehold.co/300x400/e2e8f0/64748b?text=License'
+    businessLicense: getImage('License', 300, 400)
   },
   {
     id: 'v3', userId: 'u3', userName: '夜色霓虹', userAvatar: getAvatar('夜色霓虹'),
@@ -545,6 +739,14 @@ export const MOCK_CREATORS: Creator[] = [
   { id: 'c2', name: '墨染流年', avatar: getAvatar('墨染流年'), tags: ['Ink', 'Traditional', 'Character'], followers: 8900, isVerified: true, trend: 'stable', weeklyGrowth: 200, hotScore: 850, rank: 2 },
   { id: 'c3', name: '低多边形建造者', avatar: getAvatar('低多边形建造者'), tags: ['3D', 'LowPoly', 'Scene'], followers: 15000, isVerified: true, trend: 'up', weeklyGrowth: 1200, hotScore: 920, rank: 3 },
   { id: 'c4', name: '界面魔术师', avatar: getAvatar('界面魔术师'), tags: ['UI/UX', 'Web', 'B2B'], followers: 6000, isVerified: false, trend: 'down', weeklyGrowth: 50, hotScore: 600, rank: 4 },
+  { id: 'c5', name: '造梦铁匠铺', avatar: getAvatar('造梦铁匠铺'), tags: ['Game Art', 'Fantasy', 'Concept'], followers: 10200, isVerified: true, trend: 'up', weeklyGrowth: 600, hotScore: 890, rank: 5 },
+  { id: 'c6', name: '绘梦的小蓝', avatar: getAvatar('绘梦的小蓝'), tags: ['Illustration', 'Surreal', 'Digital'], followers: 9500, isVerified: true, trend: 'stable', weeklyGrowth: 300, hotScore: 870, rank: 6 },
+  { id: 'c7', name: '流体实验室', avatar: getAvatar('流体实验室'), tags: ['3D', 'Abstract', 'C4D'], followers: 11000, isVerified: true, trend: 'up', weeklyGrowth: 750, hotScore: 910, rank: 7 },
+  { id: 'c8', name: '纯粹设计', avatar: getAvatar('纯粹设计'), tags: ['Branding', 'Packaging', 'Minimal'], followers: 5000, isVerified: false, trend: 'stable', weeklyGrowth: 150, hotScore: 500, rank: 8 },
+  { id: 'c9', name: '像素君', avatar: getAvatar('像素君'), tags: ['Game Art', 'Pixel', 'Retro'], followers: 7200, isVerified: true, trend: 'up', weeklyGrowth: 400, hotScore: 780, rank: 9 },
+  { id: 'c10', name: '机甲核心', avatar: getAvatar('机甲核心'), tags: ['Game Art', 'Sci-Fi', 'Character'], followers: 8100, isVerified: true, trend: 'up', weeklyGrowth: 500, hotScore: 820, rank: 10 },
+  { id: 'c11', name: '赛博观察者', avatar: getAvatar('赛博观察者'), tags: ['Game Art', 'Cyberpunk', 'Cityscape'], followers: 6800, isVerified: false, trend: 'stable', weeklyGrowth: 220, hotScore: 750, rank: 11 },
+  { id: 'c12', name: '森之语', avatar: getAvatar('森之语'), tags: ['Game Art', 'Nature', 'Fantasy'], followers: 5900, isVerified: false, trend: 'down', weeklyGrowth: 80, hotScore: 650, rank: 12 },
 ];
 
 // Helper Function
@@ -555,10 +757,8 @@ export const getProfileById = (profileId: string): UserProfile => {
     id: profileId,
     userId: isCreator ? 'u3' : 'u2',
     displayName: isCreator ? (profileId.includes('p_ink') ? '墨染流年' : '夜色霓虹') : 'TechNova 科技',
-    avatar: isCreator ? (profileId.includes('p_ink') ? getAvatar('墨染流年') : getAvatar('夜色霓虹')) : getImage('tech_logo', 128, 128),
-    coverImage: isCreator 
-      ? getImage('neon_city_night', 1200, 400)
-      : getImage('modern_office_space', 1200, 400),
+    avatar: isCreator ? (profileId.includes('p_ink') ? getAvatar('墨染流年') : getAvatar('夜色霓虹')) : getAvatar('TechNova'),
+    coverImage: getImage(isCreator ? 'Cyberpunk Art' : 'Modern Office'),
     bio: isCreator 
       ? '热衷于探索光影与色彩的数字艺术家，擅长赛博朋克与未来主义风格。' 
       : '专注 AI 与大数据的科技创新企业，期待与优秀的创意人才合作。',

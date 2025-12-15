@@ -1,17 +1,14 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { 
-  Plus, MoreHorizontal, Calendar, MessageSquare, Paperclip, 
-  CheckCircle2, Circle, Clock, AlertCircle, Search, Filter,
-  X, AlignLeft, Send, User, Tag, ChevronDown, SlidersHorizontal, Archive, LayoutList, Loader2, Flame,
-  Download, Image as ImageIcon
+  X, AlignLeft, Send, MessageSquare, Paperclip, 
+  Calendar, Download, Image as ImageIcon, Plus
 } from 'lucide-react';
-import { ProjectService } from '../services/ProjectService';
-import { MOCK_TASKS, MOCK_PROJECT_CASES } from '../constants'; 
-import { Project, Task, TaskStatus, TaskPriority } from '../types';
+import { Task } from '../types';
+import { getAvatar } from '../mockData'; // Import local avatar generator
 
-// === HELPER COMPONENTS ===
-
+// ... existing helper components ...
 const PriorityBadge = ({ priority }: { priority: Task['priority'] }) => {
   const colors = {
     high: 'bg-red-100 text-red-700',
@@ -26,93 +23,6 @@ const PriorityBadge = ({ priority }: { priority: Task['priority'] }) => {
   return <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${colors[priority]}`}>{labels[priority]}</span>;
 };
 
-const TaskCard: React.FC<{ task: Task; onClick: (task: Task) => void }> = ({ task, onClick }) => {
-  const statusColors = {
-    'todo': 'border-l-slate-300',
-    'in-progress': 'border-l-blue-500',
-    'review': 'border-l-amber-500',
-    'done': 'border-l-emerald-500'
-  };
-
-  const isUrgent = () => {
-    // Handle mock date format "MM月DD日"
-    const match = task.dueDate.match(/(\d{1,2})月(\d{1,2})日/);
-    if (match) {
-      const now = new Date();
-      const currentYear = now.getFullYear();
-      const month = parseInt(match[1], 10) - 1;
-      const day = parseInt(match[2], 10);
-      
-      const deadline = new Date(currentYear, month, day, 23, 59, 59);
-      const diff = deadline.getTime() - now.getTime();
-      // Within 24 hours (86400000ms) and strictly in the future
-      return diff > 0 && diff <= 86400000;
-    }
-    return false;
-  };
-
-  const urgent = isUrgent();
-
-  return (
-    <div 
-      onClick={() => onClick(task)} 
-      className={`
-        bg-white p-3 rounded-lg shadow-sm border border-slate-200 border-l-[3px] ${statusColors[task.status]} 
-        hover:shadow-lg hover:scale-[1.02] hover:border-indigo-300 hover:z-10
-        transition-all duration-200 ease-in-out
-        cursor-pointer group 
-        active:scale-95 active:ring-2 active:ring-indigo-500/30
-        relative overflow-hidden 
-        ${urgent ? 'ring-1 ring-red-100 bg-red-50/10' : ''}
-      `}
-    >
-      <div className="flex justify-between items-start mb-2">
-        <PriorityBadge priority={task.priority} />
-        {urgent && (
-          <div className="flex items-center gap-1.5 animate-pulse bg-red-50 px-2 py-0.5 rounded-full border border-red-100 shadow-sm">
-             <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-             <span className="text-[10px] font-bold text-red-600">24h 截止</span>
-          </div>
-        )}
-      </div>
-      <h4 className="text-sm font-semibold text-slate-800 mb-3">{task.title}</h4>
-      <div className="flex items-center justify-between mt-3 text-xs text-slate-400">
-         <div className="flex gap-3">
-            <span className="flex items-center gap-1"><MessageSquare className="w-3 h-3"/> {task.comments}</span>
-            <span className="flex items-center gap-1"><Paperclip className="w-3 h-3"/> {task.attachments}</span>
-         </div>
-         <div className="flex items-center gap-2">
-            <span className={`text-[10px] flex items-center gap-1 ${urgent ? 'text-red-500 font-bold' : ''}`}>
-               {urgent && <AlertCircle className="w-3 h-3 fill-current text-red-100" />}
-               {task.dueDate}
-            </span>
-            <img src={task.assigneeAvatar} className="w-6 h-6 rounded-full object-cover" alt="" />
-         </div>
-      </div>
-    </div>
-  );
-};
-
-const KanbanSkeleton = () => (
-  <div className="flex gap-6 min-w-[1000px] h-full pb-4 animate-pulse">
-    {[1, 2, 3, 4].map(i => (
-      <div key={i} className="flex-1 flex flex-col bg-slate-50 rounded-xl p-3 border border-slate-100">
-        <div className="flex justify-between mb-4">
-           <div className="h-6 bg-slate-200 rounded w-24"></div>
-           <div className="h-6 bg-slate-200 rounded w-8"></div>
-        </div>
-        <div className="space-y-3">
-           <div className="h-32 bg-white rounded-lg border border-slate-200"></div>
-           <div className="h-24 bg-white rounded-lg border border-slate-200"></div>
-           <div className="h-40 bg-white rounded-lg border border-slate-200"></div>
-        </div>
-      </div>
-    ))}
-  </div>
-);
-
-// === TASK DETAIL MODAL ===
-
 const TaskDetailModal = ({ task, onClose }: { task: Task; onClose: () => void }) => {
   const [activeTab, setActiveTab] = useState<'comments' | 'attachments'>('comments');
   const [newComment, setNewComment] = useState('');
@@ -121,7 +31,7 @@ const TaskDetailModal = ({ task, onClose }: { task: Task; onClose: () => void })
   const description = "根据项目需求文档，完成该阶段的核心设计任务。请确保遵循品牌视觉规范，并及时同步进度。建议参考项目附件中的设计指南。";
   
   const [mockComments, setMockComments] = useState([
-    { id: 1, user: '项目经理', avatar: 'https://ui-avatars.com/api/?name=PM&background=random', text: '请注意截止日期，客户希望周五前看到初稿。', time: '2小时前' },
+    { id: 1, user: '项目经理', avatar: getAvatar('PM'), text: '请注意截止日期，客户希望周五前看到初稿。', time: '2小时前' },
     { id: 2, user: task.assignee, avatar: task.assigneeAvatar, text: '收到，目前进度正常，预计明天提交。', time: '1小时前' }
   ]);
   
@@ -143,7 +53,7 @@ const TaskDetailModal = ({ task, onClose }: { task: Task; onClose: () => void })
     setMockComments([...mockComments, {
       id: Date.now(),
       user: '我',
-      avatar: 'https://ui-avatars.com/api/?name=Me&background=random',
+      avatar: getAvatar('Me'),
       text: newComment,
       time: '刚刚'
     }]);
@@ -289,80 +199,4 @@ const TaskDetailModal = ({ task, onClose }: { task: Task; onClose: () => void })
   );
 };
 
-// === MAIN VIEW ===
-
-const ProjectsView: React.FC = () => {
-  const [viewMode, setViewMode] = useState<'kanban' | 'archive'>('kanban');
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const loadedTasks = await ProjectService.getTasksByProject('all');
-        setTasks(loadedTasks);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
-
-  const getTasksByStatus = (status: TaskStatus) => tasks.filter(t => t.status === status);
-
-  return (
-    <div className="h-full flex flex-col">
-      {/* Modal */}
-      {selectedTask && <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} />}
-
-      <div className="mb-6 flex justify-between items-end">
-        <div>
-           <h2 className="text-2xl font-bold text-slate-800">项目看板</h2>
-           <p className="text-slate-500 text-sm">管理任务进度与交付</p>
-        </div>
-        <div className="flex gap-2">
-           <button 
-             onClick={() => setViewMode('kanban')} 
-             className={`p-2 rounded transition-colors ${viewMode === 'kanban' ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400 hover:bg-slate-50'}`}
-           >
-             <LayoutList className="w-5 h-5"/>
-           </button>
-           <button 
-             onClick={() => setViewMode('archive')} 
-             className={`p-2 rounded transition-colors ${viewMode === 'archive' ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400 hover:bg-slate-50'}`}
-           >
-             <Archive className="w-5 h-5"/>
-           </button>
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="flex-1 overflow-hidden">
-           <KanbanSkeleton />
-        </div>
-      ) : (
-        <div className="flex-1 overflow-x-auto overflow-y-hidden">
-          <div className="flex gap-6 min-w-[1000px] h-full pb-4">
-            {['todo', 'in-progress', 'review', 'done'].map(status => (
-              <div key={status} className="flex-1 flex flex-col bg-slate-50/50 rounded-xl p-3 border border-slate-100/50">
-                <div className="flex justify-between mb-4 font-bold text-slate-700 px-1">
-                   <span>{status === 'todo' ? '待处理' : status === 'in-progress' ? '进行中' : status === 'review' ? '审核中' : '已完成'}</span>
-                   <span className="bg-slate-200 px-2 rounded text-xs flex items-center text-slate-600">{getTasksByStatus(status as any).length}</span>
-                </div>
-                <div className="space-y-3 overflow-y-auto custom-scrollbar pr-1 flex-1">
-                  {getTasksByStatus(status as any).map(task => (
-                     <TaskCard key={task.id} task={task} onClick={setSelectedTask} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default ProjectsView;
+export default TaskDetailModal;
